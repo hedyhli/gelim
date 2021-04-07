@@ -11,23 +11,92 @@ import (
 	"strings"
 )
 
+type Response struct {
+	status    int
+	meta      string
+	bodyBytes []byte
+}
+
+func printHelp() {
+	fmt.Println("just enter a url")
+	fmt.Println()
+	fmt.Println("commands")
+	fmt.Println("  b    go back")
+	fmt.Println("  q    quit")
+	fmt.Println("\nenter number to go to a link")
+}
+
+func displayGeminiPage(body string, currentURL url.URL) {
+	links := make([]string, 0, 100)
+	preformatted := false
+	for _, line := range strings.Split(body, "\n") {
+		if strings.HasPrefix(line, "```") {
+			preformatted = !preformatted
+		} else if preformatted {
+			fmt.Println(line)
+		} else if strings.HasPrefix(line, "=>") {
+			line = line[2:]
+			bits := strings.Fields(line)
+			parsedLink, err := url.Parse(bits[0])
+			if err != nil {
+				continue
+			}
+			link := currentURL.ResolveReference(parsedLink).String()
+			var label string
+			if len(bits) == 1 {
+				label = link
+			} else {
+				label = strings.Join(bits[1:], " ")
+			}
+			links = append(links, link)
+			fmt.Printf("[%d] %s\n", len(links), label)
+		} else {
+			// This should really be wrapped, but there's
+			// no easy support for this in Go's standard
+			// library
+			fmt.Println(line)
+		}
+	}
+}
+
+func connect(u url.URL) (res Response) {
+	// Connect to server
+	conn, err := tls.Dial("tcp", u.Host+":1965", &tls.Config{InsecureSkipVerify: true})
+	if err != nil {
+		fmt.Println("Failed to connect: " + err.Error())
+		return Response{}
+	}
+	defer conn.Close()
+	// Send request
+	conn.Write([]byte(u.String() + "\r\n"))
+	// Receive and parse response header
+	reader := bufio.NewReader(conn)
+	responseHeader, err := reader.ReadString('\n')
+	parts := strings.Fields(responseHeader)
+	status, err := strconv.Atoi(parts[0][0:1])
+	meta := parts[1]
+	bodyBytes, err := ioutil.ReadAll(reader)
+	return Response{status, meta, bodyBytes}
+}
+
 func main() {
 	stdinReader := bufio.NewReader(os.Stdin)
 	var u string // URL
-	links := make([]string, 0, 100)
 	history := make([]string, 0, 100)
 	for {
-		fmt.Print("> ")
+		fmt.Print("~> ")
 		cmd, _ := stdinReader.ReadString('\n')
 		cmd = strings.TrimSpace(cmd)
 		// Command dispatch
 		switch strings.ToLower(cmd) {
-		case "": // Nothing
+		case "h", "help", "?":
+			printHelp()
 			continue
-		case "q": // Quit
-			fmt.Println("Bye!")
+		case "":
+			continue
+		case "q":
 			os.Exit(0)
-		case "b": // Back
+		case "b":
 			if len(history) < 2 {
 				fmt.Println("No history yet!")
 				continue
@@ -43,89 +112,50 @@ func main() {
 					u = "gemini://" + u
 				}
 			} else {
-				// Treat this as a menu lookup
-				u = links[index-1]
+				// link index lookup
+				//u = links[index-1]
+				fmt.Println("link ", index-1)
 			}
 		}
 		// Parse URL
 		parsed, err := url.Parse(u)
 		if err != nil {
-			fmt.Println("Error parsing URL!")
+			fmt.Println("Error parsing URL")
 			continue
 		}
-		// Connect to server
-		conn, err := tls.Dial("tcp", parsed.Host+":1965", &tls.Config{InsecureSkipVerify: true})
-		if err != nil {
-			fmt.Println("Failed to connect: " + err.Error())
-			continue
-		}
-		defer conn.Close()
-		// Send request
-		conn.Write([]byte(u + "\r\n"))
-		// Receive and parse response header
-		reader := bufio.NewReader(conn)
-		responseHeader, err := reader.ReadString('\n')
-		parts := strings.Fields(responseHeader)
-		status, err := strconv.Atoi(parts[0][0:1])
-		meta := parts[1]
+		// connect and fetch
+		res := connect(*parsed)
 		// Switch on status code
-		switch status {
-		case 1, 3, 6:
-			// No input, redirects or client certs
-			fmt.Println("Unsupported feature!")
+		switch res.status {
+		case 1:
+			fmt.Println("imagine an input prompt here...")
 		case 2:
 			// Successful transaction
 			// text/* content only
-			if !strings.HasPrefix(meta, "text/") {
-				fmt.Println("Unsupported type " + meta)
+			if !strings.HasPrefix(res.meta, "text/") {
+				fmt.Println("Unsupported type " + res.meta)
 				continue
 			}
-			// Read everything
-			bodyBytes, err := ioutil.ReadAll(reader)
+			bodyBytes := res.bodyBytes
 			if err != nil {
 				fmt.Println("Error reading body")
+				fmt.Println(err)
 				continue
 			}
 			body := string(bodyBytes)
-			if meta == "text/gemini" {
-				// Handle Gemini map
-				links = make([]string, 0, 100)
-				preformatted := false
-				for _, line := range strings.Split(body, "\n") {
-					if strings.HasPrefix(line, "```") {
-						preformatted = !preformatted
-					} else if preformatted {
-						fmt.Println(line)
-					} else if strings.HasPrefix(line, "=>") {
-						line = line[2:]
-						bits := strings.Fields(line)
-						parsedLink, err := url.Parse(bits[0])
-						if err != nil {
-							continue
-						}
-						link := parsed.ResolveReference(parsedLink).String()
-						var label string
-						if len(bits) == 1 {
-							label = link
-						} else {
-							label = strings.Join(bits[1:], " ")
-						}
-						links = append(links, link)
-						fmt.Printf("[%d] %s\n", len(links), label)
-					} else {
-						// This should really be wrapped, but there's
-						// no easy support for this in Go's standard
-						// library
-						fmt.Println(line)
-					}
-				}
+			if res.meta == "text/gemini" {
+				displayGeminiPage(body, *parsed)
 			} else {
 				// Just print any other kind of text
 				fmt.Print(body)
 			}
 			history = append(history, u)
+		case 3:
+			fmt.Println("imagine a redirect: " + res.meta)
 		case 4, 5:
-			fmt.Println("ERROR: " + meta)
+			fmt.Println("ERROR: " + res.meta)
+		case 6:
+			fmt.Println("im not good enough in go to implement certs lol")
 		}
 	}
 }
