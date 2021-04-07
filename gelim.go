@@ -17,17 +17,22 @@ type Response struct {
 	bodyBytes []byte
 }
 
+var (
+	links []string = make([]string, 0, 100)
+	history []string = make([]string, 0, 100)
+)
+
 func printHelp() {
-	fmt.Println("just enter a url")
+	fmt.Println("just enter a url to start browsing...")
 	fmt.Println()
 	fmt.Println("commands")
-	fmt.Println("  b    go back")
-	fmt.Println("  q    quit")
+	fmt.Println("  b       go back")
+	fmt.Println("  q, x    quit")
+	fmt.Println("  history view history")
 	fmt.Println("\nenter number to go to a link")
 }
 
 func displayGeminiPage(body string, currentURL url.URL) {
-	links := make([]string, 0, 100)
 	preformatted := false
 	for _, line := range strings.Split(body, "\n") {
 		if strings.HasPrefix(line, "```") {
@@ -41,8 +46,8 @@ func displayGeminiPage(body string, currentURL url.URL) {
 			if err != nil {
 				continue
 			}
-			link := currentURL.ResolveReference(parsedLink).String()
-			var label string
+			link := currentURL.ResolveReference(parsedLink).String() // link url
+			var label string // link text
 			if len(bits) == 1 {
 				label = link
 			} else {
@@ -53,7 +58,7 @@ func displayGeminiPage(body string, currentURL url.URL) {
 		} else {
 			// This should really be wrapped, but there's
 			// no easy support for this in Go's standard
-			// library
+			// library (says solderpunk)
 			fmt.Println(line)
 		}
 	}
@@ -79,12 +84,54 @@ func connect(u url.URL) (res Response) {
 	return Response{status, meta, bodyBytes}
 }
 
+func urlHandler(u string) bool {
+	// Parse URL
+	parsed, err := url.Parse(u)
+	if err != nil {
+		fmt.Println("invalid url")
+		return false
+	}
+	// connect and fetch
+	res := connect(*parsed)
+	// Switch on status code
+	switch res.status {
+	case 1:
+		fmt.Println("imagine an input prompt here...")
+	case 2:
+		// Successful transaction
+		// text/* content only
+		if !strings.HasPrefix(res.meta, "text/") {
+			fmt.Println("Unsupported type " + res.meta)
+			return false
+		}
+		bodyBytes := res.bodyBytes
+		if err != nil {
+			fmt.Println("Error reading body")
+			fmt.Println(err)
+			return false
+		}
+		body := string(bodyBytes)
+		if res.meta == "text/gemini" {
+			displayGeminiPage(body, *parsed)
+		} else {
+			// Just print any other kind of text
+			fmt.Print(body)
+		}
+	case 3:
+		fmt.Println("imagine a redirect: " + res.meta)
+	case 4, 5:
+		fmt.Println("ERROR: " + res.meta)
+	case 6:
+		fmt.Println("im not good enough in go to implement certs lol")
+	}
+	return true
+}
+
 func main() {
 	stdinReader := bufio.NewReader(os.Stdin)
 	var u string // URL
-	history := make([]string, 0, 100)
 	for {
-		fmt.Print("~> ")
+		fmt.Print("url/cmd > ")
 		cmd, _ := stdinReader.ReadString('\n')
 		cmd = strings.TrimSpace(cmd)
 		// Command dispatch
@@ -94,11 +141,18 @@ func main() {
 			continue
 		case "":
 			continue
-		case "q":
+		case "q", "x", "quit", "exit":
 			os.Exit(0)
-		case "b":
+		case "r", "reload":
+			fmt.Println("imagine a reload")
+		case "history":
+			for _, v := range history {
+				fmt.Println(v)
+			}
+		case "b", "back":
 			if len(history) < 2 {
-				fmt.Println("No history yet!")
+				fmt.Println("lol where did you expect to go if you literally just opened me")
+				fmt.Println("(no history yet)")
 				continue
 			}
 			u = history[len(history)-2]
@@ -113,49 +167,15 @@ func main() {
 				}
 			} else {
 				// link index lookup
-				//u = links[index-1]
-				fmt.Println("link ", index-1)
+				if len(links) <= index {
+					fmt.Println("invalid link index, I have", len(links), "links so far")
+					continue
+				}
+				u = links[index-1]
 			}
-		}
-		// Parse URL
-		parsed, err := url.Parse(u)
-		if err != nil {
-			fmt.Println("Error parsing URL")
-			continue
-		}
-		// connect and fetch
-		res := connect(*parsed)
-		// Switch on status code
-		switch res.status {
-		case 1:
-			fmt.Println("imagine an input prompt here...")
-		case 2:
-			// Successful transaction
-			// text/* content only
-			if !strings.HasPrefix(res.meta, "text/") {
-				fmt.Println("Unsupported type " + res.meta)
-				continue
+			if ok := urlHandler(u); ok {
+				history = append(history, u)
 			}
-			bodyBytes := res.bodyBytes
-			if err != nil {
-				fmt.Println("Error reading body")
-				fmt.Println(err)
-				continue
-			}
-			body := string(bodyBytes)
-			if res.meta == "text/gemini" {
-				displayGeminiPage(body, *parsed)
-			} else {
-				// Just print any other kind of text
-				fmt.Print(body)
-			}
-			history = append(history, u)
-		case 3:
-			fmt.Println("imagine a redirect: " + res.meta)
-		case 4, 5:
-			fmt.Println("ERROR: " + res.meta)
-		case 6:
-			fmt.Println("im not good enough in go to implement certs lol")
 		}
 	}
 }
