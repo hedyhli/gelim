@@ -18,7 +18,7 @@ type Response struct {
 }
 
 var (
-	links []string = make([]string, 0, 100)
+	links   []string = make([]string, 0, 100)
 	history []string = make([]string, 0, 100)
 )
 
@@ -47,7 +47,7 @@ func displayGeminiPage(body string, currentURL url.URL) {
 				continue
 			}
 			link := currentURL.ResolveReference(parsedLink).String() // link url
-			var label string // link text
+			var label string                                         // link text
 			if len(bits) == 1 {
 				label = link
 			} else {
