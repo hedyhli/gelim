@@ -120,12 +120,13 @@ func urlHandler(u string) bool {
 			fmt.Print(body)
 		}
 	case 3:
-		urlHandler(res.meta) // TODO: max redirect times
+		return urlHandler(res.meta) // TODO: max redirect times
 	case 4, 5:
 		fmt.Println("ERROR: " + res.meta)
 	case 6:
 		fmt.Println("im not good enough in go to implement certs lol")
 	}
+	history = append(history, u)
 	return true
 }
 
@@ -148,9 +149,12 @@ func main() {
 		case "r", "reload":
 			urlHandler(history[len(history)-1])
 		case "history":
-			for _, v := range history {
-				fmt.Println(v)
+			for i, v := range history {
+				fmt.Println(i, v)
 			}
+		case "link", "l", "peek":
+			fmt.Println("this will allow you to peek at the link")
+			fmt.Println("TODO: handle args for command")
 		case "b", "back":
 			if len(history) < 2 {
 				fmt.Println("nothing to go back to (try `history` to see history)")
@@ -168,15 +172,13 @@ func main() {
 				}
 			} else {
 				// link index lookup
-				if len(links) <= index {
+				if len(links) < index {
 					fmt.Println("invalid link index, I have", len(links), "links so far")
 					continue
 				}
 				u = links[index-1]
 			}
-			if ok := urlHandler(u); ok {
-				history = append(history, u)
-			}
+			urlHandler(u)
 		}
 	}
 }
