@@ -26,9 +26,10 @@ func printHelp() {
 	fmt.Println("just enter a url to start browsing...")
 	fmt.Println()
 	fmt.Println("commands")
-	fmt.Println("  b       go back")
-	fmt.Println("  q, x    quit")
-	fmt.Println("  history view history")
+	fmt.Println("  b        go back")
+	fmt.Println("  q, x     quit")
+	fmt.Println("  history  view history")
+	fmt.Println("  r        reload")
 	fmt.Println("\nenter number to go to a link")
 }
 
@@ -85,6 +86,7 @@ func connect(u url.URL) (res Response) {
 }
 
 func urlHandler(u string) bool {
+	links = make([]string, 0, 100) // reset links
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
@@ -118,7 +120,7 @@ func urlHandler(u string) bool {
 			fmt.Print(body)
 		}
 	case 3:
-		fmt.Println("imagine a redirect: " + res.meta)
+		urlHandler(res.meta) // TODO: max redirect times
 	case 4, 5:
 		fmt.Println("ERROR: " + res.meta)
 	case 6:
@@ -144,15 +146,14 @@ func main() {
 		case "q", "x", "quit", "exit":
 			os.Exit(0)
 		case "r", "reload":
-			fmt.Println("imagine a reload")
+			urlHandler(history[len(history)-1])
 		case "history":
 			for _, v := range history {
 				fmt.Println(v)
 			}
 		case "b", "back":
 			if len(history) < 2 {
-				fmt.Println("lol where did you expect to go if you literally just opened me")
-				fmt.Println("(no history yet)")
+				fmt.Println("nothing to go back to (try `history` to see history)")
 				continue
 			}
 			u = history[len(history)-2]
