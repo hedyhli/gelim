@@ -96,24 +96,24 @@ func input(u string) {
 	fmt.Print("INPUT> ")
 	query, _ := stdinReader.ReadString('\n')
 	query = strings.TrimSpace(query)
-	u = u +"?" + url.QueryEscape(query)
+	u = u + "?" + url.QueryEscape(query)
 	urlHandler(u)
 }
 
 // displayBody handles the displaying of body bytes for response
 func displayBody(res Response, parsedURL url.URL) {
-		// text/* content only
-		if !strings.HasPrefix(res.meta, "text/") {
-			fmt.Println("Unsupported type " + res.meta)
-			return
-		}
-		body := string(res.bodyBytes)
-		if res.meta == "text/gemini" {
-			displayGeminiPage(body, parsedURL)
-		} else {
-			// Just print any other kind of text
-			fmt.Print(body)
-		}
+	// text/* content only
+	if !strings.HasPrefix(res.meta, "text/") {
+		fmt.Println("Unsupported type " + res.meta)
+		return
+	}
+	body := string(res.bodyBytes)
+	if res.meta == "text/gemini" {
+		displayGeminiPage(body, parsedURL)
+	} else {
+		// Just print any other kind of text
+		fmt.Print(body)
+	}
 }
 
 func urlHandler(u string) bool {
@@ -153,7 +153,7 @@ func main() {
 	// command-line stuff
 	flag.Parse()
 
-	u := flag.Arg(0)  // URL
+	u := flag.Arg(0) // URL
 	if u != "" {
 		if *appendInput != "" {
 			u = u + "?" + url.QueryEscape(*appendInput)
