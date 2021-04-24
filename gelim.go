@@ -9,6 +9,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	flag "github.com/spf13/pflag"
 )
 
 type Response struct {
@@ -21,6 +23,9 @@ var (
 	links   []string = make([]string, 0, 100)
 	history []string = make([]string, 0, 100)
 )
+
+var noInteractive = flag.BoolP("no-interactive", "I", false, "Don't go to the line-mode interface\n")
+var appendInput = flag.StringP("input", "i", "", "Append input to url ('?' + percet-encode input)\n")
 
 func printHelp() {
 	fmt.Println("just enter a url to start browsing...")
@@ -65,12 +70,12 @@ func displayGeminiPage(body string, currentURL url.URL) {
 	}
 }
 
-func connect(u url.URL) (res Response) {
+func connect(u url.URL) (res Response, err error) {
 	// Connect to server
 	conn, err := tls.Dial("tcp", u.Host+":1965", &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
 		fmt.Println("Failed to connect: " + err.Error())
-		return Response{}
+		return Response{}, nil
 	}
 	defer conn.Close()
 	// Send request
@@ -82,7 +87,33 @@ func connect(u url.URL) (res Response) {
 	status, err := strconv.Atoi(parts[0][0:1])
 	meta := parts[1]
 	bodyBytes, err := ioutil.ReadAll(reader)
-	return Response{status, meta, bodyBytes}
+	return Response{status, meta, bodyBytes}, err
+}
+
+// input handles input status codes
+func input(u string) {
+	stdinReader := bufio.NewReader(os.Stdin)
+	fmt.Print("INPUT> ")
+	query, _ := stdinReader.ReadString('\n')
+	query = strings.TrimSpace(query)
+	u = u +"?" + url.QueryEscape(query)
+	urlHandler(u)
+}
+
+// displayBody handles the displaying of body bytes for response
+func displayBody(res Response, parsedURL url.URL) {
+		// text/* content only
+		if !strings.HasPrefix(res.meta, "text/") {
+			fmt.Println("Unsupported type " + res.meta)
+			return
+		}
+		body := string(res.bodyBytes)
+		if res.meta == "text/gemini" {
+			displayGeminiPage(body, parsedURL)
+		} else {
+			// Just print any other kind of text
+			fmt.Print(body)
+		}
 }
 
 func urlHandler(u string) bool {
@@ -94,31 +125,19 @@ func urlHandler(u string) bool {
 		return false
 	}
 	// connect and fetch
-	res := connect(*parsed)
+	res, err := connect(*parsed)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
 	// Switch on status code
 	switch res.status {
 	case 1:
-		fmt.Println("imagine an input prompt here...")
+		fmt.Println()
+		input(u)
+		return false
 	case 2:
-		// Successful transaction
-		// text/* content only
-		if !strings.HasPrefix(res.meta, "text/") {
-			fmt.Println("Unsupported type " + res.meta)
-			return false
-		}
-		bodyBytes := res.bodyBytes
-		if err != nil {
-			fmt.Println("Error reading body")
-			fmt.Println(err)
-			return false
-		}
-		body := string(bodyBytes)
-		if res.meta == "text/gemini" {
-			displayGeminiPage(body, *parsed)
-		} else {
-			// Just print any other kind of text
-			fmt.Print(body)
-		}
+		displayBody(res, *parsed)
 	case 3:
 		return urlHandler(res.meta) // TODO: max redirect times
 	case 4, 5:
@@ -131,8 +150,18 @@ func urlHandler(u string) bool {
 }
 
 func main() {
+	// command-line stuff
+	flag.Parse()
+
+	u := flag.Arg(0)  // URL
+	if u != "" {
+		if *appendInput != "" {
+			u = u + "?" + url.QueryEscape(*appendInput)
+		}
+		urlHandler(u)
+	}
+
 	stdinReader := bufio.NewReader(os.Stdin)
-	var u string // URL
 	for {
 		fmt.Print("url/cmd > ")
 		cmd, _ := stdinReader.ReadString('\n')

@@ -1,2 +1,6 @@
 git.sr.ht/~sircmpwn/scdoc v0.0.0-20210416001520-c7cb8bec38ab h1:c7lUEEzs1LE5fIGODo8E1QAeoZxusEGph6288dQ1QCw=
 git.sr.ht/~sircmpwn/scdoc v0.0.0-20210416001520-c7cb8bec38ab/go.mod h1:CY/TCsr92WPheoQjZ+H3pDn9uNJFO/16Tu0BVtRRgIw=
+github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
+github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
+tildegit.org/sloum/qline v0.0.0-20210404060316-f040d8db6a9e h1:v6bXg41s0X1sruxqo3KNsa8eGgulGHdBfE4/B0HB8EI=
+tildegit.org/sloum/qline v0.0.0-20210404060316-f040d8db6a9e/go.mod h1:c6cDD2ZJiJX3jn3ljBAuWWNce+W46zOP2u4mRAzeHuc=
