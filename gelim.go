@@ -133,7 +133,7 @@ func urlHandler(u string) bool {
 	// Switch on status code
 	switch res.status {
 	case 1:
-		fmt.Println()
+		displayBody(res, *parsed)
 		input(u)
 		return false
 	case 2:
