@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
-	"errors"
+	//"errors"
 	"fmt"
 	"io/ioutil"
 	"mime"
@@ -235,7 +235,10 @@ func main() {
 				continue
 			}
 			u = history[len(history)-2]
-			history = history[0 : len(history)-2]
+			urlHandler(u)
+			history = history[0 : len(history)-3]
+		case "f", "forward":
+			fmt.Println("todo :D")
 		default:
 			index, err := strconv.Atoi(cmd)
 			if err != nil {
