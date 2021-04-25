@@ -62,14 +62,18 @@ func displayGeminiPage(body string, currentURL url.URL) {
 			if err != nil {
 				continue
 			}
-			link := currentURL.ResolveReference(parsedLink).String() // link url
-			var label string                                         // link text
+			link := currentURL.ResolveReference(parsedLink) // link url
+			var label string                                // link text
 			if len(bits) == 1 {
-				label = link
+				label = link.String()
 			} else {
 				label = strings.Join(bits[1:], " ")
 			}
-			links = append(links, link)
+			links = append(links, link.String())
+			if link.Scheme != "gemini" {
+				fmt.Printf("[%d %s] %s\n", len(links), link.Scheme, label)
+				continue
+			}
 			fmt.Printf("[%d] %s\n", len(links), label)
 		} else {
 			// This should really be wrapped, but there's
