@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"mime"
 	"net/url"
 	"os"
 	"strconv"
@@ -15,10 +17,17 @@ import (
 )
 
 type Response struct {
-	status    int
-	meta      string
-	bodyBytes []byte
+	status     int
+	meta       string // not parsed into mediaType and params yet
+	bodyReader *bufio.Reader
 }
+
+// these should be used but atm it isnt, lol
+//var (
+//ErrConnFail       = errors.New("connection failed")
+//ErrInvalidStatus  = errors.New("invalid status code")
+//ErrDecodeMetaFail = errors.New("failed to decode meta header")
+//)
 
 var (
 	links   []string = make([]string, 0, 100)
@@ -71,26 +80,6 @@ func displayGeminiPage(body string, currentURL url.URL) {
 	}
 }
 
-func connect(u url.URL) (res Response, err error) {
-	// Connect to server
-	conn, err := tls.Dial("tcp", u.Host+":1965", &tls.Config{InsecureSkipVerify: true})
-	if err != nil {
-		fmt.Println("Failed to connect: " + err.Error())
-		return Response{}, nil
-	}
-	defer conn.Close()
-	// Send request
-	conn.Write([]byte(u.String() + "\r\n"))
-	// Receive and parse response header
-	reader := bufio.NewReader(conn)
-	responseHeader, err := reader.ReadString('\n')
-	parts := strings.Fields(responseHeader)
-	status, err := strconv.Atoi(parts[0][0:1])
-	meta := parts[1]
-	bodyBytes, err := ioutil.ReadAll(reader)
-	return Response{status, meta, bodyBytes}, err
-}
-
 // input handles input status codes
 func input(u string) (ok bool) {
 	stdinReader := bufio.NewReader(os.Stdin)
@@ -101,15 +90,36 @@ func input(u string) (ok bool) {
 	return urlHandler(u)
 }
 
+// parseMeta returns the output of mime.ParseMediaType, but handles the empty
+// META which is equal to "text/gemini; charset=utf-8" according to the spec.
+func parseMeta(meta string) (string, map[string]string, error) {
+	if meta == "" {
+		return "text/gemini", make(map[string]string), nil
+
+	}
+
+	mediatype, params, err := mime.ParseMediaType(meta)
+
+	if mediatype != "" && err != nil {
+		// The mediatype was successfully decoded but there's some error with the params
+		// Ignore the params
+		return mediatype, make(map[string]string), nil
+
+	}
+	return mediatype, params, err
+
+}
+
 // displayBody handles the displaying of body bytes for response
-func displayBody(res Response, parsedURL url.URL) {
-	// text/* content only
-	if !strings.HasPrefix(res.meta, "text/") {
-		fmt.Println("Unsupported type " + res.meta)
+func displayBody(bodyBytes []byte, mediaType string, parsedURL url.URL) {
+	// text/* content only for now
+	// TODO: support more media types
+	if !strings.HasPrefix(mediaType, "text/") {
+		fmt.Println("Unsupported type " + mediaType)
 		return
 	}
-	body := string(res.bodyBytes)
-	if res.meta == "text/gemini" {
+	body := string(bodyBytes)
+	if mediaType == "text/gemini" {
 		displayGeminiPage(body, parsedURL)
 	} else {
 		// Just print any other kind of text
@@ -118,27 +128,51 @@ func displayBody(res Response, parsedURL url.URL) {
 }
 
 func urlHandler(u string) bool {
-	links = make([]string, 0, 100) // reset links
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
 		fmt.Println("invalid url")
 		return false
 	}
-	// connect and fetch
-	res, err := connect(*parsed)
+	// Connect to server
+	conn, err := tls.Dial("tcp", parsed.Host+":1965", &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("unable to connect to", parsed.Host, ":", err)
 		return false
 	}
-	// Switch on status code
+	defer conn.Close()
+	// Send request
+	conn.Write([]byte(parsed.String() + "\r\n"))
+	// Receive and parse response header
+	reader := bufio.NewReader(conn)
+	responseHeader, err := reader.ReadString('\n')
+	// Parse header
+	parts := strings.Fields(responseHeader)
+	status, err := strconv.Atoi(parts[0][0:1])
+	if err != nil {
+		fmt.Println("invalid status code:", parts[0][0:1])
+		return false
+	}
+	meta := strings.Join(parts[1:], " ")
+	res := Response{status, meta, reader}
+
+	links = make([]string, 0, 100) // reset links
+
 	switch res.status {
 	case 1:
 		fmt.Println(res.meta)
-		displayBody(res, *parsed)
 		return input(u)
 	case 2:
-		displayBody(res, *parsed)
+		mediaType, _, err := parseMeta(res.meta) // what to do with params
+		if err != nil {
+			fmt.Println("Unable to parse header meta\"", res.meta, "\":", err)
+			return false
+		}
+		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
+		if err != nil {
+			fmt.Println("Unable to read body.", err)
+		}
+		displayBody(bodyBytes, mediaType, *parsed) // does it need params?
 	case 3:
 		return urlHandler(res.meta) // TODO: max redirect times
 	case 4, 5:
