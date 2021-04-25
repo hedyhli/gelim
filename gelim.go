@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	flag "github.com/spf13/pflag"
+	"github.com/MarekStancik/readline"
 )
 
 type Response struct {
@@ -161,11 +162,18 @@ func main() {
 		urlHandler(u)
 	}
 
-	stdinReader := bufio.NewReader(os.Stdin)
+	rl, err := readline.New("url/cmd, ? for help > ")
+	if err != nil {
+		panic(err)
+
+	}
+	defer rl.Close()
+
 	for {
-		fmt.Print("url/cmd > ")
-		cmd, _ := stdinReader.ReadString('\n')
-		cmd = strings.TrimSpace(cmd)
+		cmd, err := rl.Readline()
+		if err != nil {
+			break
+		}
 		// Command dispatch
 		switch strings.ToLower(cmd) {
 		case "h", "help", "?":
@@ -197,17 +205,17 @@ func main() {
 				// Treat this as a URL
 				u = cmd
 				if !strings.HasPrefix(u, "gemini://") {
-					u = "gemini://" + u
-				}
-			} else {
-				// link index lookup
-				if len(links) < index {
-					fmt.Println("invalid link index, I have", len(links), "links so far")
-					continue
-				}
-				u = links[index-1]
+				u = "gemini://" + u
 			}
-			urlHandler(u)
+		} else {
+			// link index lookup
+			if len(links) < index {
+				fmt.Println("invalid link index, I have", len(links), "links so far")
+				continue
+			}
+			u = links[index-1]
 		}
+		urlHandler(u)
 	}
+}
 }
