@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	flag "github.com/spf13/pflag"
 	"github.com/MarekStancik/readline"
+	flag "github.com/spf13/pflag"
 )
 
 type Response struct {
@@ -92,13 +92,13 @@ func connect(u url.URL) (res Response, err error) {
 }
 
 // input handles input status codes
-func input(u string) {
+func input(u string) (ok bool) {
 	stdinReader := bufio.NewReader(os.Stdin)
 	fmt.Print("INPUT> ")
 	query, _ := stdinReader.ReadString('\n')
 	query = strings.TrimSpace(query)
 	u = u + "?" + url.QueryEscape(query)
-	urlHandler(u)
+	return urlHandler(u)
 }
 
 // displayBody handles the displaying of body bytes for response
@@ -134,15 +134,15 @@ func urlHandler(u string) bool {
 	// Switch on status code
 	switch res.status {
 	case 1:
+		fmt.Println(res.meta)
 		displayBody(res, *parsed)
-		input(u)
-		return false
+		return input(u)
 	case 2:
 		displayBody(res, *parsed)
 	case 3:
 		return urlHandler(res.meta) // TODO: max redirect times
 	case 4, 5:
-		fmt.Println("ERROR: " + res.meta)
+		fmt.Println(res.meta)
 	case 6:
 		fmt.Println("im not good enough in go to implement certs lol")
 	}
@@ -156,6 +156,9 @@ func main() {
 
 	u := flag.Arg(0) // URL
 	if u != "" {
+		if !strings.HasPrefix(u, "gemini://") {
+			u = "gemini://" + u
+		}
 		if *appendInput != "" {
 			u = u + "?" + url.QueryEscape(*appendInput)
 		}
@@ -205,17 +208,17 @@ func main() {
 				// Treat this as a URL
 				u = cmd
 				if !strings.HasPrefix(u, "gemini://") {
-				u = "gemini://" + u
+					u = "gemini://" + u
+				}
+			} else {
+				// link index lookup
+				if len(links) < index {
+					fmt.Println("invalid link index, I have", len(links), "links so far")
+					continue
+				}
+				u = links[index-1]
 			}
-		} else {
-			// link index lookup
-			if len(links) < index {
-				fmt.Println("invalid link index, I have", len(links), "links so far")
-				continue
-			}
-			u = links[index-1]
+			urlHandler(u)
 		}
-		urlHandler(u)
 	}
-}
 }
