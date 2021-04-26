@@ -91,7 +91,7 @@ func input(u string) (ok bool) {
 	fmt.Print("INPUT> ")
 	query, _ := stdinReader.ReadString('\n')
 	query = strings.TrimSpace(query)
-	u = u + "?" + url.QueryEscape(query)
+	u = u + "?" + strings.Replace(url.QueryEscape(query), "+", "%20", -1)
 	return urlHandler(u)
 }
 
