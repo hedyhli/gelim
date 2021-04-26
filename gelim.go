@@ -34,8 +34,9 @@ var (
 	history []string = make([]string, 0, 100)
 )
 
-var noInteractive = flag.BoolP("no-interactive", "I", false, "Don't go to the line-mode interface\n")
-var appendInput = flag.StringP("input", "i", "", "Append input to url ('?' + percet-encode input)\n")
+var noInteractive = flag.BoolP("no-interactive", "I", false, "don't go to the line-mode interface\n")
+var appendInput = flag.StringP("input", "i", "", "append input to URL ('?' + percent-encoded input)\n")
+var helpFlag = flag.BoolP("help", "h", false, "get help on the cli")
 
 func printHelp() {
 	fmt.Println("just enter a url to start browsing...")
@@ -189,18 +190,32 @@ func urlHandler(u string) bool {
 }
 
 func main() {
+	//flag.ErrHelp = nil
 	// command-line stuff
+	flag.Usage = func() { // Usage override
+		fmt.Fprintf(os.Stderr, "Usage: %s [FLAGS] [URL]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nFlags:\n")
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "For help on the TUI client, type ? at interactive prompt, or see gelim(1)\n")
+	}
 	flag.Parse()
+	if *helpFlag { // Handling --help myself since pflag prints an ugly ErrHelp
+		flag.Usage()
+		return
+	}
 
 	u := flag.Arg(0) // URL
 	if u != "" {
 		if !strings.HasPrefix(u, "gemini://") {
 			u = "gemini://" + u
+			if *appendInput != "" {
+				u = u + "?" + url.QueryEscape(*appendInput)
+			}
+			urlHandler(u)
 		}
-		if *appendInput != "" {
-			u = u + "?" + url.QueryEscape(*appendInput)
-		}
-		urlHandler(u)
+	}
+	if *noInteractive {
+		return
 	}
 
 	rl, err := readline.New("url/cmd, ? for help > ")

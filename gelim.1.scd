@@ -7,15 +7,21 @@ gelim - a friendly line-mode gemini client
 
 # SYNOPSIS
 
-_gelim_ [url]
+_gelim_ [FLAGS] [URL]
 
 
 # OPTIONS
 
-none yet
+\--help, -h
+	get cli help/usage
 
+\--input, -i _string_
+	append "?" + _string_ percent-encoded to _URL_ (will be ignored if URL not provided)
 
-# USAGE
+\--no-interactive, -I
+	don't enter the line-mode interface (useful for just wanting to view _URL_ then exit)
+
+# INTERFACE
 
 just run _gelim_ and optionally provide a url. it will start the line-mode interface.
 at the prompt, you can directly enter a url, link index, or otherwise a command.
