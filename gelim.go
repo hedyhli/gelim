@@ -9,6 +9,7 @@ import (
 	"mime"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -38,14 +39,61 @@ var noInteractive = flag.BoolP("no-interactive", "I", false, "don't go to the li
 var appendInput = flag.StringP("input", "i", "", "append input to URL ('?' + percent-encoded input)\n")
 var helpFlag = flag.BoolP("help", "h", false, "get help on the cli")
 
+var (
+	// quoteFieldRe greedily matches between matching pairs of '', "", or
+	// non-word characters.
+	quoteFieldRe = regexp.MustCompile("'(.*)'|\"(.*)\"|(\\S*)")
+)
+
+// QuotedFields is an alternative to strings.Fields (see:
+// https://golang.org/pkg/strings#Fields) that respects spaces between matching
+// pairs of quotation delimeters.
+//
+// For instance, the quoted fields of the string "foo bar 'baz etc'" would be:
+//   []string{"foo", "bar", "baz etc"}
+//
+// Whereas the same argument given to strings.Fields, would return:
+//   []string{"foo", "bar", "'baz", "etc'"}
+func QuotedFields(s string) []string {
+	submatches := quoteFieldRe.FindAllStringSubmatch(s, -1)
+	out := make([]string, 0, len(submatches))
+
+	for _, matches := range submatches {
+		// if a leading or trailing space is found, ignore that
+		if matches[0] == "" {
+			continue
+
+		}
+
+		// otherwise, find the first non-empty match (inside balanced
+		// quotes, or a space-delimited string)
+		var str string
+		for _, m := range matches[1:] {
+			if len(m) > 0 {
+				str = m
+				break
+
+			}
+
+		}
+
+		out = append(out, str)
+
+	}
+
+	return out
+
+}
+
 func printHelp() {
 	fmt.Println("just enter a url to start browsing...")
 	fmt.Println()
 	fmt.Println("commands")
-	fmt.Println("  b        go back")
-	fmt.Println("  q, x     quit")
-	fmt.Println("  history  view history")
-	fmt.Println("  r        reload")
+	fmt.Println("  b           go back")
+	fmt.Println("  q, x        quit")
+	fmt.Println("  history     view history")
+	fmt.Println("  r           reload")
+	fmt.Println("  l <index>   peek at what a link would link to, supply no arguments to view all links")
 	fmt.Println("\nenter number to go to a link")
 }
 
@@ -189,6 +237,14 @@ func urlHandler(u string) bool {
 	return true
 }
 
+func getLinkFromIndex(i int) string {
+	if len(links) < i {
+		fmt.Println("invalid link index, I have", len(links), "links so far")
+		return ""
+	}
+	return links[i-1]
+}
+
 func main() {
 	//flag.ErrHelp = nil
 	// command-line stuff
@@ -218,6 +274,8 @@ func main() {
 		return
 	}
 
+	// and now here comes the line-mode prompts and stuff
+
 	rl, err := readline.New("url/cmd, ? for help > ")
 	if err != nil {
 		panic(err)
@@ -226,12 +284,18 @@ func main() {
 	defer rl.Close()
 
 	for {
-		cmd, err := rl.Readline()
+		line, err := rl.Readline()
 		if err != nil {
 			break
 		}
+		lineFields := QuotedFields(strings.ToLower(line))
+		cmd := lineFields[0]
+		var args []string
+		if len(lineFields) > 1 {
+			args = lineFields[1:]
+		}
 		// Command dispatch
-		switch strings.ToLower(cmd) {
+		switch cmd {
 		case "h", "help", "?":
 			printHelp()
 			continue
@@ -245,9 +309,20 @@ func main() {
 			for i, v := range history {
 				fmt.Println(i, v)
 			}
-		case "link", "l", "peek":
-			fmt.Println("this will allow you to peek at the link")
-			fmt.Println("TODO: handle args for command")
+		case "link", "l", "peek", "links":
+			if len(args) < 1 {
+				for i, v := range links {
+					fmt.Println(i+1, v)
+				}
+				continue
+			}
+			var index int
+			index, err = strconv.Atoi(args[0])
+			if err != nil {
+				fmt.Println("invalid link index")
+				continue
+			}
+			fmt.Println(getLinkFromIndex(index))
 		case "b", "back":
 			if len(history) < 2 {
 				fmt.Println("nothing to go back to (try `history` to see history)")
@@ -268,11 +343,10 @@ func main() {
 				}
 			} else {
 				// link index lookup
-				if len(links) < index {
-					fmt.Println("invalid link index, I have", len(links), "links so far")
+				u = getLinkFromIndex(index)
+				if u == "" {
 					continue
 				}
-				u = links[index-1]
 			}
 			urlHandler(u)
 		}
