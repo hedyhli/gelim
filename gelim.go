@@ -31,13 +31,18 @@ type Response struct {
 //)
 
 var (
-	links   []string = make([]string, 0, 100)
-	history []string = make([]string, 0, 100)
+	links     []string = make([]string, 0, 100)
+	history   []string = make([]string, 0, 100)
+	searchURL          = "gemini://geminispace.info/search" // TODO: make it configurable
 )
 
-var noInteractive = flag.BoolP("no-interactive", "I", false, "don't go to the line-mode interface\n")
-var appendInput = flag.StringP("input", "i", "", "append input to URL ('?' + percent-encoded input)\n")
-var helpFlag = flag.BoolP("help", "h", false, "get help on the cli")
+// flags
+var (
+	noInteractive = flag.BoolP("no-interactive", "I", false, "don't go to the line-mode interface\n")
+	appendInput   = flag.StringP("input", "i", "", "append input to URL ('?' + percent-encoded input)\n")
+	helpFlag      = flag.BoolP("help", "h", false, "get help on the cli")
+	searchFlag    = flag.StringP("search", "s", "", "search with the search engine (this takes priority over URL and --input)\n")
+)
 
 var (
 	// quoteFieldRe greedily matches between matching pairs of '', "", or
@@ -85,7 +90,7 @@ func printHelp() {
 	fmt.Println("  history     view history")
 	fmt.Println("  r           reload")
 	fmt.Println("  l <index>   peek at what a link would link to, supply no arguments to view all links")
-	fmt.Println("\nenter number to go to a link")
+	fmt.Println("  s <query>   search engine")
 }
 
 func displayGeminiPage(body string, currentURL url.URL) {
@@ -130,7 +135,7 @@ func input(u string) (ok bool) {
 	fmt.Print("INPUT> ")
 	query, _ := stdinReader.ReadString('\n')
 	query = strings.TrimSpace(query)
-	u = u + "?" + strings.Replace(url.QueryEscape(query), "+", "%20", -1)
+	u = u + "?" + queryEscape(query)
 	return urlHandler(u)
 }
 
@@ -242,6 +247,15 @@ func getLinkFromIndex(i int) string {
 	return links[i-1]
 }
 
+func queryEscape(s string) string {
+	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
+}
+
+func search(q string) {
+	u := searchURL + "?" + queryEscape(q)
+	urlHandler(u)
+}
+
 func main() {
 	//flag.ErrHelp = nil
 	// command-line stuff
@@ -256,15 +270,29 @@ func main() {
 		flag.Usage()
 		return
 	}
+	u := ""
 
-	u := flag.Arg(0) // URL
-	if u != "" {
-		if !strings.HasPrefix(u, "gemini://") {
-			u = "gemini://" + u
-			if *appendInput != "" {
-				u = u + "?" + url.QueryEscape(*appendInput)
+	// TODO: idea - should the search use URL as search engine if URL arg present?
+	// nah, should make the search engine configurable once the conf stuff is set up
+	if *searchFlag != "" {
+		search(*searchFlag) // it's "searchQuery" more like
+	} else { // need else because when user use --search we should ignore URL and --input
+		u = flag.Arg(0) // URL
+		if u != "" {
+			if !strings.HasPrefix(u, "gemini://") {
+				u = "gemini://" + u
+				if *appendInput != "" {
+					u = u + "?" + queryEscape(*appendInput)
+				}
+				urlHandler(u)
 			}
-			urlHandler(u)
+		} else {
+			// if --input used but url arg is not present
+			if *appendInput != "" {
+				fmt.Println("ERROR: --input used without an URL argument")
+				// should we print usage?
+				os.Exit(1)
+			}
 		}
 	}
 	if *noInteractive {
@@ -332,6 +360,8 @@ func main() {
 			history = history[0 : len(history)-3]
 		case "f", "forward":
 			fmt.Println("todo :D")
+		case "s", "search":
+			search(strings.Join(args, " "))
 		default:
 			index, err := strconv.Atoi(cmd)
 			if err != nil {
