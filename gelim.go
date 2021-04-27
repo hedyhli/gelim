@@ -57,14 +57,11 @@ var (
 func QuotedFields(s string) []string {
 	submatches := quoteFieldRe.FindAllStringSubmatch(s, -1)
 	out := make([]string, 0, len(submatches))
-
 	for _, matches := range submatches {
 		// if a leading or trailing space is found, ignore that
 		if matches[0] == "" {
 			continue
-
 		}
-
 		// otherwise, find the first non-empty match (inside balanced
 		// quotes, or a space-delimited string)
 		var str string
@@ -72,21 +69,15 @@ func QuotedFields(s string) []string {
 			if len(m) > 0 {
 				str = m
 				break
-
 			}
-
 		}
-
 		out = append(out, str)
-
 	}
-
 	return out
-
 }
 
 func printHelp() {
-	fmt.Println("just enter a url to start browsing...")
+	fmt.Println("you can enter a url, link index, or a command.")
 	fmt.Println()
 	fmt.Println("commands")
 	fmt.Println("  b           go back")
