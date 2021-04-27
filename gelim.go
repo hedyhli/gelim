@@ -201,17 +201,18 @@ func urlHandler(u string) bool {
 	responseHeader, err := reader.ReadString('\n')
 	// Parse header
 	parts := strings.Fields(responseHeader)
-	status, err := strconv.Atoi(parts[0][0:1])
+	status, err := strconv.Atoi(parts[0])
 	if err != nil {
-		fmt.Println("invalid status code:", parts[0][0:1])
+		fmt.Println("invalid status code:", parts[0])
 		return false
 	}
+	statusGroup := status / 10
 	meta := strings.Join(parts[1:], " ")
 	res := Response{status, meta, reader}
 
 	links = make([]string, 0, 100) // reset links
 
-	switch res.status {
+	switch statusGroup {
 	case 1:
 		fmt.Println(res.meta)
 		return input(u)
@@ -232,6 +233,9 @@ func urlHandler(u string) bool {
 		fmt.Println(res.meta)
 	case 6:
 		fmt.Println("im not good enough in go to implement certs lol")
+	default:
+		fmt.Println("invalid status code:", res.status)
+		return false
 	}
 	if (len(history) > 0) && (history[len(history)-1] != u) || len(history) == 0 {
 		history = append(history, u)
