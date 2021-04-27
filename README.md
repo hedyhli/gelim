@@ -33,7 +33,7 @@ your man path
 
 I'm also planning to have a mirror of that manual hosted on man.sr.ht
 
-## bugs, features
+## bugs, features, feedback
 
 - **questions, general feedback**: send a ([plain text](https://useplaintext.email)) email to my
 [public inbox](https://lists.sr.ht/~hedy/inbox). [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
