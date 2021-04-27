@@ -36,5 +36,6 @@ I'm also planning to have a mirror of that manual hosted on man.sr.ht
 ## bugs, features
 
 - questions, general feedback, send a ([plain text](https://useplaintext.email)) email to my
-[public inbox](mailto:~hedy/inbox@lists.sr.ht).
-- bug, feature requests, submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim)
+[public inbox](https://lists.sr.ht/~hedy/inbox). [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
+- bug, feature requests, submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
+you don't need a sourcehut account to subscribe a submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
