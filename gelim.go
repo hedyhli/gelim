@@ -290,6 +290,10 @@ func main() {
 		if err != nil {
 			break
 		}
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
 		lineFields := QuotedFields(strings.ToLower(line))
 		cmd := lineFields[0]
 		var args []string
@@ -300,8 +304,6 @@ func main() {
 		switch cmd {
 		case "h", "help", "?":
 			printHelp()
-			continue
-		case "":
 			continue
 		case "q", "x", "quit", "exit":
 			os.Exit(0)
