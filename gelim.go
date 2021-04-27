@@ -233,7 +233,9 @@ func urlHandler(u string) bool {
 	case 6:
 		fmt.Println("im not good enough in go to implement certs lol")
 	}
-	history = append(history, u)
+	if (len(history) > 0) && (history[len(history)-1] != u) || len(history) == 0 {
+		history = append(history, u)
+	}
 	return true
 }
 
