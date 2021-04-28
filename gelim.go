@@ -97,11 +97,12 @@ func printHelp() {
 
 func displayGeminiPage(body string, currentURL url.URL) {
 	preformatted := false
+	page := ""
 	for _, line := range strings.Split(body, "\n") {
 		if strings.HasPrefix(line, "```") {
 			preformatted = !preformatted
 		} else if preformatted {
-			fmt.Println(line)
+			page = page + line + "\n"
 		} else if strings.HasPrefix(line, "=>") {
 			line = line[2:]
 			bits := strings.Fields(line)
@@ -118,17 +119,20 @@ func displayGeminiPage(body string, currentURL url.URL) {
 			}
 			links = append(links, link.String())
 			if link.Scheme != "gemini" {
-				fmt.Printf("[%d %s] %s\n", len(links), link.Scheme, label)
+				page = page + fmt.Sprintf("[%d %s] %s\n", len(links), link.Scheme, label) + "\n"
 				continue
 			}
-			fmt.Printf("[%d] %s\n", len(links), label)
+			page = page + fmt.Sprintf("[%d] %s\n", len(links), label) + "\n"
 		} else {
 			// This should really be wrapped, but there's
 			// no easy support for this in Go's standard
 			// library (says solderpunk)
-			fmt.Println(line)
+			//fmt.Println(line)
+			page = page + line + "\n"
 		}
 	}
+	page = page[:len(page)-2] // remove last \n
+	pagedBodyDisplay(page)
 }
 
 // input handles input status codes
@@ -173,30 +177,34 @@ func displayBody(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 	if mediaType == "text/gemini" {
 		displayGeminiPage(body, parsedURL)
 	} else {
-		cmd := exec.Command("less", "-FSEX")
-		stdin, err := cmd.StdinPipe()
-		if err != nil {
-			// yuck:
-			fmt.Println("could not open a stdin pipe.", err)
-			fmt.Println("not using pager")
-			fmt.Println()
-			fmt.Print(body)
-			return
-		}
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Start(); err != nil {
-			// yuck again
-			fmt.Println("could not run pager.", err)
-			fmt.Println("not using pager")
-			fmt.Print(body)
-			return
-		}
-		io.WriteString(stdin, body+"\n")
-		stdin.Close()
-		cmd.Stdin = os.Stdin
-		cmd.Wait()
+		pagedBodyDisplay(body)
 	}
+}
+
+func pagedBodyDisplay(body string) {
+	cmd := exec.Command("less", "-FSEX")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		// yuck:
+		fmt.Println("could not open a stdin pipe.", err)
+		fmt.Println("not using pager")
+		fmt.Println()
+		fmt.Print(body)
+		return
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Start(); err != nil {
+		// yuck again
+		fmt.Println("could not run pager.", err)
+		fmt.Println("not using pager")
+		fmt.Print(body)
+		return
+	}
+	io.WriteString(stdin, body+"\n")
+	stdin.Close()
+	cmd.Stdin = os.Stdin
+	cmd.Wait()
 }
 
 func urlHandler(u string) bool {
