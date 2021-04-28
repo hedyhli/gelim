@@ -150,19 +150,15 @@ func input(u string) (ok bool) {
 func parseMeta(meta string) (string, map[string]string, error) {
 	if meta == "" {
 		return "text/gemini", make(map[string]string), nil
-
 	}
 
 	mediatype, params, err := mime.ParseMediaType(meta)
-
 	if mediatype != "" && err != nil {
 		// The mediatype was successfully decoded but there's some error with the params
 		// Ignore the params
 		return mediatype, make(map[string]string), nil
-
 	}
 	return mediatype, params, err
-
 }
 
 // displayBody handles the displaying of body bytes for response
