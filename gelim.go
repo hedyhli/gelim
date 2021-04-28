@@ -5,10 +5,12 @@ import (
 	"crypto/tls"
 	//"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"mime"
 	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -171,8 +173,29 @@ func displayBody(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 	if mediaType == "text/gemini" {
 		displayGeminiPage(body, parsedURL)
 	} else {
-		// Just print any other kind of text
-		fmt.Print(body)
+		cmd := exec.Command("less", "-FSEX")
+		stdin, err := cmd.StdinPipe()
+		if err != nil {
+			// yuck:
+			fmt.Println("could not open a stdin pipe.", err)
+			fmt.Println("not using pager")
+			fmt.Println()
+			fmt.Print(body)
+			return
+		}
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Start(); err != nil {
+			// yuck again
+			fmt.Println("could not run pager.", err)
+			fmt.Println("not using pager")
+			fmt.Print(body)
+			return
+		}
+		io.WriteString(stdin, body+"\n")
+		stdin.Close()
+		cmd.Stdin = os.Stdin
+		cmd.Wait()
 	}
 }
 
