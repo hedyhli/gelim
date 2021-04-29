@@ -137,6 +137,7 @@ func displayGeminiPage(body string, currentURL url.URL) {
 
 // input handles input status codes
 func input(u string) (ok bool) {
+	// TODO: use readline here as well
 	stdinReader := bufio.NewReader(os.Stdin)
 	fmt.Print("INPUT> ")
 	query, _ := stdinReader.ReadString('\n')
