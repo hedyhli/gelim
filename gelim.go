@@ -1,13 +1,8 @@
 package main
 
 import (
-	"bufio"
-	"crypto/tls"
-	//"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"mime"
 	"net/url"
 	"os"
 	"os/exec"
@@ -19,19 +14,6 @@ import (
 	"github.com/lmorg/readline"
 	flag "github.com/spf13/pflag"
 )
-
-type Response struct {
-	status     int
-	meta       string // not parsed into mediaType and params yet
-	bodyReader *bufio.Reader
-}
-
-// these should be used but atm it isnt, lol
-//var (
-//ErrConnFail       = errors.New("connection failed")
-//ErrInvalidStatus  = errors.New("invalid status code")
-//ErrDecodeMetaFail = errors.New("failed to decode meta header")
-//)
 
 var (
 	links     []string = make([]string, 0, 100)
@@ -101,90 +83,9 @@ func printHelp() {
 	fmt.Println("  s <query>   search engine")
 }
 
-func displayGeminiPage(body string, currentURL url.URL) {
-	preformatted := false
-	page := ""
-	for _, line := range strings.Split(body, "\n") {
-		if strings.HasPrefix(line, "```") {
-			preformatted = !preformatted
-		} else if preformatted {
-			page = page + line + "\n"
-		} else if strings.HasPrefix(line, "=>") {
-			line = line[2:]
-			bits := strings.Fields(line)
-			parsedLink, err := url.Parse(bits[0])
-			if err != nil {
-				continue
-			}
-			link := currentURL.ResolveReference(parsedLink) // link url
-			var label string                                // link text
-			if len(bits) == 1 {
-				label = link.String()
-			} else {
-				label = strings.Join(bits[1:], " ")
-			}
-			links = append(links, link.String())
-			if link.Scheme != "gemini" {
-				page = page + fmt.Sprintf("[%d %s] %s\n", len(links), link.Scheme, label) + "\n"
-				continue
-			}
-			page = page + fmt.Sprintf("[%d] %s\n", len(links), label) + "\n"
-		} else {
-			// This should really be wrapped, but there's
-			// no easy support for this in Go's standard
-			// library (says solderpunk)
-			//fmt.Println(line)
-			page = page + line + "\n"
-		}
-	}
-	page = page[:len(page)-2] // remove last \n
-	pagedBodyDisplay(page)
-}
-
-// input handles input status codes
-func input(u string) (ok bool) {
-	// TODO: use readline here as well
-	stdinReader := bufio.NewReader(os.Stdin)
-	fmt.Print("INPUT> ")
-	query, _ := stdinReader.ReadString('\n')
-	query = strings.TrimSpace(query)
-	u = u + "?" + queryEscape(query)
-	return urlHandler(u)
-}
-
-// parseMeta returns the output of mime.ParseMediaType, but handles the empty
-// META which is equal to "text/gemini; charset=utf-8" according to the spec.
-func parseMeta(meta string) (string, map[string]string, error) {
-	if meta == "" {
-		return "text/gemini", make(map[string]string), nil
-	}
-
-	mediatype, params, err := mime.ParseMediaType(meta)
-	if mediatype != "" && err != nil {
-		// The mediatype was successfully decoded but there's some error with the params
-		// Ignore the params
-		return mediatype, make(map[string]string), nil
-	}
-	return mediatype, params, err
-}
-
-// displayBody handles the displaying of body bytes for response
-func displayBody(bodyBytes []byte, mediaType string, parsedURL url.URL) {
-	// text/* content only for now
-	// TODO: support more media types
-	if !strings.HasPrefix(mediaType, "text/") {
-		fmt.Println("Unsupported type " + mediaType)
-		return
-	}
-	body := string(bodyBytes)
-	if mediaType == "text/gemini" {
-		displayGeminiPage(body, parsedURL)
-	} else {
-		pagedBodyDisplay(body)
-	}
-}
-
-func pagedBodyDisplay(body string) {
+// Pager uses `less` to display body
+// falls back to fmt.Print if errors encountered
+func Pager(body string) {
 	cmd := exec.Command("less", "-FSEX", "--mouse", "-P "+pagerPromptColor("(PAGER) "))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -210,73 +111,6 @@ func pagedBodyDisplay(body string) {
 	cmd.Wait()
 }
 
-func urlHandler(u string) bool {
-	// Parse URL
-	parsed, err := url.Parse(u)
-	if err != nil {
-		fmt.Println("invalid url")
-		return false
-	}
-	// Connect to server
-	host := parsed.Host
-	if parsed.Port() == "" {
-		host += ":1965"
-	}
-	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
-	if err != nil {
-		fmt.Println("unable to connect to", parsed.Host, ":", err)
-		return false
-	}
-	defer conn.Close()
-	// Send request
-	conn.Write([]byte(parsed.String() + "\r\n"))
-	// Receive and parse response header
-	reader := bufio.NewReader(conn)
-	responseHeader, err := reader.ReadString('\n')
-	// Parse header
-	parts := strings.Fields(responseHeader)
-	status, err := strconv.Atoi(parts[0])
-	if err != nil {
-		fmt.Println("invalid status code:", parts[0])
-		return false
-	}
-	statusGroup := status / 10
-	meta := strings.Join(parts[1:], " ")
-	res := Response{status, meta, reader}
-
-	links = make([]string, 0, 100) // reset links
-
-	switch statusGroup {
-	case 1:
-		fmt.Println(res.meta)
-		return input(u)
-	case 2:
-		mediaType, _, err := parseMeta(res.meta) // what to do with params
-		if err != nil {
-			fmt.Println("Unable to parse header meta\"", res.meta, "\":", err)
-			return false
-		}
-		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
-		if err != nil {
-			fmt.Println("Unable to read body.", err)
-		}
-		displayBody(bodyBytes, mediaType, *parsed) // does it need params?
-	case 3:
-		return urlHandler(res.meta) // TODO: max redirect times
-	case 4, 5:
-		fmt.Println(res.meta)
-	case 6:
-		fmt.Println("im not good enough in go to implement certs lol")
-	default:
-		fmt.Println("invalid status code:", res.status)
-		return false
-	}
-	if (len(history) > 0) && (history[len(history)-1] != u) || len(history) == 0 {
-		history = append(history, u)
-	}
-	return true
-}
-
 func getLinkFromIndex(i int) string {
 	if len(links) < i {
 		fmt.Println("invalid link index, I have", len(links), "links so far")
@@ -291,7 +125,7 @@ func queryEscape(s string) string {
 
 func search(q string) {
 	u := searchURL + "?" + queryEscape(q)
-	urlHandler(u)
+	GeminiURL(u)
 }
 
 func main() {
@@ -322,7 +156,7 @@ func main() {
 				if *appendInput != "" {
 					u = u + "?" + queryEscape(*appendInput)
 				}
-				urlHandler(u)
+				GeminiURL(u)
 			}
 		} else {
 			// if --input used but url arg is not present
@@ -367,7 +201,7 @@ func main() {
 		case "q", "x", "quit", "exit":
 			os.Exit(0)
 		case "r", "reload":
-			urlHandler(history[len(history)-1])
+			GeminiURL(history[len(history)-1])
 		case "history":
 			for i, v := range history {
 				fmt.Println(i, v)
@@ -392,7 +226,7 @@ func main() {
 				continue
 			}
 			u = history[len(history)-2]
-			urlHandler(u)
+			GeminiURL(u)
 			history = history[0 : len(history)-3]
 		case "f", "forward":
 			fmt.Println("todo :D")
@@ -413,7 +247,7 @@ func main() {
 					continue
 				}
 			}
-			urlHandler(u)
+			GeminiURL(u)
 		}
 	}
 }
