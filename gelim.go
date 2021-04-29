@@ -218,7 +218,11 @@ func urlHandler(u string) bool {
 		return false
 	}
 	// Connect to server
-	conn, err := tls.Dial("tcp", parsed.Host+":1965", &tls.Config{InsecureSkipVerify: true})
+	host := parsed.Host
+	if parsed.Port() == "" {
+		host += ":1965"
+	}
+	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
 		fmt.Println("unable to connect to", parsed.Host, ":", err)
 		return false
