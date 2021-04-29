@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lmorg/readline"
 	flag "github.com/spf13/pflag"
 )
@@ -36,6 +37,11 @@ var (
 	links     []string = make([]string, 0, 100)
 	history   []string = make([]string, 0, 100)
 	searchURL          = "gemini://geminispace.info/search" // TODO: make it configurable
+)
+
+var (
+	promptColor      = color.New(color.FgGreen).SprintFunc()
+	pagerPromptColor = color.New(color.FgMagenta).SprintFunc()
 )
 
 // flags
@@ -179,7 +185,7 @@ func displayBody(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 }
 
 func pagedBodyDisplay(body string) {
-	cmd := exec.Command("less", "-FSEX")
+	cmd := exec.Command("less", "-FSEX", "--mouse", "-P "+pagerPromptColor("(PAGER) "))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		// yuck:
@@ -330,7 +336,7 @@ func main() {
 	// and now here comes the line-mode prompts and stuff
 
 	rl := readline.NewInstance()
-	rl.SetPrompt("url/cmd, ? for help > ")
+	rl.SetPrompt(promptColor("url/cmd, ? for help > "))
 
 	for {
 		line, err := rl.Readline()
