@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/MarekStancik/readline"
+	"github.com/lmorg/readline"
 	flag "github.com/spf13/pflag"
 )
 
@@ -328,17 +328,15 @@ func main() {
 
 	// and now here comes the line-mode prompts and stuff
 
-	rl, err := readline.New("url/cmd, ? for help > ")
-	if err != nil {
-		panic(err)
-
-	}
-	defer rl.Close()
+	rl := readline.NewInstance()
+	rl.SetPrompt("url/cmd, ? for help > ")
 
 	for {
 		line, err := rl.Readline()
 		if err != nil {
-			break
+			fmt.Println("error reading line input")
+			fmt.Println(err)
+			continue
 		}
 		line = strings.TrimSpace(line)
 		if line == "" {
