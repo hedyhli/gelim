@@ -175,7 +175,7 @@ func main() {
 	// and now here comes the line-mode prompts and stuff
 
 	rl := readline.NewInstance()
-	rl.SetPrompt(promptColor("url/cmd, ? for help > "))
+	rl.SetPrompt(promptColor("url/cmd, ? for help") + " > ")
 
 	for {
 		line, err := rl.Readline()
