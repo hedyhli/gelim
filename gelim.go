@@ -206,7 +206,7 @@ func main() {
 			os.Exit(0)
 		case "r", "reload":
 			GeminiURL(history[len(history)-1])
-		case "history":
+		case "history", "hist":
 			for i, v := range history {
 				fmt.Println(i, v)
 			}
