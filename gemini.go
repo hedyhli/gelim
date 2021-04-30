@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/lmorg/readline"
 )
 
@@ -28,6 +29,11 @@ type Response struct {
 //)
 
 var inputReader = readline.NewInstance()
+
+var (
+	h1Style = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
+	h2Style = color.New(color.Bold).SprintFunc()
+)
 
 // GeminiURL takes url as a string, fetches it, and displays it
 func GeminiURL(u string) bool {
@@ -127,7 +133,11 @@ func GeminiPage(body string, currentURL url.URL) string {
 	preformatted := false
 	page := ""
 	for _, line := range strings.Split(body, "\n") {
-		if strings.HasPrefix(line, "```") {
+		if strings.HasPrefix(line, "# ") {
+			page += h1Style(line)
+		} else if strings.HasPrefix(line, "## ") {
+			page += h2Style(line)
+		} else if strings.HasPrefix(line, "```") {
 			preformatted = !preformatted
 		} else if preformatted {
 			page = page + line + "\n"
