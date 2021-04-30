@@ -202,6 +202,10 @@ func main() {
 		case "q", "x", "quit", "exit":
 			os.Exit(0)
 		case "r", "reload":
+			if len(history) < 1 {
+				fmt.Println(ErrorColor("no history yet"))
+				continue
+			}
 			GeminiURL(history[len(history)-1])
 		case "history", "hist":
 			for i, v := range history {
