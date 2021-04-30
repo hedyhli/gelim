@@ -27,6 +27,8 @@ type Response struct {
 //ErrDecodeMetaFail = errors.New("failed to decode meta header")
 //)
 
+var inputReader = readline.NewInstance()
+
 // GeminiURL takes url as a string, fetches it, and displays it
 func GeminiURL(u string) bool {
 	// Parse URL
@@ -42,8 +44,8 @@ func GeminiURL(u string) bool {
 	}
 	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
-		fmt.Println("unable to connect to", parsed.Host, ":")
-		fmt.Println(err)
+		fmt.Println(ErrorColor("unable to connect to " + parsed.Host))
+		fmt.Println(ErrorColor(err))
 		return false
 	}
 	defer conn.Close()
@@ -59,7 +61,7 @@ func GeminiURL(u string) bool {
 		fmt.Println("invalid status code:", parts[0])
 		return false
 	}
-	statusGroup := status / 10  // floor division
+	statusGroup := status / 10 // floor division
 	meta := strings.Join(parts[1:], " ")
 	res := Response{status, meta, reader}
 
@@ -69,7 +71,7 @@ func GeminiURL(u string) bool {
 	case 1:
 		fmt.Println(res.meta)
 		if res.status == 11 {
-			return Input(u, true)  // sensitive input
+			return Input(u, true) // sensitive input
 		}
 		return Input(u, false)
 	case 2:
@@ -176,16 +178,21 @@ func ParseMeta(meta string) (string, map[string]string, error) {
 
 // Input handles Input status codes
 func Input(u string, sensitive bool) (ok bool) {
-	rl := readline.NewInstance()
-	rl.SetPrompt("INPUT> ")
+	inputReader.SetPrompt("INPUT> ")
 	if sensitive {
-		rl.PasswordMask = '*'
-		defer func() {rl.PasswordMask=0}()
+		inputReader.PasswordMask = '*'
+		oldHistory := inputReader.History
+		inputReader.History = new(readline.NullHistory)
+		defer func() { inputReader.PasswordMask = 0; inputReader.History = oldHistory }()
 	}
-	query, err := rl.Readline()
+	query, err := inputReader.Readline()
 	if err != nil {
-		fmt.Println("error reading input:")
-		fmt.Println(err)
+		if err == readline.CtrlC {
+			fmt.Println(ErrorColor("\ninput cancelled"))
+			return false
+		}
+		fmt.Println(ErrorColor("\nerror reading input:"))
+		fmt.Println(ErrorColor(err))
 		return false
 	}
 	u = u + "?" + queryEscape(query)

@@ -22,8 +22,9 @@ var (
 )
 
 var (
-	promptColor      = color.New(color.FgGreen).SprintFunc()
+	promptColor      = color.New(color.FgCyan).SprintFunc()
 	pagerPromptColor = color.New(color.FgMagenta).SprintFunc()
+	ErrorColor       = color.New(color.FgRed).SprintFunc()
 )
 
 // flags
@@ -179,8 +180,11 @@ func main() {
 	for {
 		line, err := rl.Readline()
 		if err != nil {
-			fmt.Println("error reading line input")
-			fmt.Println(err)
+			if err == readline.CtrlC {
+				os.Exit(0)
+			}
+			fmt.Println(ErrorColor("\nerror reading line input"))
+			fmt.Println(ErrorColor(err))
 			continue
 		}
 		line = strings.TrimSpace(line)
