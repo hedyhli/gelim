@@ -152,13 +152,10 @@ func main() {
 	} else { // need else because when user use --search we should ignore URL and --input
 		u = flag.Arg(0) // URL
 		if u != "" {
-			if !strings.HasPrefix(u, "gemini://") {
-				u = "gemini://" + u
-				if *appendInput != "" {
-					u = u + "?" + queryEscape(*appendInput)
-				}
-				GeminiURL(u)
+			if *appendInput != "" {
+				u = u + "?" + queryEscape(*appendInput)
 			}
+			GeminiURL(u)
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
@@ -237,14 +234,16 @@ func main() {
 		case "s", "search":
 			search(strings.Join(args, " "))
 		default:
-			index, err := strconv.Atoi(cmd)
-			if err != nil {
-				// Treat this as a URL
+			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
+				// look like an URL
 				u = cmd
-				if !strings.HasPrefix(u, "gemini://") {
-					u = "gemini://" + u
-				}
 			} else {
+				index, err := strconv.Atoi(cmd)
+				if err != nil {
+					// looks like an unknown command
+					fmt.Println(ErrorColor("unknown command"))
+					continue
+				}
 				// link index lookup
 				u = getLinkFromIndex(index)
 				if u == "" {

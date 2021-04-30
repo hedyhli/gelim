@@ -31,6 +31,9 @@ var inputReader = readline.NewInstance()
 
 // GeminiURL takes url as a string, fetches it, and displays it
 func GeminiURL(u string) bool {
+	if !strings.HasPrefix(u, "gemini://") {
+		u = "gemini://" + u
+	}
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
