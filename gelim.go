@@ -22,9 +22,8 @@ var (
 )
 
 var (
-	promptColor      = color.New(color.FgCyan).SprintFunc()
-	pagerPromptColor = color.New(color.FgMagenta).SprintFunc()
-	ErrorColor       = color.New(color.FgRed).SprintFunc()
+	promptColor = color.New(color.FgCyan).SprintFunc()
+	ErrorColor  = color.New(color.FgRed).SprintFunc()
 )
 
 // flags
@@ -87,7 +86,7 @@ func printHelp() {
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
 func Pager(body string) {
-	cmd := exec.Command("less", "-FSEXR", "--mouse", "-P "+pagerPromptColor("(PAGER) "))
+	cmd := exec.Command("less", "-FSEXR", "--mouse", "-P "+"(PAGER) ")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Print(body)
