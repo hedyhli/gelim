@@ -139,14 +139,14 @@ func GeminiPage(body string, currentURL url.URL) string {
 	preformatted := false
 	page := ""
 	for _, line := range strings.Split(body, "\n") {
-		if strings.HasPrefix(line, "# ") {
-			page += ansiwrap.Wrap(h1Style(line), width) + "\n"
-		} else if strings.HasPrefix(line, "## ") {
-			page += ansiwrap.Wrap(h2Style(line), width) + "\n"
-		} else if strings.HasPrefix(line, "```") {
+		if strings.HasPrefix(line, "```") {
 			preformatted = !preformatted
 		} else if preformatted {
 			page = page + line + "\n"
+		} else if strings.HasPrefix(line, "# ") {
+			page += ansiwrap.Wrap(h1Style(line), width) + "\n"
+		} else if strings.HasPrefix(line, "## ") {
+			page += ansiwrap.Wrap(h2Style(line), width) + "\n"
 		} else if strings.HasPrefix(line, "=>") {
 			line = line[2:]
 			bits := strings.Fields(line)
