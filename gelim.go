@@ -90,19 +90,12 @@ func Pager(body string) {
 	cmd := exec.Command("less", "-FSEXR", "--mouse", "-P "+pagerPromptColor("(PAGER) "))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		// yuck:
-		fmt.Println("could not open a stdin pipe.", err)
-		fmt.Println("not using pager")
-		fmt.Println()
 		fmt.Print(body)
 		return
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
-		// yuck again
-		fmt.Println("could not run pager.", err)
-		fmt.Println("not using pager")
 		fmt.Print(body)
 		return
 	}
@@ -114,7 +107,7 @@ func Pager(body string) {
 
 func getLinkFromIndex(i int) string {
 	if len(links) < i {
-		fmt.Println("invalid link index, I have", len(links), "links so far")
+		fmt.Println(ErrorColor("invalid link index, I have", len(links), "links so far"))
 		return ""
 	}
 	return links[i-1]
@@ -159,7 +152,7 @@ func main() {
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
-				fmt.Println("ERROR: --input used without an URL argument")
+				fmt.Println(ErrorColor("ERROR: --input used without an URL argument"))
 				// should we print usage?
 				os.Exit(1)
 			}
@@ -221,13 +214,13 @@ func main() {
 			var index int
 			index, err = strconv.Atoi(args[0])
 			if err != nil {
-				fmt.Println("invalid link index")
+				fmt.Println(ErrorColor("invalid link index"))
 				continue
 			}
 			fmt.Println(getLinkFromIndex(index))
 		case "b", "back":
 			if len(history) < 2 {
-				fmt.Println("nothing to go back to (try `history` to see history)")
+				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
 				continue
 			}
 			u = history[len(history)-2]

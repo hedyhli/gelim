@@ -43,7 +43,7 @@ func GeminiURL(u string) bool {
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
-		fmt.Println("invalid url")
+		fmt.Println(ErrorColor("invalid url"))
 		return false
 	}
 	// Connect to server
@@ -67,7 +67,7 @@ func GeminiURL(u string) bool {
 	parts := strings.Fields(responseHeader)
 	status, err := strconv.Atoi(parts[0])
 	if err != nil {
-		fmt.Println("invalid status code:", parts[0])
+		fmt.Println(ErrorColor("invalid status code:", parts[0]))
 		return false
 	}
 	statusGroup := status / 10 // floor division
@@ -86,12 +86,12 @@ func GeminiURL(u string) bool {
 	case 2:
 		mediaType, _, err := ParseMeta(res.meta) // what to do with params
 		if err != nil {
-			fmt.Println("Unable to parse header meta\"", res.meta, "\":", err)
+			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println("Unable to read body.", err)
+			fmt.Println(ErrorColor("Unable to read body.", err))
 		}
 		GeminiDisplay(bodyBytes, mediaType, *parsed) // does it need params?
 	case 3:
@@ -101,7 +101,7 @@ func GeminiURL(u string) bool {
 	case 6:
 		fmt.Println("im not good enough in go to implement certs lol")
 	default:
-		fmt.Println("invalid status code:", res.status)
+		fmt.Println(ErrorColor("invalid status code:", res.status))
 		return false
 	}
 	if (len(history) > 0) && (history[len(history)-1] != u) || len(history) == 0 {
@@ -115,7 +115,7 @@ func GeminiDisplay(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(mediaType, "text/") {
-		fmt.Println("Unsupported type " + mediaType)
+		fmt.Println(ErrorColor("Unsupported type " + mediaType))
 		return
 	}
 	body := string(bodyBytes)
