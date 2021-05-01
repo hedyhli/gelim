@@ -13,6 +13,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/lmorg/readline"
+	"github.com/manifoldco/ansiwrap"
+	"golang.org/x/term"
 )
 
 type Response struct {
@@ -130,13 +132,17 @@ func GeminiDisplay(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 
 // GeminiPage returns a rendered gemini page string
 func GeminiPage(body string, currentURL url.URL) string {
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		return ErrorColor("error getting terminal size")
+	}
 	preformatted := false
 	page := ""
 	for _, line := range strings.Split(body, "\n") {
 		if strings.HasPrefix(line, "# ") {
-			page += h1Style(line)
+			page += ansiwrap.Wrap(h1Style(line), width) + "\n"
 		} else if strings.HasPrefix(line, "## ") {
-			page += h2Style(line)
+			page += ansiwrap.Wrap(h2Style(line), width) + "\n"
 		} else if strings.HasPrefix(line, "```") {
 			preformatted = !preformatted
 		} else if preformatted {
@@ -157,16 +163,12 @@ func GeminiPage(body string, currentURL url.URL) string {
 			}
 			links = append(links, link.String())
 			if link.Scheme != "gemini" {
-				page = page + fmt.Sprintf("[%d %s] %s\n", len(links), link.Scheme, label) + "\n"
+				page += ansiwrap.Wrap(fmt.Sprintf("[%d %s] %s\n", len(links), link.Scheme, label), width) + "\n"
 				continue
 			}
-			page = page + fmt.Sprintf("[%d] %s\n", len(links), label) + "\n"
+			page += ansiwrap.Wrap(fmt.Sprintf("[%d] %s\n", len(links), label), width) + "\n"
 		} else {
-			// This should really be wrapped, but there's
-			// no easy support for this in Go's standard
-			// library (says solderpunk)
-			//fmt.Println(line)
-			page = page + line + "\n"
+			page += ansiwrap.Wrap(line, width) + "\n"
 		}
 	}
 	page = page[:len(page)-2] // remove last \n
