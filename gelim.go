@@ -86,7 +86,7 @@ func printHelp() {
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
 func Pager(body string) {
-	cmd := exec.Command("less", "-FSEXR", "--mouse", "-P "+"(PAGER) ")
+	cmd := exec.Command("less", "-FSXR~", "--mouse", "-P "+"pager (q to quit)")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Print(body)
