@@ -56,7 +56,7 @@ func GeminiURL(u string) bool {
 	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
 		fmt.Println(ErrorColor("unable to connect to " + parsed.Host))
-		fmt.Println(ErrorColor(err))
+		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
 	defer conn.Close()
@@ -69,7 +69,7 @@ func GeminiURL(u string) bool {
 	parts := strings.Fields(responseHeader)
 	status, err := strconv.Atoi(parts[0])
 	if err != nil {
-		fmt.Println(ErrorColor("invalid status code:", parts[0]))
+		fmt.Println(ErrorColor("invalid status code:" + parts[0]))
 		return false
 	}
 	statusGroup := status / 10 // floor division
@@ -103,7 +103,7 @@ func GeminiURL(u string) bool {
 	case 6:
 		fmt.Println(res.meta)
 	default:
-		fmt.Println(ErrorColor("invalid status code:", res.status))
+		fmt.Println(ErrorColor("invalid status code %d", res.status))
 		return false
 	}
 	if (len(history) > 0) && (history[len(history)-1] != u) || len(history) == 0 {
@@ -207,7 +207,7 @@ func Input(u string, sensitive bool) (ok bool) {
 			return false
 		}
 		fmt.Println(ErrorColor("\nerror reading input:"))
-		fmt.Println(ErrorColor(err))
+		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
 	u = u + "?" + queryEscape(query)

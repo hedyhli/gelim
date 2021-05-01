@@ -23,7 +23,7 @@ var (
 
 var (
 	promptColor = color.New(color.FgCyan).SprintFunc()
-	ErrorColor  = color.New(color.FgRed).SprintFunc()
+	ErrorColor  = color.New(color.FgRed).SprintfFunc()
 )
 
 // flags
@@ -106,7 +106,7 @@ func Pager(body string) {
 
 func getLinkFromIndex(i int) string {
 	if len(links) < i {
-		fmt.Println(ErrorColor("invalid link index, I have", len(links), "links so far"))
+		fmt.Println(ErrorColor("invalid link index, I have %d links so far", len(links)))
 		return ""
 	}
 	return links[i-1]
@@ -173,7 +173,7 @@ func main() {
 				os.Exit(0)
 			}
 			fmt.Println(ErrorColor("\nerror reading line input"))
-			fmt.Println(ErrorColor(err))
+			fmt.Println(ErrorColor(err.Error()))
 			continue
 		}
 		line = strings.TrimSpace(line)
