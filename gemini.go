@@ -99,9 +99,9 @@ func GeminiURL(u string) bool {
 	case 3:
 		return GeminiURL(res.meta) // TODO: max redirect times
 	case 4, 5:
-		fmt.Println(res.meta)
+		fmt.Println(ErrorColor(res.meta))
 	case 6:
-		fmt.Println("im not good enough in go to implement certs lol")
+		fmt.Println(res.meta)
 	default:
 		fmt.Println(ErrorColor("invalid status code:", res.status))
 		return false
