@@ -39,17 +39,23 @@ var (
 
 // GeminiURL takes url as a string, fetches it, and displays it
 func GeminiURL(u string) bool {
-	if !strings.HasPrefix(u, "gemini://") {
-		u = "gemini://" + u
-	}
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
 		fmt.Println(ErrorColor("invalid url"))
 		return false
 	}
-	// Connect to server
+	if parsed.Scheme == "" {
+		// have to parse again
+		// ignoring err since it shouldn't fail here if it succeeded above
+		parsed, _ = url.Parse("gemini://" + u)
+	}
+	if parsed.Scheme != "gemini" {
+		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
+		return false
+	}
 	host := parsed.Host
+	// Connect to server
 	if parsed.Port() == "" {
 		host += ":1965"
 	}
@@ -99,7 +105,7 @@ func GeminiURL(u string) bool {
 	case 3:
 		return GeminiURL(res.meta) // TODO: max redirect times
 	case 4, 5:
-		fmt.Println(ErrorColor(res.meta))
+		fmt.Println(ErrorColor("%d %s", res.status, res.meta))
 	case 6:
 		fmt.Println(res.meta)
 	default:
