@@ -157,7 +157,7 @@ func GeminiPage(body string, currentURL url.URL) string {
 			link := currentURL.ResolveReference(parsedLink) // link url
 			var label string                                // link text
 			if len(bits) == 1 {
-				label = link.String()
+				label = bits[0]
 			} else {
 				label = strings.Join(bits[1:], " ")
 			}
