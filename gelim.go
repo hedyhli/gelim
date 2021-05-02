@@ -17,8 +17,8 @@ import (
 
 var (
 	links     []string = make([]string, 0, 100)
-	history   []string = make([]string, 0, 100)
-	searchURL          = "gemini://geminispace.info/search" // TODO: make it configurable
+	history   []url.URL
+	searchURL = "gemini://geminispace.info/search" // TODO: make it configurable
 )
 
 var (
@@ -198,10 +198,10 @@ func main() {
 				fmt.Println(ErrorColor("no history yet"))
 				continue
 			}
-			GeminiURL(history[len(history)-1])
+			GeminiParsedURL(history[len(history)-1])
 		case "history", "hist":
 			for i, v := range history {
-				fmt.Println(i, v)
+				fmt.Println(i, v.String())
 			}
 		case "link", "l", "peek", "links":
 			if len(args) < 1 {
@@ -222,9 +222,8 @@ func main() {
 				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
 				continue
 			}
-			u = history[len(history)-2]
-			GeminiURL(u)
-			history = history[0 : len(history)-3]
+			GeminiParsedURL(history[len(history)-2])
+			history = history[0 : len(history)-2]
 		case "f", "forward":
 			fmt.Println("todo :D")
 		case "s", "search":

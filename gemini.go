@@ -37,37 +37,22 @@ var (
 	h2Style = color.New(color.Bold).SprintFunc()
 )
 
-// GeminiURL takes url as a string, fetches it, and displays it
-func GeminiURL(u string) bool {
-	// Parse URL
-	parsed, err := url.Parse(u)
-	if err != nil {
-		fmt.Println(ErrorColor("invalid url"))
-		return false
-	}
-	if parsed.Scheme == "" {
-		// have to parse again
-		// ignoring err since it shouldn't fail here if it succeeded above
-		parsed, _ = url.Parse("gemini://" + u)
-	}
-	if parsed.Scheme != "gemini" {
-		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
-		return false
-	}
-	host := parsed.Host
+// GeminiParsedURL fetches u and displays the page
+func GeminiParsedURL(u url.URL) bool {
+	host := u.Host
 	// Connect to server
-	if parsed.Port() == "" {
+	if u.Port() == "" {
 		host += ":1965"
 	}
 	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
 	if err != nil {
-		fmt.Println(ErrorColor("unable to connect to " + parsed.Host))
+		fmt.Println(ErrorColor("unable to connect to " + u.Host))
 		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
 	defer conn.Close()
 	// Send request
-	conn.Write([]byte(parsed.String() + "\r\n"))
+	conn.Write([]byte(u.String() + "\r\n"))
 	// Receive and parse response header
 	reader := bufio.NewReader(conn)
 	responseHeader, err := reader.ReadString('\n')
@@ -88,9 +73,9 @@ func GeminiURL(u string) bool {
 	case 1:
 		fmt.Println(res.meta)
 		if res.status == 11 {
-			return Input(u, true) // sensitive input
+			return Input(u.String(), true) // sensitive input
 		}
-		return Input(u, false)
+		return Input(u.String(), false)
 	case 2:
 		mediaType, _, err := ParseMeta(res.meta) // what to do with params
 		if err != nil {
@@ -101,7 +86,7 @@ func GeminiURL(u string) bool {
 		if err != nil {
 			fmt.Println(ErrorColor("Unable to read body.", err))
 		}
-		GeminiDisplay(bodyBytes, mediaType, *parsed) // does it need params?
+		GeminiDisplay(bodyBytes, mediaType, u) // does it need params?
 	case 3:
 		return GeminiURL(res.meta) // TODO: max redirect times
 	case 4, 5:
@@ -116,6 +101,26 @@ func GeminiURL(u string) bool {
 		history = append(history, u)
 	}
 	return true
+}
+
+// GeminiURL parses u and calls GeminiParsedURL with the parsed url
+func GeminiURL(u string) bool {
+	// Parse URL
+	parsed, err := url.Parse(u)
+	if err != nil {
+		fmt.Println(ErrorColor("invalid url"))
+		return false
+	}
+	if parsed.Scheme == "" {
+		// have to parse again
+		// ignoring err since it shouldn't fail here if it succeeded above
+		parsed, _ = url.Parse("gemini://" + u)
+	}
+	if parsed.Scheme != "gemini" {
+		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
+		return false
+	}
+	return GeminiParsedURL(*parsed)
 }
 
 // GeminiDisplay displays bodyBytes with a pager
@@ -177,7 +182,7 @@ func GeminiPage(body string, currentURL url.URL) string {
 			page += ansiwrap.Wrap(line, width) + "\n"
 		}
 	}
-	page = page[:len(page)-2] // remove last \n
+	page = page[:len(page)-1] // remove last \n
 	return page
 }
 
