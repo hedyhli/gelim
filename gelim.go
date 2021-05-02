@@ -247,8 +247,13 @@ func main() {
 					parsed, err = url.Parse("gemini://" + u)
 				}
 				// this allows users to use relative urls at the prompt
-				parsed = history[len(history)-1].ResolveReference(parsed)
-				fmt.Println(parsed.String())
+				if len(history) != 0 {
+					parsed = history[len(history)-1].ResolveReference(parsed)
+				} else {
+					if strings.HasPrefix(u, ".") && strings.HasPrefix(u, "/") {
+						fmt.Println("no history yet, cannot use relative path")
+					}
+				}
 				GeminiParsedURL(*parsed)
 				continue
 			}
