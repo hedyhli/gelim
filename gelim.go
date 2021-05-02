@@ -232,18 +232,37 @@ func main() {
 			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
 				// look like an URL
 				u = cmd
-			} else {
-				index, err := strconv.Atoi(cmd)
+				parsed, err := url.Parse(u)
 				if err != nil {
-					// looks like an unknown command
-					fmt.Println(ErrorColor("unknown command"))
+					fmt.Println(ErrorColor("invalid url"))
 					continue
 				}
-				// link index lookup
-				u = getLinkFromIndex(index)
-				if u == "" {
-					continue
+				// example:
+				// if current url is example.com, and user would like to visit example.com/foo.txt
+				// they can type "/foo.txt", and if they use "foo.txt" it would lead to gemini://foo.txt
+				// which means if current url is example.com/bar/ and user wants example.com/bar/foo.txt,
+				// they can either use "/bar/foo.txt" or "./foo.txt"
+				// so if user want to do relative path it has to start with / or .
+				if (parsed.Scheme == "") && (!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
+					parsed, err = url.Parse("gemini://" + u)
 				}
+				// this allows users to use relative urls at the prompt
+				parsed = history[len(history)-1].ResolveReference(parsed)
+				fmt.Println(parsed.String())
+				GeminiParsedURL(*parsed)
+				continue
+			}
+			// at this point the user input is probably not an url
+			index, err := strconv.Atoi(cmd)
+			if err != nil {
+				// looks like an unknown command
+				fmt.Println(ErrorColor("unknown command"))
+				continue
+			}
+			// link index lookup
+			u = getLinkFromIndex(index)
+			if u == "" {
+				continue
 			}
 			GeminiURL(u)
 		}
