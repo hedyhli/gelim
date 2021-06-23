@@ -158,7 +158,7 @@ func GeminiPage(body string, currentURL url.URL) string {
 			preformatted = !preformatted
 
 		} else if preformatted {
-			page = page + line + "\n"
+			page += line + "\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
 			page += strings.Replace(line, "*", "•", 1)
