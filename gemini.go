@@ -33,8 +33,9 @@ type Response struct {
 var inputReader = readline.NewInstance()
 
 var (
-	h1Style = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
-	h2Style = color.New(color.Bold).SprintFunc()
+	h1Style   = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
+	h2Style   = color.New(color.Bold).SprintFunc()
+	linkStyle = color.New(color.Underline).Add(color.FgBlue).SprintfFunc()
 )
 
 // GeminiParsedURL fetches u and displays the page
@@ -150,14 +151,24 @@ func GeminiPage(body string, currentURL url.URL) string {
 	preformatted := false
 	page := ""
 	for _, line := range strings.Split(body, "\n") {
+		if strings.HasSuffix(line, "\r") {
+			line = strings.Trim(line, "\r")
+		}
 		if strings.HasPrefix(line, "```") {
 			preformatted = !preformatted
+
 		} else if preformatted {
 			page = page + line + "\n"
-		} else if strings.HasPrefix(line, "# ") {
+
+		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
+			page += strings.Replace(line, "*", "•", 1)
+
+		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
 			page += ansiwrap.Wrap(h1Style(line), width) + "\n"
-		} else if strings.HasPrefix(line, "## ") {
+
+		} else if strings.HasPrefix(line, "##") {
 			page += ansiwrap.Wrap(h2Style(line), width) + "\n"
+
 		} else if strings.HasPrefix(line, "=>") {
 			line = line[2:]
 			bits := strings.Fields(line)
