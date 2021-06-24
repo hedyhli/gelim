@@ -185,10 +185,10 @@ func GeminiPage(body string, currentURL url.URL) string {
 			}
 			links = append(links, link.String())
 			if link.Scheme != "gemini" {
-				page += ansiwrap.Wrap(fmt.Sprintf("[%d %s] %s\n", len(links), link.Scheme, label), width) + "\n"
+				page += ansiwrap.Wrap(linkStyle("[%d %s] %s", len(links), link.Scheme, label), width) + "\n"
 				continue
 			}
-			page += ansiwrap.Wrap(fmt.Sprintf("[%d] %s\n", len(links), label), width) + "\n"
+			page += ansiwrap.Wrap(linkStyle("[%d] %s", len(links), label), width) + "\n"
 		} else {
 			page += ansiwrap.Wrap(line, width) + "\n"
 		}
