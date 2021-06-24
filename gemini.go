@@ -161,7 +161,7 @@ func GeminiPage(body string, currentURL url.URL) string {
 			page += line + "\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
-			page += strings.Replace(line, "*", "•", 1)
+			page += strings.Replace(line, "*", "•", 1) + "\n"
 
 		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
 			page += ansiwrap.Wrap(h1Style(line), width) + "\n"
