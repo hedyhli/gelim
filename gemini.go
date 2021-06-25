@@ -33,9 +33,10 @@ type Response struct {
 var inputReader = readline.NewInstance()
 
 var (
-	h1Style   = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
-	h2Style   = color.New(color.Bold).SprintFunc()
-	linkStyle = color.New(color.Underline).Add(color.FgBlue).SprintfFunc()
+	h1Style    = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
+	h2Style    = color.New(color.Bold).SprintFunc()
+	linkStyle  = color.New(color.Underline).Add(color.FgBlue).SprintfFunc()
+	quoteStyle = color.New(color.FgGreen).Add(color.Italic).SprintFunc()
 )
 
 // GeminiParsedURL fetches u and displays the page
@@ -160,8 +161,14 @@ func GeminiPage(body string, currentURL url.URL) string {
 		} else if preformatted {
 			page += line + "\n"
 
+		} else if strings.HasPrefix(line, "> ") { // not sure if whitespace after > is mandatory for this
+			// appending extra \n here because we want quote blocks to stand out
+			// with leading and trailing new lines to distinguish from paragraphs
+			// as well as making it clear that it's actually a quote block.
+			page += "\n" + quoteStyle(ansiwrap.WrapIndent(line, width, 0, 2)) + "\n\n"
+
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
-			page += strings.Replace(line, "*", "•", 1) + "\n"
+			page += ansiwrap.WrapIndent(strings.Replace(line, "*", "•", 1), width, 0, 2) + "\n"
 
 		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
 			page += ansiwrap.Wrap(h1Style(line), width) + "\n"

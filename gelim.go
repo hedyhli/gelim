@@ -81,6 +81,7 @@ func printHelp() {
 	fmt.Println("  r           reload")
 	fmt.Println("  l <index>   peek at what a link would link to, supply no arguments to view all links")
 	fmt.Println("  s <query>   search engine")
+	fmt.Println("  u, cur      print current url")
 }
 
 // Pager uses `less` to display body
@@ -228,6 +229,8 @@ func main() {
 			fmt.Println("todo :D")
 		case "s", "search":
 			search(strings.Join(args, " "))
+		case "u", "url", "cur", "current":
+			fmt.Println(u)
 		default:
 			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
 				// look like an URL
