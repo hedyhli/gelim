@@ -9,8 +9,17 @@ improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hed
 ![gelim demo image](https://hedy.ftp.sh/gelim-pager.png)
 
 <br>
+<br>
 
 ![another one](https://hedy.ftp.sh/gelim-cmds.png)
+
+## features
+
+- searching from the command line
+- inputs from the command line
+- relative url at prompt
+- pager (requires less(1))
+- check out some of the planned features in the [ticket tracker](https://todo.sr.ht/~hedy/gelim)
 
 ## install
 
