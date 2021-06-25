@@ -6,12 +6,12 @@ a minimalist line-mode gemini client, written in go.
 incomplete features, if you encounter them, or would like to suggest an
 improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim).**
 
-![gelim demo image](https://hedy.ftp.sh/gelim-pager.png)
 
-<br>
-<br>
+<table><tr>
+<td> <img src="https://hedy.ftp.sh/gelim-cmds.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.ftp.sh/gelim-pager.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr></table>
 
-![another one](https://hedy.ftp.sh/gelim-cmds.png)
 
 ## features
 
