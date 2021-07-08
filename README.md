@@ -47,9 +47,15 @@ your man path
 
 I'm also planning to have a mirror of that manual hosted on man.sr.ht
 
-## bugs, features, feedback
+## remotes
+
+- [sourcehut](https://sr.ht/~hedy/gelim)
+- [tildegit (gitea)](https://tildegit.org/hedy/gelim)
+
+## bugs, features, feedback, contribution
 
 - **questions, general feedback**: send a ([plain text](https://useplaintext.email)) email to my
 [public inbox](https://lists.sr.ht/~hedy/inbox). [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
 - **bugs, feature requests**: submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
 you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
+- **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go.
