@@ -8,8 +8,8 @@ improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hed
 
 
 <table><tr>
-<td> <img src="https://hedy.ftp.sh/gelim-cmds.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.ftp.sh/gelim-pager.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/gelim-cmds.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/gelim-pager.png" alt="screenshot" style="width: 250px;"/> </td>
 </tr></table>
 
 
