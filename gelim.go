@@ -15,6 +15,8 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const lessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+
 var (
 	links     []string = make([]string, 0, 100)
 	history   []url.URL
@@ -87,7 +89,7 @@ func printHelp() {
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
 func Pager(body string) {
-	cmd := exec.Command("less", "-FSXR~", "--mouse", "-P "+"pager (q to quit)")
+	cmd := exec.Command("less")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		fmt.Print(body)
@@ -95,6 +97,7 @@ func Pager(body string) {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), "LESS="+lessOpts)
 	if err := cmd.Start(); err != nil {
 		fmt.Print(body)
 		return
