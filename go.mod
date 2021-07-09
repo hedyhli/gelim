@@ -3,6 +3,8 @@ module git.sr.ht/~hedy/gelim
 go 1.16
 
 require (
+	git.sr.ht/~adnano/go-xdg v0.1.0
+	github.com/BurntSushi/toml v0.3.1
 	github.com/fatih/color v1.10.0
 	github.com/lmorg/readline v0.0.0-20210316231630-be4b7d79fc3a
 	github.com/manifoldco/ansiwrap v1.1.0

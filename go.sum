@@ -1,3 +1,7 @@
+git.sr.ht/~adnano/go-xdg v0.1.0 h1:UvmVKPmbWHoMGzdfKLvHBGf/Yfp74pqfyJiyu558TB8=
+git.sr.ht/~adnano/go-xdg v0.1.0/go.mod h1:n3ytgoiOi6MHzs0leTpVOwDI3L8n+M/E8hS0sEPrzFs=
+github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
+github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/fatih/color v1.10.0 h1:s36xzo75JdqLaaWoiEHk767eHiwo0598uUxyfiPkDsg=
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/lmorg/readline v0.0.0-20210316231630-be4b7d79fc3a h1:xiaNGfMrhqdK89RvLnc6WAe4Pe/HKaluZmipsYF3E0o=

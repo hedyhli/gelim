@@ -16,6 +16,7 @@ import (
 )
 
 const lessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+const defaultPrompt = "url/cmd, ? for help "
 
 var (
 	links     []string = make([]string, 0, 100)
@@ -126,7 +127,12 @@ func search(q string) {
 }
 
 func main() {
-	//flag.ErrHelp = nil
+	// load config
+	conf, err := LoadConfig()
+	if err != nil {
+		fmt.Println(ErrorColor("Error loading config: %s", err.Error()))
+		os.Exit(1)
+	}
 	// command-line stuff
 	flag.Usage = func() { // Usage override
 		fmt.Fprintf(os.Stderr, "Usage: %s [FLAGS] [URL]\n", os.Args[0])
@@ -166,9 +172,13 @@ func main() {
 	}
 
 	// and now here comes the line-mode prompts and stuff
+	prompt := conf.Prompt
+	if conf.Prompt == "" {
+		prompt = defaultPrompt
+	}
 
 	rl := readline.NewInstance()
-	rl.SetPrompt(promptColor("url/cmd, ? for help") + " > ")
+	rl.SetPrompt(promptColor(prompt) + "> ")
 
 	for {
 		line, err := rl.Readline()
