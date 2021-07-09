@@ -17,8 +17,11 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
-	os.MkdirAll(filepath.Join(xdg.ConfigHome(), "gelim"), 0700)
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
 	f, err := os.Open(path)
 	if err == nil {
 		defer f.Close()
