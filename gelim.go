@@ -15,9 +15,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const lessOpts = "-FSXR~ --mouse -P pager (q to quit)"
-const defaultPrompt = "url/cmd, ? for help "
-
 var (
 	links     []string = make([]string, 0, 100)
 	history   []url.URL
@@ -89,7 +86,7 @@ func printHelp() {
 
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
-func Pager(body string) {
+func Pager(body string, conf *Config) {
 	cmd := exec.Command("less")
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -98,7 +95,7 @@ func Pager(body string) {
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Env = append(os.Environ(), "LESS="+lessOpts)
+	cmd.Env = append(os.Environ(), "LESS="+conf.LessOpts)
 	if err := cmd.Start(); err != nil {
 		fmt.Print(body)
 		return
@@ -121,9 +118,9 @@ func queryEscape(s string) string {
 	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
-func search(q string) {
+func search(q string, conf *Config) {
 	u := searchURL + "?" + queryEscape(q)
-	GeminiURL(u)
+	GeminiURL(u, conf)
 }
 
 func main() {
@@ -150,14 +147,14 @@ func main() {
 	// TODO: idea - should the search use URL as search engine if URL arg present?
 	// nah, should make the search engine configurable once the conf stuff is set up
 	if *searchFlag != "" {
-		search(*searchFlag) // it's "searchQuery" more like
+		search(*searchFlag, conf) // it's "searchQuery" more like
 	} else { // need else because when user use --search we should ignore URL and --input
 		u = flag.Arg(0) // URL
 		if u != "" {
 			if *appendInput != "" {
 				u = u + "?" + queryEscape(*appendInput)
 			}
-			GeminiURL(u)
+			GeminiURL(u, conf)
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
@@ -172,13 +169,8 @@ func main() {
 	}
 
 	// and now here comes the line-mode prompts and stuff
-	prompt := conf.Prompt
-	if conf.Prompt == "" {
-		prompt = defaultPrompt
-	}
-
 	rl := readline.NewInstance()
-	rl.SetPrompt(promptColor(prompt) + "> ")
+	rl.SetPrompt(promptColor(conf.Prompt) + "> ")
 
 	for {
 		line, err := rl.Readline()
@@ -212,7 +204,7 @@ func main() {
 				fmt.Println(ErrorColor("no history yet"))
 				continue
 			}
-			GeminiParsedURL(history[len(history)-1])
+			GeminiParsedURL(history[len(history)-1], conf)
 		case "history", "hist":
 			for i, v := range history {
 				fmt.Println(i, v.String())
@@ -236,12 +228,12 @@ func main() {
 				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
 				continue
 			}
-			GeminiParsedURL(history[len(history)-2])
+			GeminiParsedURL(history[len(history)-2], conf)
 			history = history[0 : len(history)-2]
 		case "f", "forward":
 			fmt.Println("todo :D")
 		case "s", "search":
-			search(strings.Join(args, " "))
+			search(strings.Join(args, " "), conf)
 		case "u", "url", "cur", "current":
 			fmt.Println(u)
 		default:
@@ -270,7 +262,7 @@ func main() {
 						fmt.Println("no history yet, cannot use relative path")
 					}
 				}
-				GeminiParsedURL(*parsed)
+				GeminiParsedURL(*parsed, conf)
 				continue
 			}
 			// at this point the user input is probably not an url
@@ -285,7 +277,7 @@ func main() {
 			if u == "" {
 				continue
 			}
-			GeminiURL(u)
+			GeminiURL(u, conf)
 		}
 	}
 }

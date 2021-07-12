@@ -40,7 +40,7 @@ var (
 )
 
 // GeminiParsedURL fetches u and displays the page
-func GeminiParsedURL(u url.URL) bool {
+func GeminiParsedURL(u url.URL, conf *Config) bool {
 	host := u.Host
 	// Connect to server
 	if u.Port() == "" {
@@ -75,9 +75,9 @@ func GeminiParsedURL(u url.URL) bool {
 	case 1:
 		fmt.Println(res.meta)
 		if res.status == 11 {
-			return Input(u.String(), true) // sensitive input
+			return Input(u.String(), true, conf) // sensitive input
 		}
-		return Input(u.String(), false)
+		return Input(u.String(), false, conf)
 	case 2:
 		mediaType, _, err := ParseMeta(res.meta) // what to do with params
 		if err != nil {
@@ -88,9 +88,9 @@ func GeminiParsedURL(u url.URL) bool {
 		if err != nil {
 			fmt.Println(ErrorColor("Unable to read body.", err))
 		}
-		GeminiDisplay(bodyBytes, mediaType, u) // does it need params?
+		GeminiDisplay(bodyBytes, mediaType, u, conf) // does it need params?
 	case 3:
-		return GeminiURL(res.meta) // TODO: max redirect times
+		return GeminiURL(res.meta, conf) // TODO: max redirect times
 	case 4, 5:
 		fmt.Println(ErrorColor("%d %s", res.status, res.meta))
 	case 6:
@@ -106,7 +106,7 @@ func GeminiParsedURL(u url.URL) bool {
 }
 
 // GeminiURL parses u and calls GeminiParsedURL with the parsed url
-func GeminiURL(u string) bool {
+func GeminiURL(u string, conf *Config) bool {
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
@@ -122,11 +122,11 @@ func GeminiURL(u string) bool {
 		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
 		return false
 	}
-	return GeminiParsedURL(*parsed)
+	return GeminiParsedURL(*parsed, conf)
 }
 
 // GeminiDisplay displays bodyBytes with a pager
-func GeminiDisplay(bodyBytes []byte, mediaType string, parsedURL url.URL) {
+func GeminiDisplay(bodyBytes []byte, mediaType string, parsedURL url.URL, conf *Config) {
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(mediaType, "text/") {
@@ -135,16 +135,16 @@ func GeminiDisplay(bodyBytes []byte, mediaType string, parsedURL url.URL) {
 	}
 	body := string(bodyBytes)
 	if mediaType == "text/gemini" {
-		page := GeminiPage(body, parsedURL)
-		Pager(page)
+		page := GeminiPage(body, parsedURL, conf)
+		Pager(page, conf)
 		return
 	}
 	// other text/* stuff
-	Pager(body)
+	Pager(body, conf)
 }
 
 // GeminiPage returns a rendered gemini page string
-func GeminiPage(body string, currentURL url.URL) string {
+func GeminiPage(body string, currentURL url.URL, conf *Config) string {
 	width, _, err := term.GetSize(0)
 	if err != nil {
 		return ErrorColor("error getting terminal size")
@@ -221,7 +221,7 @@ func ParseMeta(meta string) (string, map[string]string, error) {
 }
 
 // Input handles Input status codes
-func Input(u string, sensitive bool) (ok bool) {
+func Input(u string, sensitive bool, conf *Config) (ok bool) {
 	inputReader.SetPrompt("INPUT> ")
 	if sensitive {
 		inputReader.PasswordMask = '*'
@@ -240,5 +240,5 @@ func Input(u string, sensitive bool) (ok bool) {
 		return false
 	}
 	u = u + "?" + queryEscape(query)
-	return GeminiURL(u)
+	return GeminiURL(u, conf)
 }

@@ -3,24 +3,31 @@ package main
 import (
 	"git.sr.ht/~adnano/go-xdg"
 	"github.com/BurntSushi/toml"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"io/ioutil"
 )
 
 type Config struct {
-	Pager        string
 	Prompt       string
 	MaxRedirects int
+	StartURL     string
+	LessOpts     string
 }
 
 func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
+	// Defaults
+	conf.Prompt = "url/number/cmd; ? for help"
+	conf.MaxRedirects = 10
+	conf.StartURL = ""
+	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		return nil, nil
+		return &conf, nil
 	}
 	f, err := os.Open(path)
 	if err == nil {
