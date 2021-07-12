@@ -18,7 +18,6 @@ import (
 var (
 	links     []string = make([]string, 0, 100)
 	history   []url.URL
-	searchURL = "gemini://geminispace.info/search" // TODO: make it configurable
 )
 
 var (
@@ -119,7 +118,7 @@ func queryEscape(s string) string {
 }
 
 func search(q string, conf *Config) {
-	u := searchURL + "?" + queryEscape(q)
+	u := conf.SearchURL + "?" + queryEscape(q)
 	GeminiURL(u, conf)
 }
 

@@ -13,6 +13,7 @@ type Config struct {
 	MaxRedirects int
 	StartURL     string
 	LessOpts     string
+	SearchURL    string
 }
 
 func LoadConfig() (*Config, error) {
@@ -23,6 +24,7 @@ func LoadConfig() (*Config, error) {
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
 	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+	conf.SearchURL = "gemini://geminispace.info/search"
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
 	_, err = os.Stat(path)
