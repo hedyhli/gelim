@@ -16,11 +16,6 @@ import (
 )
 
 var (
-	links     []string = make([]string, 0, 100)
-	history   []url.URL
-)
-
-var (
 	promptColor = color.New(color.FgCyan).SprintFunc()
 	ErrorColor  = color.New(color.FgRed).SprintfFunc()
 )
@@ -105,30 +100,11 @@ func Pager(body string, conf *Config) {
 	cmd.Wait()
 }
 
-func getLinkFromIndex(i int) string {
-	if len(links) < i {
-		fmt.Println(ErrorColor("invalid link index, I have %d links so far", len(links)))
-		return ""
-	}
-	return links[i-1]
-}
-
 func queryEscape(s string) string {
 	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
-func search(q string, conf *Config) {
-	u := conf.SearchURL + "?" + queryEscape(q)
-	GeminiURL(u, conf)
-}
-
 func main() {
-	// load config
-	conf, err := LoadConfig()
-	if err != nil {
-		fmt.Println(ErrorColor("Error loading config: %s", err.Error()))
-		os.Exit(1)
-	}
 	// command-line stuff
 	flag.Usage = func() { // Usage override
 		fmt.Fprintf(os.Stderr, "Usage: %s [FLAGS] [URL]\n", os.Args[0])
@@ -143,17 +119,18 @@ func main() {
 	}
 	u := ""
 
+	c := NewClient()
 	// TODO: idea - should the search use URL as search engine if URL arg present?
 	// nah, should make the search engine configurable once the conf stuff is set up
 	if *searchFlag != "" {
-		search(*searchFlag, conf) // it's "searchQuery" more like
+		c.Search(*searchFlag) // it's "searchQuery" more like
 	} else { // need else because when user use --search we should ignore URL and --input
 		u = flag.Arg(0) // URL
 		if u != "" {
 			if *appendInput != "" {
 				u = u + "?" + queryEscape(*appendInput)
 			}
-			GeminiURL(u, conf)
+			c.HandleURL(u)
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
@@ -168,8 +145,7 @@ func main() {
 	}
 
 	// and now here comes the line-mode prompts and stuff
-	rl := readline.NewInstance()
-	rl.SetPrompt(promptColor(conf.Prompt) + "> ")
+	rl := c.mainReader
 
 	for {
 		line, err := rl.Readline()
@@ -199,18 +175,18 @@ func main() {
 		case "q", "x", "quit", "exit":
 			os.Exit(0)
 		case "r", "reload":
-			if len(history) < 1 {
+			if len(c.history) < 1 {
 				fmt.Println(ErrorColor("no history yet"))
 				continue
 			}
-			GeminiParsedURL(history[len(history)-1], conf)
-		case "history", "hist":
-			for i, v := range history {
+			c.HandleParsedURL(c.history[len(c.history)-1])
+		case "c.history", "hist":
+			for i, v := range c.history {
 				fmt.Println(i, v.String())
 			}
 		case "link", "l", "peek", "links":
 			if len(args) < 1 {
-				for i, v := range links {
+				for i, v := range c.links {
 					fmt.Println(i+1, v)
 				}
 				continue
@@ -221,18 +197,18 @@ func main() {
 				fmt.Println(ErrorColor("invalid link index"))
 				continue
 			}
-			fmt.Println(getLinkFromIndex(index))
+			fmt.Println(c.GetLinkFromIndex(index))
 		case "b", "back":
-			if len(history) < 2 {
-				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
+			if len(c.history) < 2 {
+				fmt.Println(ErrorColor("nothing to go back to (try `c.history` to see c.history)"))
 				continue
 			}
-			GeminiParsedURL(history[len(history)-2], conf)
-			history = history[0 : len(history)-2]
+			c.HandleParsedURL(c.history[len(c.history)-2])
+			c.history = c.history[0 : len(c.history)-2]
 		case "f", "forward":
 			fmt.Println("todo :D")
 		case "s", "search":
-			search(strings.Join(args, " "), conf)
+			c.Search(strings.Join(args, " "))
 		case "u", "url", "cur", "current":
 			fmt.Println(u)
 		default:
@@ -254,14 +230,14 @@ func main() {
 					parsed, err = url.Parse("gemini://" + u)
 				}
 				// this allows users to use relative urls at the prompt
-				if len(history) != 0 {
-					parsed = history[len(history)-1].ResolveReference(parsed)
+				if len(c.history) != 0 {
+					parsed = c.history[len(c.history)-1].ResolveReference(parsed)
 				} else {
 					if strings.HasPrefix(u, ".") && strings.HasPrefix(u, "/") {
-						fmt.Println("no history yet, cannot use relative path")
+						fmt.Println("no c.history yet, cannot use relative path")
 					}
 				}
-				GeminiParsedURL(*parsed, conf)
+				GeminiParsedURL(*parsed)
 				continue
 			}
 			// at this point the user input is probably not an url
@@ -272,11 +248,11 @@ func main() {
 				continue
 			}
 			// link index lookup
-			u = getLinkFromIndex(index)
+			u = c.GetLinkFromIndex(index)
 			if u == "" {
 				continue
 			}
-			GeminiURL(u, conf)
+			c.HandleURL(u)
 		}
 	}
 }
