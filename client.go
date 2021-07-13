@@ -222,3 +222,24 @@ func (c *Client) Search(query string) {
 	u := c.conf.SearchURL + "?" + queryEscape(query)
 	c.HandleURL(u)
 }
+
+func (c *Client) Command(cmdStr string, args ...string) bool {
+	cmd := ""
+	for name, v := range commands {
+		if name == cmdStr {
+			cmd = name
+			break
+		}
+		for _, alias := range v.aliases {
+			if alias == cmdStr {
+				cmd = name
+				break
+			}
+		}
+	}
+	if cmd == "" {
+		return false
+	}
+	commands[cmd].do(c, args...)
+	return true
+}

@@ -167,51 +167,8 @@ func main() {
 		if len(lineFields) > 1 {
 			args = lineFields[1:]
 		}
-		// Command dispatch
-		switch cmd {
-		case "h", "help", "?":
-			printHelp()
-			continue
-		case "q", "x", "quit", "exit":
-			os.Exit(0)
-		case "r", "reload":
-			if len(c.history) < 1 {
-				fmt.Println(ErrorColor("no history yet"))
-				continue
-			}
-			c.HandleParsedURL(c.history[len(c.history)-1])
-		case "c.history", "hist":
-			for i, v := range c.history {
-				fmt.Println(i, v.String())
-			}
-		case "link", "l", "peek", "links":
-			if len(args) < 1 {
-				for i, v := range c.links {
-					fmt.Println(i+1, v)
-				}
-				continue
-			}
-			var index int
-			index, err = strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Println(ErrorColor("invalid link index"))
-				continue
-			}
-			fmt.Println(c.GetLinkFromIndex(index))
-		case "b", "back":
-			if len(c.history) < 2 {
-				fmt.Println(ErrorColor("nothing to go back to (try `c.history` to see c.history)"))
-				continue
-			}
-			c.HandleParsedURL(c.history[len(c.history)-2])
-			c.history = c.history[0 : len(c.history)-2]
-		case "f", "forward":
-			fmt.Println("todo :D")
-		case "s", "search":
-			c.Search(strings.Join(args, " "))
-		case "u", "url", "cur", "current":
-			fmt.Println(u)
-		default:
+		// Command stuff
+		if ok := c.Command(cmd, args...); !ok {
 			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
 				// look like an URL
 				u = cmd
