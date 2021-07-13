@@ -65,19 +65,6 @@ func QuotedFields(s string) []string {
 	return out
 }
 
-func printHelp() {
-	fmt.Println("you can enter a url, link index, or a command.")
-	fmt.Println()
-	fmt.Println("commands")
-	fmt.Println("  b           go back")
-	fmt.Println("  q, x        quit")
-	fmt.Println("  history     view history")
-	fmt.Println("  r           reload")
-	fmt.Println("  l <index>   peek at what a link would link to, supply no arguments to view all links")
-	fmt.Println("  s <query>   search engine")
-	fmt.Println("  u, cur      print current url")
-}
-
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
 func Pager(body string, conf *Config) {

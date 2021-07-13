@@ -13,32 +13,65 @@ type Command struct {
 	help    string
 }
 
-var commands = map[string]Command{
-	"help": {
-		aliases: []string{"?", "h"},
-		do: func(c *Client, args ...string) {
-			// TODO: automatically generate help
-			// TODO: command help (help <cmd>)
-			fmt.Println(`
-you can enter a url, link index, or a command.
 
-commands
-  b           go back
-  q, x        quit
-  history     view history
-  r           reload
-  l <index>   peek at what a link would link to, supply no arguments to view all links
-  s <query>   search engine
-  u, cur      print current url`)
-		  },
-		help: "help!",
-	},
+func printHelp() {
+	maxWidth := 0
+	var placeholder string
+	curWidth := 0
+	for name, cmd := range commands {
+		placeholder = ""
+		parts := strings.SplitN(cmd.help, ":", 2)
+		if len(parts) == 2 {
+			placeholder = strings.TrimSpace(parts[0])
+		}
+		curWidth = len(name) + 1 // 1 for space
+		if placeholder!= "" {
+			curWidth += len(placeholder) + 3 // <> and a space
+		}
+		if curWidth > maxWidth {
+			maxWidth = curWidth
+		}
+	}
+	minSepSpaceLen := 2 // min space between command and the description
+	// Here comes the fun part
+	// We are now *actually* printing the help
+	fmt.Println("You can directy enter a url or link-index (number) at the prompt.")
+	fmt.Println()
+	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
+	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported like the shell, but escaping quotes is not support yet.")
+	fmt.Println()
+	fmt.Println("Commands:")
+	var left string
+	var spacesBetween int
+	var desc string
+	for name, cmd := range commands {
+		placeholder = ""
+		desc = ""
+		parts := strings.SplitN(cmd.help, ":", 2)
+		if len(parts) == 2 {
+			placeholder = strings.TrimSpace(parts[0])
+			desc = strings.TrimSpace(parts[1])
+		}
+		if placeholder != "" {
+			left = fmt.Sprintf("%s <%s>", name, placeholder)
+		} else {
+			left = fmt.Sprintf("%s", name)
+			desc = cmd.help
+		}
+		// TODO: wrap description with... aniswrap?
+		// also maybe add some colors in the help!
+		spacesBetween = maxWidth + minSepSpaceLen - len(left)
+		fmt.Printf("  %s%s %s\n", left, strings.Repeat(" ", spacesBetween), desc)
+	}
+}
+
+var commands = map[string]Command{
 	"search": {
 		aliases: []string{"s"},
 		do: func(c *Client, args ...string) {
 			c.Search(strings.Join(args, " "))
 		},
-		help: "search with search engine",
+		help: "query... : search with search engine",
 	},
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
@@ -65,7 +98,7 @@ commands
 				fmt.Println(i, v.String())
 			}
 		},
-		help: "Print list of previously visited URLs",
+		help: "print list of previously visited URLs",
 	},
 	"link": {
 		aliases: []string{"l", "peek", "p", "links"},
@@ -84,7 +117,7 @@ commands
 			}
 			fmt.Println(c.GetLinkFromIndex(index))
 		},
-		help: "peek what a link index would link to. supply no arguments to see a list of current links",
+		help: "index : peek what a link index would link to. supply no arguments to see a list of current links",
 	},
 	"back": {
 		aliases: []string{"b"},

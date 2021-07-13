@@ -224,6 +224,10 @@ func (c *Client) Search(query string) {
 }
 
 func (c *Client) Command(cmdStr string, args ...string) bool {
+	switch cmdStr { case "help", "?", "h":
+		printHelp()
+		return true
+	}
 	cmd := ""
 	for name, v := range commands {
 		if name == cmdStr {
