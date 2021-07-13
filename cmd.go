@@ -90,7 +90,7 @@ commands
 		aliases: []string{"b"},
 		do: func(c *Client, args ...string) {
 			if len(c.history) < 2 {
-				fmt.Println(ErrorColor("nothing to go back to (try `c.history` to see history)"))
+				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
 				return
 			}
 			c.HandleParsedURL(c.history[len(c.history)-2])

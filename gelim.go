@@ -201,7 +201,7 @@ func main() {
 			index, err := strconv.Atoi(cmd)
 			if err != nil {
 				// looks like an unknown command
-				fmt.Println(ErrorColor("unknown command"))
+				fmt.Println(ErrorColor("Unknown command. Hint: try typing ? and hit enter"))
 				continue
 			}
 			// link index lookup
