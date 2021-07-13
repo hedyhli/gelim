@@ -65,7 +65,18 @@ func printHelp() {
 	}
 }
 
+func printAliases() {
+	fmt.Println("todo")
+}
+
 var commands = map[string]Command{
+	"aliases": {
+		aliases: []string{"alias"},
+		do: func(c *Client, args ...string) {
+			printAliases()
+		},
+		help: "cmd : show aliases for all commands or a specified command",
+	},
 	"search": {
 		aliases: []string{"s"},
 		do: func(c *Client, args ...string) {
