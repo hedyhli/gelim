@@ -103,6 +103,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			// appending extra \n here because we want quote blocks to stand out
 			// with leading and trailing new lines to distinguish from paragraphs
 			// as well as making it clear that it's actually a quote block.
+			// TODO: remove extra new lines in the end
 			rendered += "\n" + quoteStyle(ansiwrap.WrapIndent(line, width, 0, 2)) + "\n\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
