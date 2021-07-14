@@ -40,43 +40,112 @@ func printHelp() {
 	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
 	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported like the shell, but escaping quotes is not support yet.")
 	fmt.Println()
+	fmt.Println("You can supply a command name to `help` to see the help for a specific command")
+	fmt.Println()
 	fmt.Println("Commands:")
-	var left string
 	var spacesBetween int
-	var desc string
 	for name, cmd := range commands {
-		placeholder = ""
-		desc = ""
-		parts := strings.SplitN(cmd.help, ":", 2)
-		if len(parts) == 2 {
-			placeholder = strings.TrimSpace(parts[0])
-			desc = strings.TrimSpace(parts[1])
-		}
-		if placeholder != "" {
-			left = fmt.Sprintf("%s <%s>", name, placeholder)
-		} else {
-			left = fmt.Sprintf("%s", name)
-			desc = cmd.help
-		}
 		// TODO: wrap description with... aniswrap?
 		// also maybe add some colors in the help!
-		spacesBetween = maxWidth + minSepSpaceLen - len(left)
-		fmt.Printf("  %s%s %s\n", left, strings.Repeat(" ", spacesBetween), desc)
+		parts := formatCommandHelp(&cmd, name, false)
+		spacesBetween = maxWidth + minSepSpaceLen - len(parts[0])
+		fmt.Printf("  %s%s %s\n", parts[0], strings.Repeat(" ", spacesBetween), parts[1])
 	}
 }
 
-func printAliases() {
-	fmt.Println("todo")
+// Handles placeholders in cmd.help if any, if format is true it will return the placeholder
+// string and the help string concatenated, if format is false, it returns them separately.
+func formatCommandHelp(cmd *Command, name string, format bool) (formatted []string) {
+	parts := strings.SplitN(cmd.help, ":", 2)
+	var placeholder, desc string
+	if len(parts) == 2 {
+		placeholder = strings.TrimSpace(parts[0])
+		desc = strings.TrimSpace(parts[1])
+	}
+	left := ""
+	if placeholder != "" {
+		left = fmt.Sprintf("%s <%s>", name, placeholder)
+	} else {
+		left = name
+		desc = cmd.help
+	}
+	formatted = make([]string, 2)
+	if format {
+		formatted[0] = fmt.Sprintf("%s  %s", left, desc)
+		return
+	}
+	formatted[0] = left
+	formatted[1] = desc
+	return
+}
+
+// Commands that reference variable commands, putting them separtely to avoid
+// initialization cycle
+var metaCommands = map[string]Command{
+	"help": {
+		aliases: []string{"h", "?", "hi"},
+		do: func(c *Client, args ...string) {
+			if len(args) > 0 {
+				for _, v := range args {
+					// Yes, have to do metaCommands manually
+					switch v {
+					case "help", "?", "h", "hi":
+						fmt.Println("You literally just get help :P")
+						return
+					case "alias", "aliases", "synonymn":
+						fmt.Println("See aliases for a command or all commands")
+						return
+					}
+
+					cmd, ok := c.LookupCommand(v)
+					if !ok {
+						fmt.Println(v, "command not found")
+						return
+					}
+					formatted := formatCommandHelp(&cmd, v, true)
+					fmt.Println(formatted[0])
+					// Extra help for command if the command supports it
+					// c.Command(v, "help")
+					// if len(args) != 1 {
+					// 	fmt.Println()
+					// }
+				}
+				return
+			}
+			printHelp()
+		},
+		help: "cmd : print the usage or the help for a command",
+	},
+	"aliases": {
+		aliases: []string{"alias", "synonym"},
+		do: func(c *Client, args ...string) {
+			if len(args) > 0 {
+				for _, v := range args {
+					// I'm so tired having to do this stupid switch again and again for metaCommands
+					// but I can't find a better solution UGH
+					switch v {
+					case "help", "?", "h", "hi":
+						fmt.Println("help, ?, h, hi")
+						return
+					case "alias", "aliases", "synonym":
+						fmt.Println("alias, aliases, synonym")
+						return
+					}
+					cmd, ok := c.LookupCommand(v)
+					if !ok {
+						fmt.Println(v, "command not found")
+					}
+					fmt.Println(strings.Join(cmd.aliases, ", "))
+					return
+				}
+			}
+			fmt.Println("todo")
+		},
+		help: "cmd : see aliases for a command or all commands",
+	},
 }
 
 var commands = map[string]Command{
-	"aliases": {
-		aliases: []string{"alias"},
-		do: func(c *Client, args ...string) {
-			printAliases()
-		},
-		help: "cmd : show aliases for all commands or a specified command",
-	},
 	"search": {
 		aliases: []string{"s"},
 		do: func(c *Client, args ...string) {

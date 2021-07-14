@@ -223,27 +223,52 @@ func (c *Client) Search(query string) {
 	c.HandleURL(u)
 }
 
-func (c *Client) Command(cmdStr string, args ...string) bool {
-	switch cmdStr { case "help", "?", "h":
-		printHelp()
-		return true
-	}
-	cmd := ""
+func (c *Client) LookupCommand(cmdStr string) (cmd Command, ok bool) {
+	cmdName := ""
+	ok = false
+	// skipping metaCommands
 	for name, v := range commands {
 		if name == cmdStr {
-			cmd = name
+			cmdName = name
 			break
 		}
 		for _, alias := range v.aliases {
 			if alias == cmdStr {
-				cmd = name
+				cmdName = name
 				break
 			}
 		}
 	}
-	if cmd == "" {
-		return false
+	if cmdName == "" {
+		return
 	}
-	commands[cmd].do(c, args...)
+	cmd = commands[cmdName]
+	ok = true
+	return
+}
+
+func (c *Client) Command(cmdStr string, args ...string) bool {
+	cmdName := ""
+	for name, v := range metaCommands {
+		if name == cmdStr {
+			cmdName = name
+			break
+		}
+		for _, alias := range v.aliases {
+			if alias == cmdStr {
+				cmdName = name
+				break
+			}
+		}
+	}
+	if cmdName != "" {
+		metaCommands[cmdName].do(c, args...)
+		return true
+	}
+	cmd, ok := c.LookupCommand(cmdStr)
+	if !ok {
+		return ok
+	}
+	cmd.do(c, args...)
 	return true
 }
