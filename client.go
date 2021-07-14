@@ -117,7 +117,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			c.links = append(c.links, link.String())
 			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
 			if link.Scheme != "gemini" {
-				linkLine +=fmt.Sprintf(" (%s)", link.Scheme)
+				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
 			rendered += ansiwrap.Wrap(linkLine, width) + "\n"
 		} else {
