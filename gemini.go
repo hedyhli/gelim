@@ -18,7 +18,7 @@ type GeminiResponse struct {
 	status           int
 	meta             string // not parsed into mediaType and params yet
 	bodyReader       *bufio.Reader
-	bodyReaderClosed bool
+	bodyReaderClosed bool  // I have no idea what I'm doing here
 	conn             *tls.Conn
 	connClosed       bool
 }

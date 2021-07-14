@@ -170,7 +170,7 @@ func main() {
 				// which means if current url is example.com/bar/ and user wants example.com/bar/foo.txt,
 				// they can either use "/bar/foo.txt" or "./foo.txt"
 				// so if user want to do relative path it has to start with / or .
-				if (parsed.Scheme == "") && (!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
+				if (parsed.Scheme == "" || parsed.Host == "") && (!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
 					parsed, err = url.Parse("gemini://" + u)
 				}
 				// this allows users to use relative urls at the prompt
@@ -178,7 +178,7 @@ func main() {
 					parsed = c.history[len(c.history)-1].ResolveReference(parsed)
 				} else {
 					if strings.HasPrefix(u, ".") && strings.HasPrefix(u, "/") {
-						fmt.Println("no c.history yet, cannot use relative path")
+						fmt.Println("no history yet, cannot use relative path")
 					}
 				}
 				c.HandleParsedURL(parsed)
@@ -192,8 +192,13 @@ func main() {
 				continue
 			}
 			// link index lookup
-			u = c.GetLinkFromIndex(index)
+			u, spartanInput := c.GetLinkFromIndex(index)
 			if u == "" {
+				continue
+			}
+			if spartanInput {
+				fmt.Println("yes")
+				c.Input(u, false)
 				continue
 			}
 			c.HandleURL(u)

@@ -14,11 +14,13 @@ import (
 type Page struct {
 	bodyBytes []byte
 	mediaType string
+	params   map[string]string
 	u         *url.URL
 }
 
 type Client struct {
 	links       []string
+	inputLinks  []int  // contains index to links in `links` that needs spartan input
 	history     []*url.URL
 	conf        *Config
 	inputReader *readline.Instance
@@ -42,15 +44,28 @@ func NewClient() *Client {
 	return &c
 }
 
-func (c *Client) GetLinkFromIndex(i int) string {
+func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
+	spartanInput = false
 	if len(c.links) < i {
 		fmt.Println(ErrorColor("invalid link index, I have %d links so far", len(c.links)))
-		return ""
+		return
 	}
-	return c.links[i-1]
+	link = c.links[i-1]
+	for _, v := range c.inputLinks {
+		if i-1 == v {
+			spartanInput = true
+			return
+		}
+	}
+	return
 }
 
 func (c *Client) DisplayPage(page *Page) {
+	// TODO: proper stream - read the reader and stuff
+	if page.mediaType == "application/octet-stream" {
+		Pager(string(page.bodyBytes), c.conf)
+		return
+	}
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(page.mediaType, "text/") {
@@ -100,7 +115,8 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 		} else if strings.HasPrefix(line, "##") {
 			rendered += ansiwrap.Wrap(h2Style(line), width) + "\n"
 
-		} else if strings.HasPrefix(line, "=>") {
+		} else if strings.HasPrefix(line, "=>") || (page.u.Scheme == "spartan" && strings.HasPrefix(line, "=:")) {
+			originalLine := line
 			line = line[2:]
 			bits := strings.Fields(line)
 			parsedLink, err := url.Parse(bits[0])
@@ -113,6 +129,10 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 				label = bits[0]
 			} else {
 				label = strings.Join(bits[1:], " ")
+			}
+			if strings.HasPrefix(originalLine, "=:") {
+				label += " [INPUT]"
+				c.inputLinks = append(c.inputLinks, len(c.links)) // using len(.clinks) because it is only appended below so the value from that is just right
 			}
 			c.links = append(c.links, link.String())
 			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
@@ -129,7 +149,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 }
 
 // Input handles Input status codes
-func (c *Client) Input(page *Page, sensitive bool) (ok bool) {
+func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	c.inputReader.SetPrompt("INPUT> ")
 	if sensitive {
 		c.inputReader.PasswordMask = '*'
@@ -147,7 +167,7 @@ func (c *Client) Input(page *Page, sensitive bool) (ok bool) {
 		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
-	u := page.u.String() + "?" + queryEscape(query)
+	u = u + "?" + queryEscape(query)
 	return c.HandleURL(u)
 }
 
@@ -166,33 +186,37 @@ func (c *Client) HandleURL(u string) bool {
 			return false
 		}
 	}
-	if parsed.Scheme != "gemini" {
-		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
-		return false
-	}
 	return c.HandleParsedURL(parsed)
 }
 
+// Handles either a spartan URL or a gemini URL
 func (c *Client) HandleParsedURL(parsed *url.URL) bool {
-	res, err := GeminiParsedURL(*parsed)
+	// TODO; config proxies or program to do other shemes
+	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" {
+		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
+		return false
+	}
+	if parsed.Scheme == "gemini" {
+		return c.HandleGeminiParsedURL(parsed)
+	}
+	return c.HandleSpartanParsedURL(parsed)
+}
+
+func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
+	res, err := SpartanParsedURL(parsed)
 	if err != nil {
 		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
-	defer res.conn.Close()
+	defer (*res.conn).Close()
 	c.links = make([]string, 0, 100) // reset links
+	c.inputLinks = make([]int, 0, 100)
 
-	page := &Page{bodyBytes: nil, mediaType: "", u: parsed}
-	statusGroup := res.status / 10 // floor division
-	switch statusGroup {
-	case 1:
-		fmt.Println(res.meta)
-		if res.status == 11 {
-			return c.Input(page, true) // sensitive input
-		}
-		return c.Input(page, false)
+	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	// Handle status
+	switch res.status {
 	case 2:
-		mediaType, _, err := ParseMeta(res.meta) // what to do with params
+		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
 			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
 			return false
@@ -203,6 +227,51 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
+		page.params = params
+		c.DisplayPage(page)
+	case 3:
+		c.HandleURL("spartan://"+parsed.Host+res.meta)
+	case 4:
+		fmt.Println("Error: " + res.meta)
+	case 5:
+		fmt.Println("Server error: " + res.meta)
+	}
+
+	return true
+}
+
+func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
+	res, err := GeminiParsedURL(*parsed)
+	if err != nil {
+		fmt.Println(ErrorColor(err.Error()))
+		return false
+	}
+	defer res.conn.Close()
+	c.links = make([]string, 0, 100) // reset links
+
+	// mediaType and params will be parsed later
+	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	statusGroup := res.status / 10 // floor division
+	switch statusGroup {
+	case 1:
+		fmt.Println(res.meta)
+		if res.status == 11 {
+			return c.Input(page.u.String(), true) // sensitive input
+		}
+		return c.Input(page.u.String(), false)
+	case 2:
+		mediaType, params, err := ParseMeta(res.meta)
+		if err != nil {
+			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
+			return false
+		}
+		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
+		if err != nil {
+			fmt.Println(ErrorColor("Unable to read body.", err))
+		}
+		page.bodyBytes = bodyBytes
+		page.mediaType = mediaType
+		page.params = params
 		c.DisplayPage(page)
 	case 3:
 		return c.HandleURL(res.meta) // TODO: max redirect times
