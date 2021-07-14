@@ -91,7 +91,8 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			rendered += "\n" + quoteStyle(ansiwrap.WrapIndent(line, width, 0, 2)) + "\n\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
-			rendered += ansiwrap.WrapIndent(strings.Replace(line, "*", "•", 1), width, 0, 2) + "\n"
+			// Using width - 3 because of 3 spaces "   " indent at the start
+			rendered += "   " + ansiwrap.WrapIndent(strings.Replace(line, "*", "•", 1), width-3, 0, 5) + "\n"
 
 		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
 			rendered += ansiwrap.Wrap(h1Style(line), width) + "\n"
