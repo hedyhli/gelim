@@ -114,11 +114,11 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 				label = strings.Join(bits[1:], " ")
 			}
 			c.links = append(c.links, link.String())
+			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
 			if link.Scheme != "gemini" {
-				rendered += ansiwrap.Wrap(linkStyle("[%d %s] %s", len(c.links), link.Scheme, label), width) + "\n"
-				continue
+				linkLine +=fmt.Sprintf(" (%s)", link.Scheme)
 			}
-			rendered += ansiwrap.Wrap(linkStyle("[%d] %s", len(c.links), label), width) + "\n"
+			rendered += ansiwrap.Wrap(linkLine, width) + "\n"
 		} else {
 			rendered += ansiwrap.Wrap(line, width) + "\n"
 		}

@@ -33,7 +33,7 @@ type GeminiResponse struct {
 var (
 	h1Style    = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
 	h2Style    = color.New(color.Bold).SprintFunc()
-	linkStyle  = color.New(color.Underline).Add(color.FgBlue).SprintfFunc()
+	linkStyle  = color.New(color.FgBlue).SprintfFunc()
 	quoteStyle = color.New(color.FgGreen).Add(color.Italic).SprintFunc()
 )
 
