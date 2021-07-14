@@ -197,7 +197,6 @@ func main() {
 				continue
 			}
 			if spartanInput {
-				fmt.Println("yes")
 				c.Input(u, false)
 				continue
 			}

@@ -14,13 +14,13 @@ import (
 type Page struct {
 	bodyBytes []byte
 	mediaType string
-	params   map[string]string
+	params    map[string]string
 	u         *url.URL
 }
 
 type Client struct {
 	links       []string
-	inputLinks  []int  // contains index to links in `links` that needs spartan input
+	inputLinks  []int // contains index to links in `links` that needs spartan input
 	history     []*url.URL
 	conf        *Config
 	inputReader *readline.Instance
@@ -230,7 +230,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		page.params = params
 		c.DisplayPage(page)
 	case 3:
-		c.HandleURL("spartan://"+parsed.Host+res.meta)
+		c.HandleURL("spartan://" + parsed.Host + res.meta)
 	case 4:
 		fmt.Println("Error: " + res.meta)
 	case 5:

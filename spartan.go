@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
-	"net/url"
 	"net"
-	"bufio"
+	"net/url"
 	"strconv"
 	"strings"
 )
@@ -57,12 +57,12 @@ func SpartanParsedURL(u *url.URL) (res *SpartanResponse, err error) {
 	}
 	meta := strings.Trim(statusParts[1], "\r\n")
 	res = &SpartanResponse{
-		status: status,
-		meta: meta,
-		bodyReader: reader,
+		status:           status,
+		meta:             meta,
+		bodyReader:       reader,
 		bodyReaderClosed: false, // idk
-		conn: &conn,
-		connClosed: false,
+		conn:             &conn,
+		connClosed:       false,
 	}
 	return
 }
