@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -12,7 +12,6 @@ type Command struct {
 	do      func(client *Client, args ...string)
 	help    string
 }
-
 
 func printHelp() {
 	maxWidth := 0
@@ -25,7 +24,7 @@ func printHelp() {
 			placeholder = strings.TrimSpace(parts[0])
 		}
 		curWidth = len(name) + 1 // 1 for space
-		if placeholder!= "" {
+		if placeholder != "" {
 			curWidth += len(placeholder) + 3 // <> and a space
 		}
 		if curWidth > maxWidth {
@@ -213,14 +212,14 @@ var commands = map[string]Command{
 	},
 	"forward": {
 		aliases: []string{"f"},
-		do: func(c *Client, args ...string){
+		do: func(c *Client, args ...string) {
 			fmt.Println("not implemented yet!")
 		},
 		help: "go forward in history",
 	},
 	"current": {
 		aliases: []string{"u", "url", "cur"},
-		do: func(c *Client, args ...string){
+		do: func(c *Client, args ...string) {
 			if len(c.history) == 0 {
 				fmt.Println("No history yet!")
 				return
@@ -230,4 +229,3 @@ var commands = map[string]Command{
 		help: "print current url",
 	},
 }
-
