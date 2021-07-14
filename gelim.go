@@ -181,7 +181,7 @@ func main() {
 						fmt.Println("no c.history yet, cannot use relative path")
 					}
 				}
-				GeminiParsedURL(*parsed)
+				c.HandleParsedURL(parsed)
 				continue
 			}
 			// at this point the user input is probably not an url
