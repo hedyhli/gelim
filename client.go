@@ -190,7 +190,7 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 		if res.status == 11 {
 			return c.Input(page, true) // sensitive input
 		}
-		return c.Input(page, true)
+		return c.Input(page, false)
 	case 2:
 		mediaType, _, err := ParseMeta(res.meta) // what to do with params
 		if err != nil {
