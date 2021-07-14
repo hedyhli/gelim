@@ -177,6 +177,7 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	res, err := GeminiParsedURL(*parsed)
 	if err != nil {
 		fmt.Println(ErrorColor(err.Error()))
+		return false
 	}
 	defer res.conn.Close()
 	c.links = make([]string, 0, 100) // reset links
