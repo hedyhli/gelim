@@ -66,15 +66,3 @@ you don't need a sourcehut account to subscribe or submit a ticket, [here's how 
 - **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go.
 
 
-## more screenshots
-
-<table>
-<tr>
-<td> <img src="https://hedy.smol.pub/spartan-colors.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/relative.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr>
-<tr>
-<td> <img src="https://hedy.smol.pub/search.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/commands.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr>
-</table>
