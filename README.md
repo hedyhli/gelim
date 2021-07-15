@@ -68,7 +68,13 @@ you don't need a sourcehut account to subscribe or submit a ticket, [here's how 
 
 ## more screenshots
 
-![spartan with colors](https://hedy.smol.pub/spartan-colors.png)
-![rel](https://hedy.smol.pub/relative.png)
-![search](https://hedy.smol.pub/search.png)
-![commands](https://hedy.smol.pub/commands.png)
+<table>
+<tr>
+<td> <img src="https://hedy.smol.pub/spartan-colors.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/relative.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr>
+<tr>
+<td> <img src="https://hedy.smol.pub/search.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/commands.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr>
+</table>
