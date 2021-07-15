@@ -19,6 +19,11 @@ improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hed
 - inputs from the command line
 - relative url at prompt
 - pager (requires less(1))
+- configuration file
+  - custom search URL
+  - custom pager opts
+  - and more!
+- [spartan:// protocol](gemini://spartan.mozz.us) support
 - check out some of the planned features in the [ticket tracker](https://todo.sr.ht/~hedy/gelim)
 
 ## install
@@ -59,3 +64,11 @@ I'm also planning to have a mirror of that manual hosted on man.sr.ht
 - **bugs, feature requests**: submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
 you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
 - **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go.
+
+
+## more screenshots
+
+![spartan with colors](https://hedy.smol.pub/spartan-colors.png)
+![rel](https://hedy.smol.pub/relative.png)
+![search](https://hedy.smol.pub/search.png)
+![commands](https://hedy.smol.pub/commands.png)
