@@ -238,6 +238,9 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		fmt.Println("Server error: " + res.meta)
 	}
 
+	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
+		c.history = append(c.history, parsed)
+	}
 	return true
 }
 

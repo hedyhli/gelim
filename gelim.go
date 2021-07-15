@@ -107,8 +107,6 @@ func main() {
 	u := ""
 
 	c := NewClient()
-	// TODO: idea - should the search use URL as search engine if URL arg present?
-	// nah, should make the search engine configurable once the conf stuff is set up
 	if *searchFlag != "" {
 		c.Search(*searchFlag) // it's "searchQuery" more like
 	} else { // need else because when user use --search we should ignore URL and --input
