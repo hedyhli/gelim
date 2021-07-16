@@ -105,10 +105,12 @@ func main() {
 		return
 	}
 	u := ""
+	cliURL := false  // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 
 	c := NewClient()
 	if *searchFlag != "" {
 		c.Search(*searchFlag) // it's "searchQuery" more like
+		cliURL = true
 	} else { // need else because when user use --search we should ignore URL and --input
 		u = flag.Arg(0) // URL
 		if u != "" {
@@ -116,6 +118,7 @@ func main() {
 				u = u + "?" + queryEscape(*appendInput)
 			}
 			c.HandleURL(u)
+			cliURL = true
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
@@ -129,7 +132,7 @@ func main() {
 		return
 	}
 
-	if c.conf.StartURL != "" {
+	if c.conf.StartURL != "" && !cliURL {
 		c.HandleURL(c.conf.StartURL)
 	}
 

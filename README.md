@@ -55,6 +55,27 @@ I'm also planning to have a mirror of that manual hosted on man.sr.ht
 Note that the manpage may not be the most recently updated. But new features and things like that
 will definetely be put in there once it's tested stable.
 
+### quickstart
+
+```
+gelim gemini.circumlunar.space
+```
+This will bring you to less(1). You can use less to browse the page normally.
+
+When you want to visit a link, you have to quit less first. Just press `q`, then simply
+type the link index number you'd like to visit and hit enter. The page will be fetched
+and you'll be in less again.
+
+Now let's try something more interesting.
+
+While you're at the prompt type in `rawtext.club` and hit enter. Then press `G`. This will
+navigate to the bottom of the page. Say you don't have an account on RTC yet, and would like
+to sign up. Well, that's easy, the bottom of the page shows you which URL you could go to to
+sign up, and the URL is from the same host as the current page.
+
+First exit less by typing `q`. Then type `/sign-up.gmi` at the prompt, hit enter, and voila,
+you've just used relative paths to browse geminispace, saves a ton of typing doesn't it?
+
 ## config
 
 For most people it will look for configuration in `~/.config/gelim/config.toml`
