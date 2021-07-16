@@ -194,7 +194,8 @@ var commands = map[string]Command{
 				fmt.Println(ErrorColor("invalid link index"))
 				return
 			}
-			fmt.Println(c.GetLinkFromIndex(index))
+			link, _ := c.GetLinkFromIndex(index)
+			fmt.Println(link)
 		},
 		help: "index : peek what a link index would link to. supply no arguments to see a list of current links",
 	},
