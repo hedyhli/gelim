@@ -52,6 +52,28 @@ your man path
 
 I'm also planning to have a mirror of that manual hosted on man.sr.ht
 
+Note that the manpage may not be the most recently updated. But new features and things like that
+will definetely be put in there once it's tested stable.
+
+## config
+
+For most people it will look for configuration in `~/.config/gelim/config.toml`
+
+Though you do not need a configuration file to have gelim working.
+
+```toml
+# example config
+
+prompt = "-->"            # default: "url/number/cmd; ? for help >"
+
+startURL = "example.com"  # default: ""
+
+# will be put in LESS environment variable
+lessOpts = "-FSXR~"       # default: "-FSXR~ --mouse -P pager (q to quit)"
+
+searchURL = "geminispace.info/search"  # this is the default
+```
+
 ## remotes
 
 - [sourcehut](https://sr.ht/~hedy/gelim)

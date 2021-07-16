@@ -129,6 +129,10 @@ func main() {
 		return
 	}
 
+	if c.conf.StartURL != "" {
+		c.HandleURL(c.conf.StartURL)
+	}
+
 	// and now here comes the line-mode prompts and stuff
 	rl := c.mainReader
 

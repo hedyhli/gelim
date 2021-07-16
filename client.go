@@ -39,7 +39,7 @@ func NewClient() *Client {
 	c.links = make([]string, 100)
 	c.conf = conf
 	c.mainReader = readline.NewInstance()
-	c.mainReader.SetPrompt(promptColor(c.conf.Prompt) + "> ")
+	c.mainReader.SetPrompt(promptColor(c.conf.Prompt) + " ")
 	c.inputReader = readline.NewInstance()
 	return &c
 }

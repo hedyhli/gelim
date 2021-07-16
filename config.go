@@ -20,7 +20,7 @@ func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
 	// Defaults
-	conf.Prompt = "url/number/cmd; ? for help"
+	conf.Prompt = "url/number/cmd; ? for help >"
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
 	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
