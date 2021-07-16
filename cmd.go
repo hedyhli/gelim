@@ -224,7 +224,7 @@ var commands = map[string]Command{
 				fmt.Println("No history yet!")
 				return
 			}
-			fmt.Println(c.history[0])
+			fmt.Println(c.history[len(c.history)-1])
 		},
 		help: "print current url",
 	},
