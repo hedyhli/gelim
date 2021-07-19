@@ -105,7 +105,7 @@ func main() {
 		return
 	}
 	u := ""
-	cliURL := false  // this is to avoid going to c.conf.StartURL if URL is visited from CLI
+	cliURL := false // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 
 	c := NewClient()
 	if *searchFlag != "" {
