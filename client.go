@@ -104,7 +104,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			// with leading and trailing new lines to distinguish from paragraphs
 			// as well as making it clear that it's actually a quote block.
 			// TODO: remove extra new lines in the end
-			rendered += "\n" + quoteStyle(ansiwrap.WrapIndent(line, width, 0, 2)) + "\n\n"
+			rendered += "\n" + ansiwrap.WrapIndent(line, width, 1, 3) + "\n\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
 			// Using width - 3 because of 3 spaces "   " indent at the start
