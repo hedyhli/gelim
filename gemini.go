@@ -34,7 +34,7 @@ var (
 	h1Style    = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
 	h2Style    = color.New(color.Bold).SprintFunc()
 	linkStyle  = color.New(color.FgBlue).SprintfFunc()
-	quoteStyle = color.New(color.FgGreen).Add(color.Italic).SprintFunc()
+	quoteStyle = color.New(color.Italic).SprintFunc()
 )
 
 // GeminiParsedURL fetches u and retruns *GeminiResponse
