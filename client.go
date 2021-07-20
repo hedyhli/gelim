@@ -282,9 +282,24 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	case 3:
 		return c.HandleURL(res.meta) // TODO: max redirect times
 	case 4, 5:
+		switch res.status {
+		case 40:
+			fmt.Println(ErrorColor("Temperorary failure"))
+		case 41:
+			fmt.Println(ErrorColor("Server unavailable"))
+		case 42:
+			fmt.Println(ErrorColor("CGI error"))
+		case 43:
+			fmt.Println(ErrorColor("Proxy error"))
+		case 44:
+			fmt.Println(ErrorColor("Slow down"))
+		case 52:
+			fmt.Println(ErrorColor("Gone"))
+		}
 		fmt.Println(ErrorColor("%d %s", res.status, res.meta))
 	case 6:
 		fmt.Println(res.meta)
+		fmt.Println("Sorry, gelim does not support client certificates yet.")
 	default:
 		fmt.Println(ErrorColor("invalid status code %d", res.status))
 		return false
