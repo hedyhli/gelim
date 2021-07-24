@@ -153,8 +153,9 @@ func main() {
 		if line == "" {
 			continue
 		}
-		lineFields := QuotedFields(strings.ToLower(line))
-		cmd := lineFields[0]
+		// TODO: put arg splitting logic into client.go or cmd.go so it can respect Command.quotedArgs value
+		lineFields := strings.Fields(line)
+		cmd := strings.ToLower(lineFields[0])
 		var args []string
 		if len(lineFields) > 1 {
 			args = lineFields[1:]

@@ -8,9 +8,10 @@ import (
 )
 
 type Command struct {
-	aliases []string
-	do      func(client *Client, args ...string)
-	help    string
+	aliases    []string
+	do         func(client *Client, args ...string)
+	help       string
+	quotedArgs bool
 }
 
 func printHelp() {
@@ -229,4 +230,19 @@ var commands = map[string]Command{
 		},
 		help: "print current url",
 	},
+	// TODO: didn't have time to finish this lol
+	// "config": {
+	// 	aliases: []string{"c", "conf"},
+	// 	do: func(c *Client, args ...string) {
+	// 		field := reflect.ValueOf(c.conf).Elem().FieldByName(args[0])
+	// 		// if field == 0 {
+	// 		// 	fmt.Println("key", args[0], "not found")
+	// 		// 	return
+	// 		// }
+	// 		field.Set(reflect.Value{args[1]})
+	// 		return
+	// 	},
+	// 	help: "key <space> value : set a configuration value for the current gelim session",
+	// 	quotedArgs: true,
+	// },
 }
