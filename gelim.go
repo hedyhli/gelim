@@ -81,7 +81,7 @@ func Pager(body string, conf *Config) {
 		fmt.Print(body)
 		return
 	}
-	io.WriteString(stdin, body+"\n")
+	io.WriteString(stdin, body)
 	stdin.Close()
 	cmd.Stdin = os.Stdin
 	cmd.Wait()

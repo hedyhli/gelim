@@ -147,7 +147,10 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			rendered += ansiwrap.Wrap(line, width) + "\n"
 		}
 	}
-	rendered = rendered[:len(rendered)-1] // remove last \n
+	// Remove last \n
+	if len(rendered) > 0 {
+		rendered = rendered[:len(rendered)-1]
+	}
 	return rendered
 }
 
