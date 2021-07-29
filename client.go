@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/lmorg/readline"
-	"github.com/manifoldco/ansiwrap"
-	"golang.org/x/term"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"git.sr.ht/~adnano/go-xdg"
+	"github.com/manifoldco/ansiwrap"
+	ln "github.com/peterh/liner"
+	"golang.org/x/term"
 )
 
 type Page struct {
@@ -23,8 +26,10 @@ type Client struct {
 	inputLinks  []int // contains index to links in `links` that needs spartan input
 	history     []*url.URL
 	conf        *Config
-	inputReader *readline.Instance
-	mainReader  *readline.Instance
+	mainReader  *ln.State
+	inputReader *ln.State
+	promptHistory string
+	inputHistory string
 }
 
 func NewClient() *Client {
@@ -38,9 +43,16 @@ func NewClient() *Client {
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
 	c.conf = conf
-	c.mainReader = readline.NewInstance()
-	c.mainReader.SetPrompt(promptColor(c.conf.Prompt) + " ")
-	c.inputReader = readline.NewInstance()
+	c.mainReader = ln.NewLiner()
+	c.mainReader.SetCtrlCAborts(true)
+	c.inputReader = ln.NewLiner()
+	c.inputReader.SetCtrlCAborts(true)
+	c.promptHistory = filepath.Join(xdg.DataHome(), "gelim", "prompt_history.txt")
+	c.inputHistory = filepath.Join(xdg.DataHome(), "gelim", "input_history.txt")
+
+	// Create cache/data/runtime dirs
+	os.MkdirAll(filepath.Dir(c.promptHistory), 700)
+	os.MkdirAll(filepath.Dir(c.inputHistory), 700)
 	return &c
 }
 
@@ -156,16 +168,17 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 
 // Input handles Input status codes
 func (c *Client) Input(u string, sensitive bool) (ok bool) {
-	c.inputReader.SetPrompt("INPUT> ")
+	var query string
+	var err error
+	// c.inputReader.SetMultiLineMode(true)
 	if sensitive {
-		c.inputReader.PasswordMask = '*'
-		oldHistory := c.inputReader.History
-		c.inputReader.History = new(readline.NullHistory)
-		defer func() { c.inputReader.PasswordMask = 0; c.inputReader.History = oldHistory }()
+		// TODO: no history
+		query, err = c.inputReader.PasswordPrompt("INPUT (sensitive)> ")
+	} else {
+		query, err = c.inputReader.Prompt("INPUT> ")
 	}
-	query, err := c.inputReader.Readline()
 	if err != nil {
-		if err == readline.CtrlC {
+		if err == ln.ErrPromptAborted {
 			fmt.Println(ErrorColor("\ninput cancelled"))
 			return false
 		}
@@ -224,12 +237,12 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
+			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body.", err))
+			fmt.Println(ErrorColor("Unable to read body. %s", err))
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
@@ -271,12 +284,12 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
+			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body.", err))
+			fmt.Println(ErrorColor("Unable to read body. %s", err))
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType

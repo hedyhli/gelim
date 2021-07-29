@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/lmorg/readline"
+	ln "github.com/peterh/liner"
 	flag "github.com/spf13/pflag"
 )
 
@@ -138,17 +138,30 @@ func main() {
 
 	// and now here comes the line-mode prompts and stuff
 	rl := c.mainReader
+	if f, err := os.Open(c.promptHistory); err == nil {
+		rl.ReadHistory(f)
+		f.Close()
+	}
+	defer func() {
+		if f, err := os.Open(c.promptHistory); err != nil {
+			fmt.Println(ErrorColor("Error writing to history: %s", err.Error()))
+		} else {
+			rl.WriteHistory(f)
+		}
+		rl.Close()
+	}()
 
 	for {
-		line, err := rl.Readline()
+		line, err := rl.Prompt(c.conf.Prompt + " ")
 		if err != nil {
-			if err == readline.CtrlC {
-				os.Exit(0)
+			if err == ln.ErrPromptAborted {
+				os.Exit(1)
 			}
 			fmt.Println(ErrorColor("\nerror reading line input"))
 			fmt.Println(ErrorColor(err.Error()))
-			continue
+			os.Exit(1)  // Exiting because it will cause an infinite loop of error if used 'continue' here
 		}
+		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
