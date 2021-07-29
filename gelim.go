@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	promptColor = color.New(color.FgCyan).SprintFunc()
+	promptColor = color.FgGreen
 	ErrorColor  = color.New(color.FgRed).SprintfFunc()
 )
 
@@ -152,7 +152,9 @@ func main() {
 	}()
 
 	for {
+		color.Set(promptColor)
 		line, err := rl.Prompt(c.conf.Prompt + " ")
+		color.Unset()
 		if err != nil {
 			if err == ln.ErrPromptAborted {
 				os.Exit(1)
