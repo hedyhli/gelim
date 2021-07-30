@@ -62,6 +62,8 @@ func NewClient() (*Client, error) {
 	}
 	c.mainReader.ReadHistory(c.promptHistory)
 	c.inputReader.ReadHistory(c.inputHistory)
+
+	c.mainReader.SetCompleter(CommandCompleter)
 	return &c, err
 }
 

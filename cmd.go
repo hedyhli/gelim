@@ -245,3 +245,13 @@ var commands = map[string]Command{
 	// 	quotedArgs: true,
 	// },
 }
+
+
+func CommandCompleter(line string) (c []string) {
+	for name := range(commands) {
+		if strings.HasPrefix(name, strings.ToLower(line)) {
+			c = append(c, name)
+		}
+	}
+	return
+}
