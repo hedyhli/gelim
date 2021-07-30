@@ -148,7 +148,7 @@ func main() {
 		var line string
 		var err error
 		if c.promptSuggestion != "" {
-			line, err = rl.PromptWithSuggestion(c.parsePrompt() + " ", c.promptSuggestion, -1)
+			line, err = rl.PromptWithSuggestion(c.parsePrompt()+" ", c.promptSuggestion, -1)
 			c.promptSuggestion = ""
 		} else {
 			line, err = rl.Prompt(c.parsePrompt() + " ")
