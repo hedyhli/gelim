@@ -62,30 +62,64 @@ gelim gemini.circumlunar.space
 ```
 This will bring you to less(1). You can use less to browse the page normally.
 
-When you want to visit a link, you have to quit less first. Just press `q`, then simply
-type the link index number you'd like to visit and hit enter. The page will be fetched
-and you'll be in less again.
+*Note: if you see something like "mouse is not an option", don't panic, this is
+because your system does not support one of gelim's default less options, you
+should skip over to the 'config' section below, and configure your lessOpts to
+remove the mouse option, and any other your version of less doesn't have.*
+
+When you want to visit a link, you have to quit less first.
+```
+q
+```
+The page will be fetched and you'll be in less again.
 
 Now let's try something more interesting.
 
-While you're at the prompt type in `rawtext.club` and hit enter. Then press `G`. This will
-navigate to the bottom of the page. Say you don't have an account on RTC yet, and would like
-to sign up. Well, that's easy, the bottom of the page shows you which URL you could go to to
-sign up, and the URL is from the same host as the current page.
+While you're at the prompt type:
+```
+rawtext.club
+```
+Say you don't have an account on RTC yet and would like to sign up.
 
-First exit less by typing `q`. Then type `/sign-up.gmi` at the prompt, hit enter, and voila,
-you've just used relative paths to browse geminispace, saves a ton of typing doesn't it?
+Go to the bottom of the page, where the link to signing up is provided:
+```
+G
+```
+Then, you have to quit the pager:
+```
+q
+```
+Look for the link number that links to the sign up page, and enter it directy at the prompt.
+As of writing, the link number is 38, but keep in mind this number may change when you are
+trying this out.
+```
+38
+```
+And now you've decided to have a look at rawtext.club's values at the front page on more time.
+Unfortunately, the sign up page does not provide a link to go back to home. No worries, you can
+directly use the path (prefixed with . or /) at the prompt.
+
+Let's try it out. Quit the pager (`q`), and enter:
+```
+/
+```
+Voila, you're at the front page again!
+
+Thanks for trying out this quickstart tutorial, there is still much to explore. Type in `help`
+from the prompt and check out the commands, have fun!
 
 ## config
 
-For most people it will look for configuration in `~/.config/gelim/config.toml`
+For people on a Unix system it will look for configuration in `~/.config/gelim/config.toml`.
 
 Though you do not need a configuration file to have gelim working.
 
 ```toml
 # example config
 
-prompt = "-->"            # default: "url/number/cmd; ? for help >"
+prompt = "-->"            # default: "%U" (the full url of
+                          # the current page), more info
+                          # below
 
 startURL = "example.com"  # default: ""
 
@@ -94,6 +128,34 @@ lessOpts = "-FSXR~"       # default: "-FSXR~ --mouse -P pager (q to quit)"
 
 searchURL = "geminispace.info/search"  # this is the default
 ```
+
+### prompt options
+
+you can use a number of options for your prompt (like PS1 in bash):
+
+- `%U`: full url of current page including scheme (gemini://example.com/foo/bar?query)
+- `%u`: full url of current page without scheme (example.com/foo/bar?query)
+- `%P`: absolute path of the current url (/foo/bar)
+- `%p`: base path of the current url (bar)
+
+Use `%%` for a literal percent character, and percent-prefixed option that is not supported
+will be ignored and presented literally.
+
+Here are some examples:
+
+```
+config    resulting prompt
+-------   -----------------
+"%U>"     "gemini://example.com/foo/bar?query> "
+"%P %%"   "/foo/bar % "
+"%z>"     "%z> "
+```
+
+## a note about the pager
+
+gelim requires less(1) for paged output. If you don't have that installed, or is on windows,
+it will print the page directly and you'll have to scroll the page yourself. This is a bug
+and will be fixed in the near future.
 
 ## remotes
 
@@ -106,6 +168,5 @@ searchURL = "geminispace.info/search"  # this is the default
 [public inbox](https://lists.sr.ht/~hedy/inbox). [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
 - **bugs, feature requests**: submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
 you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
-- **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go.
-
+- **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
 
