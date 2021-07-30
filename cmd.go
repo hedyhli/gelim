@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -156,7 +155,7 @@ var commands = map[string]Command{
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
 		do: func(c *Client, args ...string) {
-			os.Exit(0)
+			c.QuitClient()
 		},
 		help: "exit gelim",
 	},
@@ -245,4 +244,13 @@ var commands = map[string]Command{
 	// 	help: "key <space> value : set a configuration value for the current gelim session",
 	// 	quotedArgs: true,
 	// },
+}
+
+func CommandCompleter(line string) (c []string) {
+	for name := range commands {
+		if strings.HasPrefix(name, strings.ToLower(line)) {
+			c = append(c, name)
+		}
+	}
+	return
 }

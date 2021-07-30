@@ -2,13 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/lmorg/readline"
-	"github.com/manifoldco/ansiwrap"
-	"golang.org/x/term"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"git.sr.ht/~adnano/go-xdg"
+	"github.com/manifoldco/ansiwrap"
+	ln "github.com/peterh/liner"
+	"golang.org/x/term"
 )
 
 type Page struct {
@@ -19,29 +22,59 @@ type Page struct {
 }
 
 type Client struct {
-	links       []string
-	inputLinks  []int // contains index to links in `links` that needs spartan input
-	history     []*url.URL
-	conf        *Config
-	inputReader *readline.Instance
-	mainReader  *readline.Instance
+	links         []string
+	inputLinks    []int // contains index to links in `links` that needs spartan input
+	history       []*url.URL
+	conf          *Config
+	mainReader    *ln.State
+	inputReader   *ln.State
+	promptHistory *os.File
+	inputHistory  *os.File
 }
 
-func NewClient() *Client {
+func NewClient() (*Client, error) {
 	var c Client
+	var err error
 	// load config
 	conf, err := LoadConfig()
 	if err != nil {
-		fmt.Println(ErrorColor("Error loading config: %s", err.Error()))
-		os.Exit(1)
+		return &c, err
 	}
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
 	c.conf = conf
-	c.mainReader = readline.NewInstance()
-	c.mainReader.SetPrompt(promptColor(c.conf.Prompt) + " ")
-	c.inputReader = readline.NewInstance()
-	return &c
+	c.mainReader = ln.NewLiner()
+	c.mainReader.SetCtrlCAborts(true)
+	c.inputReader = ln.NewLiner()
+	c.inputReader.SetCtrlCAborts(true)
+
+	dataDir := filepath.Join(xdg.DataHome(), "gelim")
+
+	// Create cache/data/runtime dirs/files
+	os.MkdirAll(dataDir, 0700)
+	c.promptHistory, err = os.OpenFile(filepath.Join(dataDir, "prompt_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return &c, err
+	}
+	c.inputHistory, err = os.OpenFile(filepath.Join(dataDir, "input_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return &c, err
+	}
+	c.mainReader.ReadHistory(c.promptHistory)
+	c.inputReader.ReadHistory(c.inputHistory)
+
+	c.mainReader.SetCompleter(CommandCompleter)
+	return &c, err
+}
+
+func (c *Client) QuitClient() {
+	c.mainReader.WriteHistory(c.promptHistory)
+	c.inputReader.WriteHistory(c.inputHistory)
+	c.promptHistory.Close()
+	c.inputHistory.Close()
+	c.mainReader.Close()
+	c.inputReader.Close()
+	os.Exit(0)
 }
 
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
@@ -156,22 +189,25 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 
 // Input handles Input status codes
 func (c *Client) Input(u string, sensitive bool) (ok bool) {
-	c.inputReader.SetPrompt("INPUT> ")
+	var query string
+	var err error
+	// c.inputReader.SetMultiLineMode(true)
 	if sensitive {
-		c.inputReader.PasswordMask = '*'
-		oldHistory := c.inputReader.History
-		c.inputReader.History = new(readline.NullHistory)
-		defer func() { c.inputReader.PasswordMask = 0; c.inputReader.History = oldHistory }()
+		query, err = c.inputReader.PasswordPrompt("INPUT (sensitive)> ")
+	} else {
+		query, err = c.inputReader.Prompt("INPUT> ")
 	}
-	query, err := c.inputReader.Readline()
 	if err != nil {
-		if err == readline.CtrlC {
+		if err == ln.ErrPromptAborted {
 			fmt.Println(ErrorColor("\ninput cancelled"))
 			return false
 		}
 		fmt.Println(ErrorColor("\nerror reading input:"))
 		fmt.Println(ErrorColor(err.Error()))
 		return false
+	}
+	if !sensitive {
+		c.inputReader.AppendHistory(query)
 	}
 	u = u + "?" + queryEscape(query)
 	return c.HandleURL(u)
@@ -224,12 +260,12 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
+			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body.", err))
+			fmt.Println(ErrorColor("Unable to read body. %s", err))
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
@@ -271,12 +307,12 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"", res.meta, "\":", err))
+			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body.", err))
+			fmt.Println(ErrorColor("Unable to read body. %s", err))
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType

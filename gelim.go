@@ -11,12 +11,12 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/lmorg/readline"
+	ln "github.com/peterh/liner"
 	flag "github.com/spf13/pflag"
 )
 
 var (
-	promptColor = color.New(color.FgCyan).SprintFunc()
+	promptColor = color.FgGreen
 	ErrorColor  = color.New(color.FgRed).SprintfFunc()
 )
 
@@ -107,7 +107,11 @@ func main() {
 	u := ""
 	cliURL := false // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 
-	c := NewClient()
+	c, err := NewClient()
+	if err != nil {
+		fmt.Println(ErrorColor("%s", err.Error()))
+		os.Exit(1)
+	}
 	if *searchFlag != "" {
 		c.Search(*searchFlag) // it's "searchQuery" more like
 		cliURL = true
@@ -140,15 +144,18 @@ func main() {
 	rl := c.mainReader
 
 	for {
-		line, err := rl.Readline()
+		color.Set(promptColor)
+		line, err := rl.Prompt(c.conf.Prompt + " ")
+		color.Unset()
 		if err != nil {
-			if err == readline.CtrlC {
-				os.Exit(0)
+			if err == ln.ErrPromptAborted {
+				os.Exit(1)
 			}
 			fmt.Println(ErrorColor("\nerror reading line input"))
 			fmt.Println(ErrorColor(err.Error()))
-			continue
+			os.Exit(1) // Exiting because it will cause an infinite loop of error if used 'continue' here
 		}
+		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
