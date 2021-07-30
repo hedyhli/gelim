@@ -173,6 +173,7 @@ var commands = map[string]Command{
 	"history": {
 		aliases: []string{"hist"},
 		do: func(c *Client, args ...string) {
+			// TODO: go to an url in history
 			for i, v := range c.history {
 				fmt.Println(i, v.String())
 			}
