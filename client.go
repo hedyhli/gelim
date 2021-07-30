@@ -166,9 +166,9 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			} else {
 				label = strings.Join(bits[1:], " ")
 			}
-			if strings.HasPrefix(originalLine, "=:") {
+			if strings.HasPrefix(originalLine, "=:") && page.u.Scheme == "spartan" {
 				label += " [INPUT]"
-				c.inputLinks = append(c.inputLinks, len(c.links)) // using len(.clinks) because it is only appended below so the value from that is just right
+				c.inputLinks = append(c.inputLinks, len(c.links)) // using len(c.links) because it is only appended below so the value from that is just right
 			}
 			c.links = append(c.links, link.String())
 			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
@@ -293,6 +293,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	}
 	defer res.conn.Close()
 	c.links = make([]string, 0, 100) // reset links
+	c.inputLinks = make([]int, 0, 100)
 
 	// mediaType and params will be parsed later
 	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}

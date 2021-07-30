@@ -145,7 +145,7 @@ func main() {
 
 	for {
 		color.Set(promptColor)
-		line, err := rl.Prompt(c.conf.Prompt + " ")
+		line, err := rl.Prompt(c.parsePrompt() + " ")
 		color.Unset()
 		if err != nil {
 			if err == ln.ErrPromptAborted {

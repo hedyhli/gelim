@@ -1,11 +1,14 @@
 package main
 
 import (
-	"git.sr.ht/~adnano/go-xdg"
-	"github.com/BurntSushi/toml"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"git.sr.ht/~adnano/go-xdg"
+	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
@@ -20,7 +23,7 @@ func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
 	// Defaults
-	conf.Prompt = "url/number/cmd; ? for help >"
+	conf.Prompt = "%U>"
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
 	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
@@ -44,4 +47,49 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &conf, nil
+}
+
+func (c *Client) parsePrompt() (prompt string) {
+	percent := false
+	var u *url.URL
+	if len(c.history) != 0 {
+		u = c.history[len(c.history)-1]
+	}
+	for _, char := range c.conf.Prompt {
+		if char == '%' {
+			if percent {
+				prompt += "%"
+				percent = false
+				continue
+			}
+			percent = true
+			continue
+		}
+		if percent {
+			if u == nil {
+				percent = false
+				continue
+			}
+			switch char {
+			case 'U':
+				prompt += u.String()
+			case 'u':
+				prompt += strings.TrimLeft(u.String(), u.Scheme+"://")
+			case 'P':
+				if !strings.HasPrefix(u.Path, "/") {
+					prompt += "/" + u.Path
+					break
+				}
+				prompt += u.Path
+			case 'p':
+				prompt += filepath.Base(u.Path)
+			default:
+				prompt += "%" + string(char)
+			}
+			percent = false
+			continue
+		}
+		prompt += string(char)
+	}
+	return
 }
