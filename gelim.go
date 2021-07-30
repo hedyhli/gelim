@@ -153,7 +153,7 @@ func main() {
 			}
 			fmt.Println(ErrorColor("\nerror reading line input"))
 			fmt.Println(ErrorColor(err.Error()))
-			os.Exit(1)  // Exiting because it will cause an infinite loop of error if used 'continue' here
+			os.Exit(1) // Exiting because it will cause an infinite loop of error if used 'continue' here
 		}
 		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)

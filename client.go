@@ -22,14 +22,14 @@ type Page struct {
 }
 
 type Client struct {
-	links       []string
-	inputLinks  []int // contains index to links in `links` that needs spartan input
-	history     []*url.URL
-	conf        *Config
-	mainReader  *ln.State
-	inputReader *ln.State
+	links         []string
+	inputLinks    []int // contains index to links in `links` that needs spartan input
+	history       []*url.URL
+	conf          *Config
+	mainReader    *ln.State
+	inputReader   *ln.State
 	promptHistory *os.File
-	inputHistory *os.File
+	inputHistory  *os.File
 }
 
 func NewClient() (*Client, error) {

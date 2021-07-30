@@ -246,9 +246,8 @@ var commands = map[string]Command{
 	// },
 }
 
-
 func CommandCompleter(line string) (c []string) {
-	for name := range(commands) {
+	for name := range commands {
 		if strings.HasPrefix(name, strings.ToLower(line)) {
 			c = append(c, name)
 		}
