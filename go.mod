@@ -3,6 +3,7 @@ module git.sr.ht/~hedy/gelim
 go 1.16
 
 require (
+	git.sr.ht/~adnano/go-gemini v0.2.2
 	git.sr.ht/~adnano/go-xdg v0.1.0
 	github.com/BurntSushi/toml v0.3.1
 	github.com/fatih/color v1.10.0

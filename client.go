@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"git.sr.ht/~adnano/go-gemini"
 	"git.sr.ht/~adnano/go-xdg"
 	"github.com/manifoldco/ansiwrap"
 	ln "github.com/peterh/liner"
@@ -31,6 +33,7 @@ type Client struct {
 	promptHistory    *os.File
 	inputHistory     *os.File
 	promptSuggestion string
+	gmi              *gemini.Client
 }
 
 func NewClient() (*Client, error) {
@@ -44,6 +47,7 @@ func NewClient() (*Client, error) {
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
 	c.conf = conf
+	c.gmi = &gemini.Client{}
 	c.mainReader = ln.NewLiner()
 	c.mainReader.SetCtrlCAborts(true)
 	c.inputReader = ln.NewLiner()
@@ -287,32 +291,34 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 }
 
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
-	res, err := GeminiParsedURL(*parsed)
+	ctx := context.Background()
+	res, err := c.gmi.Get(ctx, parsed.String())
 	if err != nil {
 		fmt.Println(ErrorColor(err.Error()))
 		return false
 	}
-	defer res.conn.Close()
+	conn := res.Conn()
+	defer conn.Close()
 	c.links = make([]string, 0, 100) // reset links
 	c.inputLinks = make([]int, 0, 100)
 
 	// mediaType and params will be parsed later
 	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
-	statusGroup := res.status / 10 // floor division
+	statusGroup := res.Status / 10 // floor division
 	switch statusGroup {
 	case 1:
-		fmt.Println(res.meta)
-		if res.status == 11 {
+		fmt.Println(res.Meta)
+		if res.Status == 11 {
 			return c.Input(page.u.String(), true) // sensitive input
 		}
 		return c.Input(page.u.String(), false)
 	case 2:
-		mediaType, params, err := ParseMeta(res.meta)
+		mediaType, params, err := ParseMeta(res.Meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
+			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.Meta, err))
 			return false
 		}
-		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
+		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			fmt.Println(ErrorColor("Unable to read body. %s", err))
 		}
@@ -321,9 +327,9 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		page.params = params
 		c.DisplayPage(page)
 	case 3:
-		return c.HandleURL(res.meta) // TODO: max redirect times
+		return c.HandleURL(res.Meta) // TODO: max redirect times
 	case 4, 5:
-		switch res.status {
+		switch res.Status {
 		case 40:
 			fmt.Println(ErrorColor("Temperorary failure"))
 		case 41:
@@ -337,12 +343,12 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		case 52:
 			fmt.Println(ErrorColor("Gone"))
 		}
-		fmt.Println(ErrorColor("%d %s", res.status, res.meta))
+		fmt.Println(ErrorColor("%d %s", res.Status, res.Meta))
 	case 6:
-		fmt.Println(res.meta)
+		fmt.Println(res.Meta)
 		fmt.Println("Sorry, gelim does not support client certificates yet.")
 	default:
-		fmt.Println(ErrorColor("invalid status code %d", res.status))
+		fmt.Println(ErrorColor("invalid status code %d", res.Status))
 		return false
 	}
 	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
