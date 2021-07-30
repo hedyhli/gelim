@@ -133,22 +133,28 @@ searchURL = "geminispace.info/search"  # this is the default
 
 you can use a number of options for your prompt (like PS1 in bash):
 
-- `%U`: full url of current page including scheme (gemini://example.com/foo/bar?query)
-- `%u`: full url of current page without scheme (example.com/foo/bar?query)
+- `%U`: full url of current page including scheme (gemini://example.com/foo/bar)
+- `%u`: full url of current page without scheme (example.com/foo/bar)
 - `%P`: absolute path of the current url (/foo/bar)
 - `%p`: base path of the current url (bar)
 
 Use `%%` for a literal percent character, and percent-prefixed option that is not supported
 will be ignored and presented literally.
 
+The query part of the URL will be stripped for all options, for security reasons. (If the
+input was to be sensitive -- 11 status code -- the full query percent-encoded would be
+printed as the prompt, which could mean revealing passwords, etc. Hence the query including
+the `?` is stripped.)
+
 Here are some examples:
 
 ```
 config    resulting prompt
 -------   -----------------
-"%U>"     "gemini://example.com/foo/bar?query> "
+"%U>"     "gemini://example.com/foo/bar> "
 "%P %%"   "/foo/bar % "
 "%z>"     "%z> "
+"%%%% $"  "%% $ "
 ```
 
 ## a note about the pager
