@@ -229,6 +229,16 @@ var commands = map[string]Command{
 		},
 		help: "print current url",
 	},
+	"editurl": {
+		aliases: []string{"e", "edit"},
+		do: func (c *Client, args ...string) {
+			// TODO: Use a link from current page or from history instead of current url
+			if len(c.history) != 0 {
+				c.promptSuggestion = c.history[len(c.history)-1].String()
+			}
+		},
+		help: "edit the current url",
+	},
 	// TODO: didn't have time to finish this lol
 	// "config": {
 	// 	aliases: []string{"c", "conf"},

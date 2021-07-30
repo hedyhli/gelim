@@ -145,7 +145,14 @@ func main() {
 
 	for {
 		color.Set(promptColor)
-		line, err := rl.Prompt(c.parsePrompt() + " ")
+		var line string
+		var err error
+		if c.promptSuggestion != "" {
+			line, err = rl.PromptWithSuggestion(c.parsePrompt() + " ", c.promptSuggestion, -1)
+			c.promptSuggestion = ""
+		} else {
+			line, err = rl.Prompt(c.parsePrompt() + " ")
+		}
 		color.Unset()
 		if err != nil {
 			if err == ln.ErrPromptAborted {

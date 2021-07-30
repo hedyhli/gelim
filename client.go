@@ -30,6 +30,7 @@ type Client struct {
 	inputReader   *ln.State
 	promptHistory *os.File
 	inputHistory  *os.File
+	promptSuggestion string
 }
 
 func NewClient() (*Client, error) {
