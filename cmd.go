@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -156,7 +155,7 @@ var commands = map[string]Command{
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
 		do: func(c *Client, args ...string) {
-			os.Exit(0)
+			c.QuitClient()
 		},
 		help: "exit gelim",
 	},

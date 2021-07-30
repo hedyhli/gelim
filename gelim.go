@@ -107,7 +107,11 @@ func main() {
 	u := ""
 	cliURL := false // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 
-	c := NewClient()
+	c, err := NewClient()
+	if err != nil {
+		fmt.Println(ErrorColor("%s", err.Error()))
+		os.Exit(1)
+	}
 	if *searchFlag != "" {
 		c.Search(*searchFlag) // it's "searchQuery" more like
 		cliURL = true
@@ -138,18 +142,6 @@ func main() {
 
 	// and now here comes the line-mode prompts and stuff
 	rl := c.mainReader
-	if f, err := os.Open(c.promptHistory); err == nil {
-		rl.ReadHistory(f)
-		f.Close()
-	}
-	defer func() {
-		if f, err := os.Open(c.promptHistory); err != nil {
-			fmt.Println(ErrorColor("Error writing to history: %s", err.Error()))
-		} else {
-			rl.WriteHistory(f)
-		}
-		rl.Close()
-	}()
 
 	for {
 		color.Set(promptColor)

@@ -28,17 +28,17 @@ type Client struct {
 	conf        *Config
 	mainReader  *ln.State
 	inputReader *ln.State
-	promptHistory string
-	inputHistory string
+	promptHistory *os.File
+	inputHistory *os.File
 }
 
-func NewClient() *Client {
+func NewClient() (*Client, error) {
 	var c Client
+	var err error
 	// load config
 	conf, err := LoadConfig()
 	if err != nil {
-		fmt.Println(ErrorColor("Error loading config: %s", err.Error()))
-		os.Exit(1)
+		return &c, err
 	}
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
@@ -47,13 +47,32 @@ func NewClient() *Client {
 	c.mainReader.SetCtrlCAborts(true)
 	c.inputReader = ln.NewLiner()
 	c.inputReader.SetCtrlCAborts(true)
-	c.promptHistory = filepath.Join(xdg.DataHome(), "gelim", "prompt_history.txt")
-	c.inputHistory = filepath.Join(xdg.DataHome(), "gelim", "input_history.txt")
 
-	// Create cache/data/runtime dirs
-	os.MkdirAll(filepath.Dir(c.promptHistory), 700)
-	os.MkdirAll(filepath.Dir(c.inputHistory), 700)
-	return &c
+	dataDir := filepath.Join(xdg.DataHome(), "gelim")
+
+	// Create cache/data/runtime dirs/files
+	os.MkdirAll(dataDir, 0700)
+	c.promptHistory, err = os.OpenFile(filepath.Join(dataDir, "prompt_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return &c, err
+	}
+	c.inputHistory, err = os.OpenFile(filepath.Join(dataDir, "input_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return &c, err
+	}
+	c.mainReader.ReadHistory(c.promptHistory)
+	c.inputReader.ReadHistory(c.inputHistory)
+	return &c, err
+}
+
+func (c *Client) QuitClient() {
+	c.mainReader.WriteHistory(c.promptHistory)
+	c.inputReader.WriteHistory(c.inputHistory)
+	c.promptHistory.Close()
+	c.inputHistory.Close()
+	c.mainReader.Close()
+	c.inputReader.Close()
+	os.Exit(0)
 }
 
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
@@ -172,7 +191,6 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	var err error
 	// c.inputReader.SetMultiLineMode(true)
 	if sensitive {
-		// TODO: no history
 		query, err = c.inputReader.PasswordPrompt("INPUT (sensitive)> ")
 	} else {
 		query, err = c.inputReader.Prompt("INPUT> ")
@@ -185,6 +203,9 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 		fmt.Println(ErrorColor("\nerror reading input:"))
 		fmt.Println(ErrorColor(err.Error()))
 		return false
+	}
+	if !sensitive {
+		c.inputReader.AppendHistory(query)
 	}
 	u = u + "?" + queryEscape(query)
 	return c.HandleURL(u)
