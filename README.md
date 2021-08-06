@@ -24,7 +24,6 @@ improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hed
   - custom pager opts
   - and more!
 - [spartan:// protocol](gemini://spartan.mozz.us) support
-- check out some of the planned features in the [ticket tracker](https://todo.sr.ht/~hedy/gelim)
 
 ## install
 
@@ -62,7 +61,7 @@ gelim gemini.circumlunar.space
 ```
 This will bring you to less(1). You can use less to browse the page normally.
 
-*Note: if you see something like "mouse is not an option", don't panic, this is
+*Note: if you see something like "-P is not an option", don't panic, this is
 because your system does not support one of gelim's default less options, you
 should skip over to the 'config' section below, and configure your lessOpts to
 remove the mouse option, and any other your version of less doesn't have.*
@@ -124,7 +123,7 @@ prompt = "-->"            # default: "%U" (the full url of
 startURL = "example.com"  # default: ""
 
 # will be put in LESS environment variable
-lessOpts = "-FSXR~"       # default: "-FSXR~ --mouse -P pager (q to quit)"
+lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
 
 searchURL = "geminispace.info/search"  # this is the default
 ```
@@ -163,6 +162,11 @@ gelim requires less(1) for paged output. If you don't have that installed, or is
 it will print the page directly and you'll have to scroll the page yourself. This is a bug
 and will be fixed in the near future.
 
+### mouse support
+
+Add `--mouse` (if your version of less supports it) to `lessOpts` option
+in your config file.
+
 ## remotes
 
 - [sourcehut](https://sr.ht/~hedy/gelim)
@@ -170,9 +174,20 @@ and will be fixed in the near future.
 
 ## bugs, features, feedback, contribution
 
-- **questions, general feedback**: send a ([plain text](https://useplaintext.email)) email to my
-[public inbox](https://lists.sr.ht/~hedy/inbox). [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
-- **bugs, feature requests**: submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
-you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
-- **pull request, patches**: send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox). If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
+**questions, general feedback**:
+
+* send a ([plain text](https://useplaintext.email)) email to my
+[public inbox](https://lists.sr.ht/~hedy/inbox).
+* [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
+* join `#gelim` on libera.chat irc for questions and suggestion
+
+**bugs, feature requests**
+
+* submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
+* you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
+
+**pull request, patches**
+
+* send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
+* If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
 

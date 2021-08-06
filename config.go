@@ -26,7 +26,7 @@ func LoadConfig() (*Config, error) {
 	conf.Prompt = "%U>"
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
-	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+	conf.LessOpts = "-FSXR~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://geminispace.info/search"
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
