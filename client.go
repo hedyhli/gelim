@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -18,11 +18,11 @@ import (
 )
 
 type Page struct {
-	bodyBytes []byte
 	bodyReader io.Reader
-	mediaType string
-	params    map[string]string
-	u         *url.URL
+	body       []gemini.Line
+	mediaType  string
+	params     map[string]string
+	u          *url.URL
 }
 
 type Client struct {
@@ -37,9 +37,10 @@ type Client struct {
 	promptSuggestion string
 	gmi              *gemini.Client
 
-	page             *Page
-	rendered         string
-	pre              bool
+	// page             *Page
+	pre         bool
+	tmpPageFile *os.File
+	currentURL  *url.URL
 }
 
 func NewClient() (*Client, error) {
@@ -58,6 +59,11 @@ func NewClient() (*Client, error) {
 	c.mainReader.SetCtrlCAborts(true)
 	c.inputReader = ln.NewLiner()
 	c.inputReader.SetCtrlCAborts(true)
+
+	c.tmpPageFile, err = os.CreateTemp("", "*")
+	if err != nil {
+		return &c, err
+	}
 
 	dataDir := filepath.Join(xdg.DataHome(), "gelim")
 
@@ -85,7 +91,7 @@ func (c *Client) QuitClient() {
 	c.inputHistory.Close()
 	c.mainReader.Close()
 	c.inputReader.Close()
-	os.Exit(0)
+	os.Remove(c.tmpPageFile.Name())
 }
 
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
@@ -105,32 +111,39 @@ func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 }
 
 func (c *Client) DisplayPage(page *Page) {
-	// TODO: proper stream - read the reader and stuff
-	if page.mediaType == "application/octet-stream" {
-		Pager(string(page.bodyBytes), c.conf)
-		return
-	}
+	c.tmpPageFile.Truncate(0)
+	c.tmpPageFile.Seek(0, 0)
 	// text/* content only for now
 	// TODO: support more media types
-	if !strings.HasPrefix(page.mediaType, "text/") {
+	if !strings.HasPrefix(page.mediaType, "text/") && page.mediaType != "application/octet-stream" {
 		fmt.Println(ErrorColor("Unsupported type " + page.mediaType))
 		return
 	}
 	if page.mediaType == "text/gemini" {
-		// rendered := c.ParseGeminiPage(page)
-		// Pager(rendered, c.conf)
 		c.pre = false
-		c.rendered = ""
-		gemini.ParseLines(page.bodyReader, c.GemtextHandler)
-		Pager(c.rendered, c.conf)
+		err := gemini.ParseLines(page.bodyReader, c.GemtextHandler)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		Pager(c.tmpPageFile.Name(), c.conf)
 		return
 	}
-	// other text/* stuff
-	Pager(string(page.bodyBytes), c.conf)
+	if page.mediaType == "application/octet-stream" || strings.HasPrefix(page.mediaType, "text/") {
+		scanner := bufio.NewScanner(page.bodyReader)
+		for scanner.Scan() {
+			c.AppendLine(scanner.Text())
+		}
+		Pager(c.tmpPageFile.Name(), c.conf)
+		return
+	}
+}
+
+func (c *Client) AppendLine(line string) {
+	c.tmpPageFile.WriteString(line + "\n")
 }
 
 func (c *Client) GemtextHandler(line gemini.Line) {
-	page := c.page
+	current := c.currentURL
 	width, _, err := term.GetSize(0)
 	if err != nil {
 		fmt.Println(ErrorColor("error getting terminal size"))
@@ -138,16 +151,16 @@ func (c *Client) GemtextHandler(line gemini.Line) {
 	}
 	switch line := line.(type) {
 	case gemini.LineHeading1:
-		c.rendered += ansiwrap.Wrap(h1Style(line), width) + "\n"
+		c.AppendLine(ansiwrap.Wrap(h1Style(line), width))
 	case gemini.LineHeading2:
-		c.rendered += ansiwrap.Wrap(h2Style(line), width) + "\n"
+		c.AppendLine(ansiwrap.Wrap(h2Style(line), width))
 	case gemini.LineListItem:
 		// Using width - 3 because of 3 spaces "   " indent at the start
-		c.rendered += "   " + ansiwrap.WrapIndent(strings.Replace(string(line), "*", "•", 1), width-3, 0, 5) + "\n"
+		c.AppendLine("  • " + ansiwrap.WrapIndent(string(line), width-3, 0, 4))
 	case gemini.LinePreformattedText:
-		c.rendered += string(line) + "\n"
+		c.AppendLine(string(line))
 	case gemini.LinePreformattingToggle:
-		c.pre = !c.pre  // TODO: idk what to do here
+		c.pre = !c.pre // TODO: idk what to do here
 	case gemini.LineQuote:
 		// appending extra \n here because we want quote blocks to stand out
 		// with leading and trailing new lines to distinguish from paragraphs
@@ -155,27 +168,30 @@ func (c *Client) GemtextHandler(line gemini.Line) {
 		// NOT doing this anymore!
 		// (because it looked bad if quotes are continuous)
 		// TODO: remove extra new lines in the end
-		c.rendered += ansiwrap.WrapIndent(string(line), width, 1, 3) + "\n"
+		c.AppendLine(" > " + ansiwrap.WrapIndent(string(line), width, 1, 4))
 	case gemini.LineLink:
 		parsedLink, err := url.Parse(line.URL)
 		if err != nil {
 			return
 		}
-		link := page.u.ResolveReference(parsedLink) // link url
+		link := current.ResolveReference(parsedLink) // link url
 		label := line.Name
+		if label == "" {
+			label = line.URL
+		}
 		c.links = append(c.links, link.String())
 		linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
 		if link.Scheme != "gemini" {
 			linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 		}
-		c.rendered += ansiwrap.Wrap(linkLine, width) + "\n"
+		c.AppendLine(ansiwrap.Wrap(linkLine, width))
 	case gemini.LineText:
 		if strings.HasPrefix(string(line), "=:") {
 			text := string(line)[2:]
 			text = strings.TrimLeft(text, " \t")
 			split := strings.IndexAny(text, " \t")
 			var (
-				u string
+				u    string
 				name string
 			)
 			if split == -1 {
@@ -191,25 +207,24 @@ func (c *Client) GemtextHandler(line gemini.Line) {
 			c.inputLinks = append(c.inputLinks, len(c.links)) // using len(c.links) because it is only appended below so the value from that is just right
 			parsedLink, err := url.Parse(u)
 			if err != nil {
-				return  // TODO: do something better than ignoring the link
+				return // TODO: do something better than ignoring the link
 			}
-			link := page.u.ResolveReference(parsedLink) // link url
+			link := current.ResolveReference(parsedLink) // link url
 			c.links = append(c.links, link.String())
 			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
 			if link.Scheme != "gemini" {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
-			c.rendered += ansiwrap.Wrap(linkLine, width) + "\n"
+			c.AppendLine(ansiwrap.Wrap(linkLine, width))
 		} else {
-			c.rendered += ansiwrap.Wrap(string(line), width) + "\n"
+			c.AppendLine(ansiwrap.Wrap(string(line), width))
 		}
 	}
 	// Remove last \n
-	if len(c.rendered) > 0 {
-		c.rendered = c.rendered[:len(c.rendered)-1]
-	}
+	// if len(c.rendered) > 0 {
+	// 	c.rendered = c.rendered[:len(c.rendered)-1]
+	// }
 }
-
 
 // Input handles Input status codes
 func (c *Client) Input(u string, sensitive bool) (ok bool) {
@@ -269,6 +284,7 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 }
 
 func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
+	c.currentURL = parsed
 	res, err := SpartanParsedURL(parsed)
 	if err != nil {
 		fmt.Println(ErrorColor(err.Error()))
@@ -278,7 +294,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	c.links = make([]string, 0, 100) // reset links
 	c.inputLinks = make([]int, 0, 100)
 
-	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	page := &Page{u: parsed, bodyReader: res.bodyReader}
 	// Handle status
 	switch res.status {
 	case 2:
@@ -287,11 +303,6 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
-		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
-		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body. %s", err))
-		}
-		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
 		c.DisplayPage(page)
@@ -310,6 +321,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 }
 
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
+	c.currentURL = parsed
 	ctx := context.Background()
 	res, err := c.gmi.Get(ctx, parsed.String())
 	if err != nil {
@@ -322,7 +334,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	c.inputLinks = make([]int, 0, 100)
 
 	// mediaType and params will be parsed later
-	page := &Page{bodyBytes: nil, bodyReader: res.Body, mediaType: "", u: parsed, params: nil}
+	page := &Page{u: parsed, bodyReader: res.Body}
 	statusGroup := res.Status / 10 // floor division
 	switch statusGroup {
 	case 1:
@@ -337,11 +349,6 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.Meta, err))
 			return false
 		}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body. %s", err))
-		}
-		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
 		c.DisplayPage(page)

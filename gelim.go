@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -67,22 +66,15 @@ func QuotedFields(s string) []string {
 
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
-func Pager(body string, conf *Config) {
-	cmd := exec.Command("less")
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		fmt.Print(body)
-		return
-	}
+func Pager(path string, conf *Config) {
+	cmd := exec.Command("less", path)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "LESS="+conf.LessOpts)
 	if err := cmd.Start(); err != nil {
-		fmt.Print(body)
+		fmt.Print(path)
 		return
 	}
-	io.WriteString(stdin, body)
-	stdin.Close()
 	cmd.Stdin = os.Stdin
 	cmd.Wait()
 }
@@ -142,6 +134,7 @@ func main() {
 
 	// and now here comes the line-mode prompts and stuff
 	rl := c.mainReader
+	defer c.QuitClient() // Cleans up files and stuff in case user press CtrlC
 
 	for {
 		color.Set(promptColor)
