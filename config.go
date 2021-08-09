@@ -26,7 +26,7 @@ func LoadConfig() (*Config, error) {
 	conf.Prompt = "%U>"
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
-	conf.LessOpts = "-FSXR~ --mouse -P pager (q to quit)"
+	conf.LessOpts = "-FSXR~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://geminispace.info/search"
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
@@ -72,9 +72,9 @@ func (c *Client) parsePrompt() (prompt string) {
 			}
 			switch char {
 			case 'U':
-				prompt += strings.TrimRight(u.String(), "?"+u.RawQuery)
+				prompt += strings.TrimSuffix(u.String(), "?"+u.RawQuery)
 			case 'u':
-				prompt += strings.TrimRight(strings.TrimLeft(u.String(), u.Scheme+"://"), "?"+u.RawQuery)
+				prompt += strings.TrimSuffix(strings.TrimPrefix(u.String(), u.Scheme+"://"), "?"+u.RawQuery)
 			case 'P':
 				if !strings.HasPrefix(u.Path, "/") {
 					prompt += "/" + u.Path
