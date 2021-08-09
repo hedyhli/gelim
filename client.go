@@ -301,11 +301,12 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	statusGroup := res.status / 10 // floor division
 	switch statusGroup {
 	case 1:
+		u := strings.TrimRight(page.u.String(), "?"+page.u.RawQuery)
 		fmt.Println(res.meta)
 		if res.status == 11 {
-			return c.Input(page.u.String(), true) // sensitive input
+			return c.Input(u, true) // sensitive input
 		}
-		return c.Input(page.u.String(), false)
+		return c.Input(u, false)
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
