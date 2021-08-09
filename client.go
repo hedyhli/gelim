@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -18,6 +19,7 @@ import (
 
 type Page struct {
 	bodyBytes []byte
+	bodyReader io.Reader
 	mediaType string
 	params    map[string]string
 	u         *url.URL
@@ -34,6 +36,10 @@ type Client struct {
 	inputHistory     *os.File
 	promptSuggestion string
 	gmi              *gemini.Client
+
+	page             *Page
+	rendered         string
+	pre              bool
 }
 
 func NewClient() (*Client, error) {
@@ -111,86 +117,99 @@ func (c *Client) DisplayPage(page *Page) {
 		return
 	}
 	if page.mediaType == "text/gemini" {
-		rendered := c.ParseGeminiPage(page)
-		Pager(rendered, c.conf)
+		// rendered := c.ParseGeminiPage(page)
+		// Pager(rendered, c.conf)
+		c.pre = false
+		c.rendered = ""
+		gemini.ParseLines(page.bodyReader, c.GemtextHandler)
+		Pager(c.rendered, c.conf)
 		return
 	}
 	// other text/* stuff
 	Pager(string(page.bodyBytes), c.conf)
 }
 
-func (c *Client) ParseGeminiPage(page *Page) string {
+func (c *Client) GemtextHandler(line gemini.Line) {
+	page := c.page
 	width, _, err := term.GetSize(0)
 	if err != nil {
-		return ErrorColor("error getting terminal size")
+		fmt.Println(ErrorColor("error getting terminal size"))
+		return
 	}
-	preformatted := false
-	rendered := ""
-	body := string(page.bodyBytes)
-	for _, line := range strings.Split(body, "\n") {
-		if strings.HasSuffix(line, "\r") {
-			line = strings.Trim(line, "\r")
+	switch line := line.(type) {
+	case gemini.LineHeading1:
+		c.rendered += ansiwrap.Wrap(h1Style(line), width) + "\n"
+	case gemini.LineHeading2:
+		c.rendered += ansiwrap.Wrap(h2Style(line), width) + "\n"
+	case gemini.LineListItem:
+		// Using width - 3 because of 3 spaces "   " indent at the start
+		c.rendered += "   " + ansiwrap.WrapIndent(strings.Replace(string(line), "*", "•", 1), width-3, 0, 5) + "\n"
+	case gemini.LinePreformattedText:
+		c.rendered += string(line) + "\n"
+	case gemini.LinePreformattingToggle:
+		c.pre = !c.pre  // TODO: idk what to do here
+	case gemini.LineQuote:
+		// appending extra \n here because we want quote blocks to stand out
+		// with leading and trailing new lines to distinguish from paragraphs
+		// as well as making it clear that it's actually a quote block.
+		// NOT doing this anymore!
+		// (because it looked bad if quotes are continuous)
+		// TODO: remove extra new lines in the end
+		c.rendered += ansiwrap.WrapIndent(string(line), width, 1, 3) + "\n"
+	case gemini.LineLink:
+		parsedLink, err := url.Parse(line.URL)
+		if err != nil {
+			return
 		}
-		if strings.HasPrefix(line, "```") {
-			preformatted = !preformatted
-
-		} else if preformatted {
-			rendered += line + "\n"
-
-		} else if strings.HasPrefix(line, "> ") { // not sure if whitespace after > is mandatory for this
-			// appending extra \n here because we want quote blocks to stand out
-			// with leading and trailing new lines to distinguish from paragraphs
-			// as well as making it clear that it's actually a quote block.
-			// NOT doing this anymore!
-			// (because it looked bad if quotes are continuous)
-			// TODO: remove extra new lines in the end
-			rendered += ansiwrap.WrapIndent(line, width, 1, 3) + "\n"
-
-		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
-			// Using width - 3 because of 3 spaces "   " indent at the start
-			rendered += "   " + ansiwrap.WrapIndent(strings.Replace(line, "*", "•", 1), width-3, 0, 5) + "\n"
-
-		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
-			rendered += ansiwrap.Wrap(h1Style(line), width) + "\n"
-
-		} else if strings.HasPrefix(line, "##") {
-			rendered += ansiwrap.Wrap(h2Style(line), width) + "\n"
-
-		} else if strings.HasPrefix(line, "=>") || (page.u.Scheme == "spartan" && strings.HasPrefix(line, "=:")) {
-			originalLine := line
-			line = line[2:]
-			bits := strings.Fields(line)
-			parsedLink, err := url.Parse(bits[0])
+		link := page.u.ResolveReference(parsedLink) // link url
+		label := line.Name
+		c.links = append(c.links, link.String())
+		linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
+		if link.Scheme != "gemini" {
+			linkLine += fmt.Sprintf(" (%s)", link.Scheme)
+		}
+		c.rendered += ansiwrap.Wrap(linkLine, width) + "\n"
+	case gemini.LineText:
+		if strings.HasPrefix(string(line), "=:") {
+			text := string(line)[2:]
+			text = strings.TrimLeft(text, " \t")
+			split := strings.IndexAny(text, " \t")
+			var (
+				u string
+				name string
+			)
+			if split == -1 {
+				// text is a URL
+				u = text
+				name = u
+			} else {
+				u = text[:split]
+				name = text[split:]
+				name = strings.TrimLeft(name, " \t")
+			}
+			label := name + " [INPUT]"
+			c.inputLinks = append(c.inputLinks, len(c.links)) // using len(c.links) because it is only appended below so the value from that is just right
+			parsedLink, err := url.Parse(u)
 			if err != nil {
-				continue
+				return  // TODO: do something better than ignoring the link
 			}
 			link := page.u.ResolveReference(parsedLink) // link url
-			var label string                            // link text
-			if len(bits) == 1 {
-				label = bits[0]
-			} else {
-				label = strings.Join(bits[1:], " ")
-			}
-			if strings.HasPrefix(originalLine, "=:") && page.u.Scheme == "spartan" {
-				label += " [INPUT]"
-				c.inputLinks = append(c.inputLinks, len(c.links)) // using len(c.links) because it is only appended below so the value from that is just right
-			}
 			c.links = append(c.links, link.String())
 			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
 			if link.Scheme != "gemini" {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
-			rendered += ansiwrap.Wrap(linkLine, width) + "\n"
+			c.rendered += ansiwrap.Wrap(linkLine, width) + "\n"
 		} else {
-			rendered += ansiwrap.Wrap(line, width) + "\n"
+			c.rendered += ansiwrap.Wrap(string(line), width) + "\n"
 		}
 	}
 	// Remove last \n
-	if len(rendered) > 0 {
-		rendered = rendered[:len(rendered)-1]
+	if len(c.rendered) > 0 {
+		c.rendered = c.rendered[:len(c.rendered)-1]
 	}
-	return rendered
 }
+
 
 // Input handles Input status codes
 func (c *Client) Input(u string, sensitive bool) (ok bool) {
@@ -303,7 +322,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	c.inputLinks = make([]int, 0, 100)
 
 	// mediaType and params will be parsed later
-	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	page := &Page{bodyBytes: nil, bodyReader: res.Body, mediaType: "", u: parsed, params: nil}
 	statusGroup := res.Status / 10 // floor division
 	switch statusGroup {
 	case 1:
