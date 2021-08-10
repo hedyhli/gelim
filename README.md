@@ -171,6 +171,7 @@ in your config file.
 
 - [sourcehut](https://sr.ht/~hedy/gelim)
 - [tildegit (gitea)](https://tildegit.org/hedy/gelim)
+- [github](https://github.com/hedyhli/gelim)
 
 ## bugs, features, feedback, contribution
 
@@ -189,5 +190,5 @@ in your config file.
 **pull request, patches**
 
 * send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
-* If you prefer pull requests instead, [this](https://tildegit.org/hedy/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
+* If you prefer pull requests instead, [this](https://github.com/hedyhli/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
 
