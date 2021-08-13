@@ -46,7 +46,7 @@ func SpartanParsedURL(u *url.URL) (res *SpartanResponse, err error) {
 	reader := bufio.NewReader(conn)
 	header, err := reader.ReadString(byte('\n'))
 	if err != nil {
-		return
+		return nil, errors.New("Error reading response header")
 	}
 	// Parse header
 	statusParts := strings.SplitN(header, " ", 2)
