@@ -63,7 +63,7 @@ func formatCommandHelp(cmd *Command, name string, format bool) (formatted []stri
 	}
 	left := ""
 	if placeholder != "" {
-		left = fmt.Sprintf("%s <%s>", name, placeholder)
+		left = fmt.Sprintf("%s %s", name, placeholder)
 	} else {
 		left = name
 		desc = cmd.help
@@ -113,7 +113,7 @@ var metaCommands = map[string]Command{
 			}
 			printHelp()
 		},
-		help: "cmd : print the usage or the help for a command",
+		help: "<cmd...> : print the usage or the help for a command",
 	},
 	"aliases": {
 		aliases: []string{"alias", "synonym"},
@@ -140,7 +140,7 @@ var metaCommands = map[string]Command{
 			}
 			fmt.Println("todo")
 		},
-		help: "cmd : see aliases for a command or all commands",
+		help: "<cmd...> : see aliases for a command or all commands",
 	},
 }
 
@@ -150,7 +150,7 @@ var commands = map[string]Command{
 		do: func(c *Client, args ...string) {
 			c.Search(strings.Join(args, " "))
 		},
-		help: "query... : search with search engine",
+		help: "<query...> : search with search engine",
 	},
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
@@ -173,12 +173,29 @@ var commands = map[string]Command{
 	"history": {
 		aliases: []string{"hist"},
 		do: func(c *Client, args ...string) {
-			// TODO: go to an url in history
-			for i, v := range c.history {
-				fmt.Println(i, v.String())
+			if len(args) == 0 {
+				for i, v := range c.history {
+					fmt.Println(i+1, v.String())
+				}
+				return
 			}
+			// Ignores all other arguments
+			index, err := strconv.Atoi(args[0])
+			if err != nil {
+				c.style.ErrorMsg("Invalid history index number. Could not convert to integer")
+				return
+			}
+			if len(c.history) < index {
+				c.style.ErrorMsg(fmt.Sprintf("I only have %d items in history", len(c.history)))
+				return
+			}
+			if index < 0 {
+				index = len(c.history) + index
+			}
+			// TODO: handle spartan input
+			c.HandleParsedURL(c.history[index-1])
 		},
-		help: "print list of previously visited URLs",
+		help: "<index> : print list of previously visited URLs, or visit an item in history",
 	},
 	"link": {
 		aliases: []string{"l", "peek", "p", "links"},
@@ -198,7 +215,7 @@ var commands = map[string]Command{
 			link, _ := c.GetLinkFromIndex(index)
 			fmt.Println(link)
 		},
-		help: "index : peek what a link index would link to. supply no arguments to see a list of current links",
+		help: "<index> : peek what a link index would link to. supply no arguments to see a list of current links",
 	},
 	"back": {
 		aliases: []string{"b"},
@@ -252,7 +269,7 @@ var commands = map[string]Command{
 	// 		field.Set(reflect.Value{args[1]})
 	// 		return
 	// 	},
-	// 	help: "key <space> value : set a configuration value for the current gelim session",
+	// 	help: "<key> <value>: set a configuration value for the current gelim session",
 	// 	quotedArgs: true,
 	// },
 }
