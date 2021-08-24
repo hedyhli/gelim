@@ -150,7 +150,7 @@ func (c *Client) GemtextHandler(line gemini.Line) {
 	if err != nil {
 		// TODO do something
 		c.style.ErrorMsg("Error getting terminal size")
-		return ""
+		return
 	}
 	switch line := line.(type) {
 	case gemini.LineHeading1:
@@ -373,7 +373,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		case 52:
 			c.style.ErrorMsg("Gone")
 		}
-		c.style.ErrorMsg(fmt.Sprintf("%d %s", res.status, res.Meta))
+		c.style.ErrorMsg(fmt.Sprintf("%d %s", res.Status, res.Meta))
 	case 6:
 		fmt.Println(res.Meta)
 		fmt.Println("Sorry, gelim does not support client certificates yet.")
