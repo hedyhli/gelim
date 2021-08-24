@@ -15,11 +15,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var (
-	promptColor = color.FgGreen
-	ErrorColor  = color.New(color.FgRed).SprintfFunc()
-)
-
 // flags
 var (
 	noInteractive = flag.BoolP("no-interactive", "I", false, "don't go to the line-mode interface\n")
@@ -109,7 +104,7 @@ func main() {
 
 	c, err := NewClient()
 	if err != nil {
-		fmt.Println(ErrorColor("%s", err.Error()))
+		c.style.ErrorMsg(err.Error())
 		os.Exit(1)
 	}
 	if *searchFlag != "" {
@@ -126,7 +121,7 @@ func main() {
 		} else {
 			// if --input used but url arg is not present
 			if *appendInput != "" {
-				fmt.Println(ErrorColor("ERROR: --input used without an URL argument"))
+				c.style.ErrorMsg("ERROR: --input used without an URL argument")
 				// should we print usage?
 				os.Exit(1)
 			}
@@ -144,9 +139,10 @@ func main() {
 	rl := c.mainReader
 
 	for {
-		color.Set(promptColor)
 		var line string
 		var err error
+
+		color.Set(c.style.Prompt)
 		if c.promptSuggestion != "" {
 			line, err = rl.PromptWithSuggestion(c.parsePrompt()+" ", c.promptSuggestion, -1)
 			c.promptSuggestion = ""
@@ -154,12 +150,12 @@ func main() {
 			line, err = rl.Prompt(c.parsePrompt() + " ")
 		}
 		color.Unset()
+
 		if err != nil {
 			if err == ln.ErrPromptAborted {
 				os.Exit(1)
 			}
-			fmt.Println(ErrorColor("\nerror reading line input"))
-			fmt.Println(ErrorColor(err.Error()))
+			c.style.ErrorMsg("\nerror reading line input: " + err.Error())
 			os.Exit(1) // Exiting because it will cause an infinite loop of error if used 'continue' here
 		}
 		rl.AppendHistory(line)
@@ -181,7 +177,7 @@ func main() {
 				u = cmd
 				parsed, err := url.Parse(u)
 				if err != nil {
-					fmt.Println(ErrorColor("invalid url"))
+					c.style.ErrorMsg("Invalid url")
 					continue
 				}
 				// example:
@@ -208,7 +204,7 @@ func main() {
 			index, err := strconv.Atoi(cmd)
 			if err != nil {
 				// looks like an unknown command
-				fmt.Println(ErrorColor("Unknown command. Hint: try typing ? and hit enter"))
+				c.style.ErrorMsg("Unknown command. Hint: try typing ? and hit enter")
 				continue
 			}
 			// link index lookup

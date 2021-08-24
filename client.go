@@ -26,6 +26,7 @@ type Client struct {
 	inputLinks       []int // contains index to links in `links` that needs spartan input
 	history          []*url.URL
 	conf             *Config
+	style            *Style
 	mainReader       *ln.State
 	inputReader      *ln.State
 	promptHistory    *os.File
@@ -44,6 +45,7 @@ func NewClient() (*Client, error) {
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
 	c.conf = conf
+	c.style = &DefaultStyle // TODO: config styles
 	c.mainReader = ln.NewLiner()
 	c.mainReader.SetCtrlCAborts(true)
 	c.inputReader = ln.NewLiner()
@@ -81,7 +83,7 @@ func (c *Client) QuitClient() {
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 	spartanInput = false
 	if len(c.links) < i {
-		fmt.Println(ErrorColor("invalid link index, I have %d links so far", len(c.links)))
+		c.style.ErrorMsg(fmt.Sprintf("invalid link index, I have %d links so far", len(c.links)))
 		return
 	}
 	link = c.links[i-1]
@@ -103,7 +105,7 @@ func (c *Client) DisplayPage(page *Page) {
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(page.mediaType, "text/") {
-		fmt.Println(ErrorColor("Unsupported type " + page.mediaType))
+		c.style.ErrorMsg("Unsupported type " + page.mediaType)
 		return
 	}
 	if page.mediaType == "text/gemini" {
@@ -118,7 +120,9 @@ func (c *Client) DisplayPage(page *Page) {
 func (c *Client) ParseGeminiPage(page *Page) string {
 	width, _, err := term.GetSize(0)
 	if err != nil {
-		return ErrorColor("error getting terminal size")
+		// TODO do something
+		c.style.ErrorMsg("Error getting terminal size")
+		return ""
 	}
 	preformatted := false
 	rendered := ""
@@ -200,11 +204,10 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	}
 	if err != nil {
 		if err == ln.ErrPromptAborted {
-			fmt.Println(ErrorColor("\ninput cancelled"))
+			c.style.WarningMsg("\nInput cancelled")
 			return false
 		}
-		fmt.Println(ErrorColor("\nerror reading input:"))
-		fmt.Println(ErrorColor(err.Error()))
+		c.style.ErrorMsg("\nError reading input: " + err.Error())
 		return false
 	}
 	if !sensitive {
@@ -218,14 +221,14 @@ func (c *Client) HandleURL(u string) bool {
 	// Parse URL
 	parsed, err := url.Parse(u)
 	if err != nil {
-		fmt.Println(ErrorColor("invalid url"))
+		c.style.ErrorMsg("Invalid url")
 		return false
 	}
 	if parsed.Scheme == "" || parsed.Host == "" {
 		// have to parse again
 		parsed, err = url.Parse("gemini://" + u)
 		if err != nil {
-			fmt.Println(ErrorColor("invalid url"))
+			c.style.ErrorMsg("Invalid url")
 			return false
 		}
 	}
@@ -236,7 +239,7 @@ func (c *Client) HandleURL(u string) bool {
 func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	// TODO; config proxies or program to do other shemes
 	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" {
-		fmt.Println(ErrorColor("Unsupported scheme %s", parsed.Scheme))
+		c.style.ErrorMsg("Unsupported scheme " + parsed.Scheme)
 		return false
 	}
 	if parsed.Scheme == "gemini" {
@@ -248,7 +251,7 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	res, err := SpartanParsedURL(parsed)
 	if err != nil {
-		fmt.Println(ErrorColor(err.Error()))
+		c.style.ErrorMsg(err.Error())
 		return false
 	}
 	defer (*res.conn).Close()
@@ -261,12 +264,12 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
+			c.style.ErrorMsg(fmt.Sprintf("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body. %s", err))
+			c.style.ErrorMsg("Unable to read body: " + err.Error())
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
@@ -289,7 +292,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	res, err := GeminiParsedURL(*parsed)
 	if err != nil {
-		fmt.Println(ErrorColor(err.Error()))
+		c.style.ErrorMsg(err.Error())
 		return false
 	}
 	defer res.conn.Close()
@@ -310,12 +313,12 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	case 2:
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to parse header meta\"%s\": %s", res.meta, err))
+			c.style.ErrorMsg(fmt.Sprintf("Unable to parse header meta\"%s\": %s", res.meta, err))
 			return false
 		}
 		bodyBytes, err := ioutil.ReadAll(res.bodyReader)
 		if err != nil {
-			fmt.Println(ErrorColor("Unable to read body. %s", err))
+			c.style.ErrorMsg("Unable to read body: " + err.Error())
 		}
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
@@ -324,26 +327,27 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	case 3:
 		return c.HandleURL(res.meta) // TODO: max redirect times
 	case 4, 5:
+		// TODO: use res.meta
 		switch res.status {
 		case 40:
-			fmt.Println(ErrorColor("Temperorary failure"))
+			c.style.ErrorMsg("Temperorary failure")
 		case 41:
-			fmt.Println(ErrorColor("Server unavailable"))
+			c.style.ErrorMsg("Server unavailable")
 		case 42:
-			fmt.Println(ErrorColor("CGI error"))
+			c.style.ErrorMsg("CGI error")
 		case 43:
-			fmt.Println(ErrorColor("Proxy error"))
+			c.style.ErrorMsg("Proxy error")
 		case 44:
-			fmt.Println(ErrorColor("Slow down"))
+			c.style.ErrorMsg("Slow down")
 		case 52:
-			fmt.Println(ErrorColor("Gone"))
+			c.style.ErrorMsg("Gone")
 		}
-		fmt.Println(ErrorColor("%d %s", res.status, res.meta))
+		c.style.ErrorMsg(fmt.Sprintf("%d %s", res.status, res.meta))
 	case 6:
 		fmt.Println(res.meta)
 		fmt.Println("Sorry, gelim does not support client certificates yet.")
 	default:
-		fmt.Println(ErrorColor("invalid status code %d", res.status))
+		c.style.ErrorMsg(fmt.Sprintf("Invalid status code %d", res.status))
 		return false
 	}
 	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {

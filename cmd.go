@@ -163,7 +163,7 @@ var commands = map[string]Command{
 		aliases: []string{"r"},
 		do: func(c *Client, args ...string) {
 			if len(c.history) < 1 {
-				fmt.Println(ErrorColor("No history yet!"))
+				c.style.ErrorMsg("No history yet!")
 				return
 			}
 			c.HandleParsedURL(c.history[len(c.history)-1])
@@ -192,7 +192,7 @@ var commands = map[string]Command{
 			var index int
 			index, err := strconv.Atoi(args[0])
 			if err != nil {
-				fmt.Println(ErrorColor("invalid link index"))
+				c.style.ErrorMsg("invalid link index")
 				return
 			}
 			link, _ := c.GetLinkFromIndex(index)
@@ -204,7 +204,7 @@ var commands = map[string]Command{
 		aliases: []string{"b"},
 		do: func(c *Client, args ...string) {
 			if len(c.history) < 2 {
-				fmt.Println(ErrorColor("nothing to go back to (try `history` to see history)"))
+				c.style.ErrorMsg("nothing to go back to (try `history` to see history)")
 				return
 			}
 			c.HandleParsedURL(c.history[len(c.history)-2])
