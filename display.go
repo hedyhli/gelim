@@ -29,7 +29,7 @@ var DefaultStyle = Style{
 
 	gmiH1:   color.New(color.Bold, color.Underline, color.FgYellow),
 	gmiH2:   color.New(color.Bold, color.FgGreen),
-	gmiH3:   color.New(color.FgCyan),
+	gmiH3:   color.New(color.FgMagenta),
 	gmiLink: color.New(color.FgBlue),
 }
 
