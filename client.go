@@ -204,10 +204,12 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	}
 	if err != nil {
 		if err == ln.ErrPromptAborted {
-			c.style.WarningMsg("\nInput cancelled")
+			fmt.Println()
+			c.style.WarningMsg("Input cancelled")
 			return false
 		}
-		c.style.ErrorMsg("\nError reading input: " + err.Error())
+		fmt.Println()
+		c.style.ErrorMsg("Error reading input: " + err.Error())
 		return false
 	}
 	if !sensitive {
