@@ -72,9 +72,9 @@ func (c *Client) parsePrompt() (prompt string) {
 			}
 			switch char {
 			case 'U':
-				prompt += strings.TrimRight(u.String(), "?"+u.RawQuery)
+				prompt += strings.TrimSuffix(u.String(), "?"+u.RawQuery)
 			case 'u':
-				prompt += strings.TrimRight(strings.TrimLeft(u.String(), u.Scheme+"://"), "?"+u.RawQuery)
+				prompt += strings.TrimSuffix(strings.TrimPrefix(u.String(), u.Scheme+"://"), "?"+u.RawQuery)
 			case 'P':
 				if !strings.HasPrefix(u.Path, "/") {
 					prompt += "/" + u.Path
