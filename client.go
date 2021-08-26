@@ -32,6 +32,9 @@ type Client struct {
 	promptHistory    *os.File
 	inputHistory     *os.File
 	promptSuggestion string
+
+	tourLinks []string // List of links to tour
+	tourNext  int      // The index for link that will be visit next time user uses tour
 }
 
 func NewClient() (*Client, error) {

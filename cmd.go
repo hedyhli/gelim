@@ -19,7 +19,8 @@ func printHelp() {
 	curWidth := 0
 	for name, cmd := range commands {
 		placeholder = ""
-		parts := strings.SplitN(cmd.help, ":", 2)
+		firstLine := strings.SplitN(cmd.help, "\n", 2)[0]
+		parts := strings.SplitN(firstLine, ":", 2)
 		if len(parts) == 2 {
 			placeholder = strings.TrimSpace(parts[0])
 		}
@@ -37,7 +38,7 @@ func printHelp() {
 	fmt.Println("You can directy enter a url or link-index (number) at the prompt.")
 	fmt.Println()
 	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
-	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported like the shell, but escaping quotes is not support yet.")
+	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported\nlike the shell, but escaping quotes is not support yet.")
 	fmt.Println()
 	fmt.Println("You can supply a command name to `help` to see the help for a specific command")
 	fmt.Println()
@@ -55,7 +56,8 @@ func printHelp() {
 // Handles placeholders in cmd.help if any, if format is true it will return the placeholder
 // string and the help string concatenated, if format is false, it returns them separately.
 func formatCommandHelp(cmd *Command, name string, format bool) (formatted []string) {
-	parts := strings.SplitN(cmd.help, ":", 2)
+	firstLine := strings.SplitN(cmd.help, "\n", 2)[0]
+	parts := strings.SplitN(firstLine, ":", 2)
 	var placeholder, desc string
 	if len(parts) == 2 {
 		placeholder = strings.TrimSpace(parts[0])
@@ -66,7 +68,7 @@ func formatCommandHelp(cmd *Command, name string, format bool) (formatted []stri
 		left = fmt.Sprintf("%s %s", name, placeholder)
 	} else {
 		left = name
-		desc = cmd.help
+		desc = firstLine
 	}
 	formatted = make([]string, 2)
 	if format {
@@ -104,10 +106,11 @@ var metaCommands = map[string]Command{
 					formatted := formatCommandHelp(&cmd, v, true)
 					fmt.Println(formatted[0])
 					// Extra help for command if the command supports it
-					// c.Command(v, "help")
-					// if len(args) != 1 {
-					// 	fmt.Println()
-					// }
+					extra := strings.SplitN(cmd.help, "\n", 2)[1]
+					if extra != "" {
+						fmt.Println()
+						fmt.Println(extra)
+					}
 				}
 				return
 			}
@@ -185,12 +188,13 @@ var commands = map[string]Command{
 				c.style.ErrorMsg("Invalid history index number. Could not convert to integer")
 				return
 			}
-			if len(c.history) < index {
-				c.style.ErrorMsg(fmt.Sprintf("I only have %d items in history", len(c.history)))
-				return
-			}
-			if index < 0 {
+			if index <= 0 {
 				index = len(c.history) + index
+			}
+			if len(c.history) < index || index <= 0 {
+				c.style.ErrorMsg(fmt.Sprintf("%d item(s) in history", len(c.history)))
+				fmt.Println("Try `history` to view the history")
+				return
 			}
 			// TODO: handle spartan input
 			c.HandleParsedURL(c.history[index-1])
@@ -256,6 +260,123 @@ var commands = map[string]Command{
 			}
 		},
 		help: "edit the current url",
+	},
+	"tour": {
+		aliases: []string{"t", "loop"},
+		do: func(c *Client, args ...string) {
+			if len(args) == 0 { // Just `tour`
+				if len(c.tourLinks) == 0 {
+					c.style.ErrorMsg("Nothing to tour")
+					return
+				}
+				if c.tourNext == len(c.tourLinks) {
+					fmt.Println("End of tour :)")
+					fmt.Println("Use `tour go 1` to go back to the beginning")
+					return
+				}
+				c.HandleURL(c.tourLinks[c.tourNext])
+				c.tourNext++
+				return
+			}
+			// tour commands
+			switch args[0] {
+			case "ls", "l":
+				current := ""
+				for i, v := range c.tourLinks {
+					current = ""
+					if i == c.tourNext {
+						current = " <--next"
+					}
+					fmt.Printf("%d %s%s\n", i+1, v, current)
+				}
+			case "clear", "c":
+				fmt.Println("Cleared", len(c.tourLinks), "items")
+				c.tourLinks = nil
+				c.tourNext = 0
+			case "go", "g":
+				if len(args) == 1 {
+					c.style.ErrorMsg("Argument expected for `go` subcommand.")
+					fmt.Println("Use `tour ls` to list tour items, `tour go N` to go to the Nth item.")
+					return
+				}
+				number, err := strconv.Atoi(args[1])
+				if err != nil {
+					c.style.ErrorMsg("Unable to convert " + args[1] + " to integer")
+					return
+				}
+				if number <= 0 {
+					number = len(c.tourLinks) + number
+				}
+				if number > len(c.tourLinks) || number < 1 {
+					c.style.ErrorMsg(fmt.Sprintf("%d item(s) in tour list", len(c.tourLinks)))
+					fmt.Println("Use `tour ls` to list")
+					return
+				}
+				// Because user provided number is 1-indexed and tourNext is 0-indexed
+				c.HandleURL(c.tourLinks[number-1])
+				c.tourNext = number
+			case "*", "all":
+				c.tourLinks = append(c.tourLinks, c.links...)
+				fmt.Println("Added", len(c.links), "items to tour list")
+			default: // `tour 1 2 3`, `tour 1,4 7 8 10,`
+				if len(c.links) == 0 {
+					c.style.ErrorMsg("No links yet")
+					return
+				}
+				added := 0
+				for _, v := range args {
+					if strings.Contains(v, ",") {
+						// start,end or start,
+						// Without end will imply until the last link
+						parts := strings.SplitN(v, ",", 2)
+						if parts[1] == "" {
+							// FIXME: avoid extra int->str->int conversion
+							parts[1] = fmt.Sprint(len(c.links))
+						}
+						if parts[0] == "" {
+							// FIXME: avoid extra int->str->int conversion
+							parts[0] = "1"
+						}
+						start, err := strconv.Atoi(parts[0])
+						end, err2 := strconv.Atoi(parts[1])
+
+						if err != nil || err2 != nil {
+							c.style.ErrorMsg("Number before or after ',' is not an integer: " + v)
+							continue
+						}
+						if start > end {
+							start, end = end, start
+						}
+						if start <= 0 || end > len(c.links) {
+							c.style.ErrorMsg("Invalid range: " + v)
+							continue
+						}
+						// start and end are both inclusive for us, but not for go
+						c.tourLinks = append(c.tourLinks, c.links[start-1:end]...)
+						added += len(c.links[start-1 : end])
+						continue
+					}
+					// WIll reach here if it's not a range (no ',' in arg)
+					number, err := strconv.Atoi(v)
+					if err != nil {
+						c.style.ErrorMsg("Unable to convert " + v + " to integer")
+						continue
+					}
+					if number <= 0 {
+						number = len(c.links) + number
+					}
+					if number > len(c.links) || number <= 0 {
+						c.style.ErrorMsg(v + " is not in range of the number of links available")
+						fmt.Println("Use `links` to see all the links")
+						continue
+					}
+					c.tourLinks = append(c.tourLinks, c.links[number-1])
+					added += 1
+				}
+				fmt.Println("Added", added, "items to tour list")
+			}
+		},
+		help: "<range or number>... : loop over selection of links in current page.\nUse tour * to add all links. you can use ranges like 1,10 or 10,1 with single links as multiple arguments.\nUse tour ls/clear to view items or clear all.\ntour go <index> takes you to an item in the tour list",
 	},
 	// TODO: didn't have time to finish this lol
 	// "config": {
