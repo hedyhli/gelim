@@ -12,11 +12,12 @@ import (
 )
 
 type Config struct {
-	Prompt       string
-	MaxRedirects int
-	StartURL     string
-	LessOpts     string
-	SearchURL    string
+	Prompt         string
+	MaxRedirects   int
+	StartURL       string
+	LessOpts       string
+	SearchURL      string
+	Index0Shortcut int
 }
 
 func LoadConfig() (*Config, error) {

@@ -80,6 +80,24 @@ func formatCommandHelp(cmd *Command, name string, format bool) (formatted []stri
 	return
 }
 
+func (c *Client) ResolveNonPositiveIndex(index int, totalLength int) int {
+	if index == 0 {
+		if c.conf.Index0Shortcut == 0 {
+			c.style.ErrorMsg("Behaviour for index 0 is undefined.")
+			fmt.Println("You can use -1 for accessing the last item, -2 for second last, etc.")
+			fmt.Println("Configure the behaviour of 0 in the config file. Example: index0shortcut = -1, then whenever you use 0 it will be -1 instead. This works for commands history and tour.")
+			return 0
+		}
+		index = c.conf.Index0Shortcut
+	}
+	if index < 0 {
+		// Because the index is 1-indexed
+		// if index is -1, the final index is totalLength
+		index = totalLength + index + 1
+	}
+	return index
+}
+
 // Commands that reference variable commands, putting them separtely to avoid
 // initialization cycle
 var metaCommands = map[string]Command{
@@ -188,8 +206,8 @@ var commands = map[string]Command{
 				c.style.ErrorMsg("Invalid history index number. Could not convert to integer")
 				return
 			}
-			if index <= 0 {
-				index = len(c.history) + index
+			if index = c.ResolveNonPositiveIndex(index, len(c.history)); index == 0 {
+				return
 			}
 			if len(c.history) < index || index <= 0 {
 				c.style.ErrorMsg(fmt.Sprintf("%d item(s) in history", len(c.history)))
@@ -304,8 +322,8 @@ var commands = map[string]Command{
 					c.style.ErrorMsg("Unable to convert " + args[1] + " to integer")
 					return
 				}
-				if number <= 0 {
-					number = len(c.tourLinks) + number
+				if number = c.ResolveNonPositiveIndex(number, len(c.tourLinks)); number == 0 {
+					return
 				}
 				if number > len(c.tourLinks) || number < 1 {
 					c.style.ErrorMsg(fmt.Sprintf("%d item(s) in tour list", len(c.tourLinks)))
@@ -362,8 +380,8 @@ var commands = map[string]Command{
 						c.style.ErrorMsg("Unable to convert " + v + " to integer")
 						continue
 					}
-					if number <= 0 {
-						number = len(c.links) + number
+					if number = c.ResolveNonPositiveIndex(number, len(c.links)); number == 0 {
+						continue
 					}
 					if number > len(c.links) || number <= 0 {
 						c.style.ErrorMsg(v + " is not in range of the number of links available")
