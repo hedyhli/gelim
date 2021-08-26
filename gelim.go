@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -61,13 +62,19 @@ func QuotedFields(s string) []string {
 
 // Pager uses `less` to display body
 // falls back to fmt.Print if errors encountered
-func Pager(path string, conf *Config) {
-	cmd := exec.Command("less", path)
+func Pager(file *os.File, conf *Config) {
+	cmd := exec.Command("less")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "LESS="+conf.LessOpts)
+
+	// reader, writer := io.Pipe()
+	// io.Copy(writer, file) // TODO: This blocks?
+	// cmd.Stdin = reader
+	pipe, _ := cmd.StdinPipe() // TODO: handle err
+	io.Copy(pipe, file)
 	if err := cmd.Start(); err != nil {
-		fmt.Print(path)
+		io.Copy(os.Stdout, file) // TODO: why copy again lol
 		return
 	}
 	cmd.Stdin = os.Stdin

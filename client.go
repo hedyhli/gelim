@@ -127,7 +127,7 @@ func (c *Client) DisplayPage(page *Page) {
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		Pager(c.tmpPageFile.Name(), c.conf)
+		Pager(c.tmpPageFile, c.conf)
 		return
 	}
 	if page.mediaType == "application/octet-stream" || strings.HasPrefix(page.mediaType, "text/") {
@@ -135,7 +135,7 @@ func (c *Client) DisplayPage(page *Page) {
 		for scanner.Scan() {
 			c.AppendLine(scanner.Text())
 		}
-		Pager(c.tmpPageFile.Name(), c.conf)
+		Pager(c.tmpPageFile, c.conf)
 		return
 	}
 }
