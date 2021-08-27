@@ -217,7 +217,11 @@ var commands = map[string]Command{
 			// TODO: handle spartan input
 			c.HandleParsedURL(c.history[index-1])
 		},
-		help: "<index> : print list of previously visited URLs, or visit an item in history",
+		help: `<index> : print list of previously visited URLs, or visit an item in history
+Examples:
+  - history
+  - history 1
+  - history -3`,
 	},
 	"link": {
 		aliases: []string{"l", "peek", "p", "links"},
@@ -229,23 +233,32 @@ var commands = map[string]Command{
 				return
 			}
 			var index int
-			index, err := strconv.Atoi(args[0])
-			if err != nil {
-				c.style.ErrorMsg("Invalid link index")
-				return
+			var err error
+			for _, arg := range args {
+				index, err = strconv.Atoi(arg)
+				if err != nil {
+					c.style.ErrorMsg(arg + ": Invalid link index")
+					continue
+				}
+				index = c.ResolveNonPositiveIndex(index, len(c.links))
+				if index == 0 {
+					continue
+				}
+				if index < 1 || index > len(c.links) {
+					c.style.ErrorMsg(arg + ": Invalid link index")
+					continue
+				}
+				link, _ := c.GetLinkFromIndex(index)
+				fmt.Println(index, link)  // TODO: also save the label in c.links
 			}
-			index = c.ResolveNonPositiveIndex(index, len(c.links))
-			if index == 0 {
-				return
-			}
-			if index < 1 || index > len(c.links) {
-				c.style.ErrorMsg("Invalid link index")
-				return
-			}
-			link, _ := c.GetLinkFromIndex(index)
-			fmt.Println(link)  // TODO: also save the label in c.links
 		},
-		help: "<index> : peek what a link index would link to, or see the list of all links\nYou can use non-positive indexes too, see `links 0` for more information",
+		help: `<index>... : peek what a link index would link to, or see the list of all links
+You can use non-positive indexes too, see `+"`links 0`"+` for more information
+Examples:
+  - links
+  - l 1
+  - l -3
+  - l 1 2 3`,
 	},
 	"back": {
 		aliases: []string{"b"},
@@ -402,7 +415,15 @@ var commands = map[string]Command{
 				fmt.Println("Added", added, "items to tour list")
 			}
 		},
-		help: "<range or number>... : loop over selection of links in current page.\nUse tour * to add all links. you can use ranges like 1,10 or 10,1 with single links as multiple arguments.\nUse tour ls/clear to view items or clear all.\ntour go <index> takes you to an item in the tour list",
+		help: `<range or number>... : loop over selection of links in current page
+Use tour * to add all links. you can use ranges like 1,10 or 10,1 with single links as multiple arguments.
+Use tour ls/clear to view items or clear all.
+tour go <index> takes you to an item in the tour list
+Examples:
+  - tour ,5 6,7 -1 9 11,
+  - tour ls
+  - tour g 2
+  - tour clear`,
 	},
 	// TODO: didn't have time to finish this lol
 	// "config": {
