@@ -85,7 +85,7 @@ func (c *Client) ResolveNonPositiveIndex(index int, totalLength int) int {
 		if c.conf.Index0Shortcut == 0 {
 			c.style.ErrorMsg("Behaviour for index 0 is undefined.")
 			fmt.Println("You can use -1 for accessing the last item, -2 for second last, etc.")
-			fmt.Println("Configure the behaviour of 0 in the config file. Example: index0shortcut = -1, then whenever you use 0 it will be -1 instead. This works for commands history and tour.")
+			fmt.Println("Configure the behaviour of 0 in the config file. Example: index0shortcut = -1, then whenever you use 0 it will be -1 instead. This works for commands history, links, and tour.")
 			return 0
 		}
 		index = c.conf.Index0Shortcut
@@ -231,13 +231,21 @@ var commands = map[string]Command{
 			var index int
 			index, err := strconv.Atoi(args[0])
 			if err != nil {
-				c.style.ErrorMsg("invalid link index")
+				c.style.ErrorMsg("Invalid link index")
+				return
+			}
+			index = c.ResolveNonPositiveIndex(index, len(c.links))
+			if index == 0 {
+				return
+			}
+			if index < 1 || index > len(c.links) {
+				c.style.ErrorMsg("Invalid link index")
 				return
 			}
 			link, _ := c.GetLinkFromIndex(index)
-			fmt.Println(link)
+			fmt.Println(link)  // TODO: also save the label in c.links
 		},
-		help: "<index> : peek what a link index would link to. supply no arguments to see a list of current links",
+		help: "<index> : peek what a link index would link to, or see the list of all links\nYou can use non-positive indexes too, see `links 0` for more information",
 	},
 	"back": {
 		aliases: []string{"b"},
