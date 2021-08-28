@@ -167,11 +167,29 @@ and will be fixed in the near future.
 Add `--mouse` (if your version of less supports it) to `lessOpts` option
 in your config file.
 
+### screenshots
+
+<table>
+<tr>
+<td> <img src="https://hedy.smol.pub/tour.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/editurl.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr>
+<tr>
+<td> <img src="https://hedy.smol.pub/spartan-colors.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/link.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr>
+<tr>
+<td> <img src="https://hedy.smol.pub/search.png" alt="screenshot" style="width: 250px;"/> </td>
+<td> <img src="https://hedy.smol.pub/spartan-input.png" alt="screenshot" style="width: 250px;"/> </td>
+</tr>
+</table>
+
 ## remotes
 
 - [sourcehut](https://sr.ht/~hedy/gelim)
 - [tildegit (gitea)](https://tildegit.org/hedy/gelim)
 - [github](https://github.com/hedyhli/gelim)
+- [codeberg](https://codeberg.org/hedy/gelim)
 
 ## bugs, features, feedback, contribution
 
