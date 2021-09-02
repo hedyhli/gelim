@@ -2,9 +2,10 @@
 
 a minimalist line-mode gemini client, written in go.
 
-**WARNING: the project is still in its early stages, so do expect bugs and
+**WARNING: the project is still in its early stages so do expect bugs and
 incomplete features, if you encounter them, or would like to suggest an
-improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim).**
+improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim).
+on srht or the one on [github](https://github.com/hedyhli/gelim).**
 
 
 <table><tr>
@@ -204,6 +205,7 @@ in your config file.
 
 * submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
 * you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
+* you can also use the one on [github](https://github.com/hedyhli/gelim/issues) if you prefer.
 
 **pull request, patches**
 
