@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	ln "github.com/peterh/liner"
 	"github.com/fatih/color"
+	ln "github.com/peterh/liner"
 	flag "github.com/spf13/pflag"
 )
 
@@ -155,7 +155,7 @@ func main() {
 			if err != ln.ErrPromptAborted {
 				c.style.ErrorMsg("error reading line input: " + err.Error())
 			}
-			 // Exiting because it will cause an infinite loop of error if used 'continue' here
+			// Exiting because it will cause an infinite loop of error if used 'continue' here
 			c.QuitClient(1)
 		}
 		rl.AppendHistory(line)
