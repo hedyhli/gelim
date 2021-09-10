@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/color"
 	ln "github.com/peterh/liner"
+	"github.com/fatih/color"
 	flag "github.com/spf13/pflag"
 )
 
@@ -152,11 +152,11 @@ func main() {
 		color.Unset()
 
 		if err != nil {
-			if err == ln.ErrPromptAborted {
-				os.Exit(1)
+			if err != ln.ErrPromptAborted {
+				c.style.ErrorMsg("error reading line input: " + err.Error())
 			}
-			c.style.ErrorMsg("\nerror reading line input: " + err.Error())
-			os.Exit(1) // Exiting because it will cause an infinite loop of error if used 'continue' here
+			 // Exiting because it will cause an infinite loop of error if used 'continue' here
+			c.QuitClient(1)
 		}
 		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)

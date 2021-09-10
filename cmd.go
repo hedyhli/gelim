@@ -176,7 +176,7 @@ var commands = map[string]Command{
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
 		do: func(c *Client, args ...string) {
-			c.QuitClient()
+			c.QuitClient(0)
 		},
 		help: "exit gelim",
 	},
@@ -249,11 +249,11 @@ Examples:
 					continue
 				}
 				link, _ := c.GetLinkFromIndex(index)
-				fmt.Println(index, link)  // TODO: also save the label in c.links
+				fmt.Println(index, link) // TODO: also save the label in c.links
 			}
 		},
 		help: `<index>... : peek what a link index would link to, or see the list of all links
-You can use non-positive indexes too, see `+"`links 0`"+` for more information
+You can use non-positive indexes too, see ` + "`links 0`" + ` for more information
 Examples:
   - links
   - l 1

@@ -73,14 +73,16 @@ func NewClient() (*Client, error) {
 	return &c, err
 }
 
-func (c *Client) QuitClient() {
+// QuitClient cleans up opened files and resources, saves history, and calls
+// os.Exit with the given status code
+func (c *Client) QuitClient(code int) {
 	c.mainReader.WriteHistory(c.promptHistory)
 	c.inputReader.WriteHistory(c.inputHistory)
 	c.promptHistory.Close()
 	c.inputHistory.Close()
 	c.mainReader.Close()
 	c.inputReader.Close()
-	os.Exit(0)
+	os.Exit(code)
 }
 
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
