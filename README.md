@@ -1,6 +1,6 @@
 # gelim
 
-a minimalist line-mode gemini client, written in go.
+a minimalist line-mode gemini client written in go.
 
 **WARNING: the project is still in its early stages so do expect bugs and
 incomplete features, if you encounter them, or would like to suggest an
