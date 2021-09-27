@@ -58,6 +58,10 @@ func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 	responseHeader, err := reader.ReadString('\n')
 	// Parse header
 	parts := strings.Fields(responseHeader)
+	if len(parts) == 0 {
+		conn.Close()
+		return res, errors.New("Invalid response header: " + responseHeader)
+	}
 	status, err := strconv.Atoi(parts[0])
 	if err != nil {
 		conn.Close()
