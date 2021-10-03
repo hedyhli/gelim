@@ -66,10 +66,8 @@ because your system does not support one of gelim's default less options, you
 should skip over to the 'config' section below, and configure your lessOpts to
 remove the mouse option, and any other your version of less doesn't have.*
 
-When you want to visit a link, you have to quit less first.
-```
-q
-```
+When you want to visit a link, you have to quit less first. **Press `q`**
+
 The page will be fetched and you'll be in less again.
 
 Now let's try something more interesting.
@@ -80,14 +78,10 @@ rawtext.club
 ```
 Say you don't have an account on RTC yet and would like to sign up.
 
-Go to the bottom of the page, where the link to signing up is provided:
-```
-G
-```
-Then, you have to quit the pager:
-```
-q
-```
+Go to the bottom of the page, where the link to signing up is provided. **Type `G`**
+
+Then, you have to quit the pager. **Press `q`**
+
 Look for the link number that links to the sign up page, and enter it directy at the prompt.
 As of writing, the link number is 38, but keep in mind this number may change when you are
 trying this out.
@@ -98,13 +92,11 @@ And now you've decided to have a look at rawtext.club's values at the front page
 Unfortunately, the sign up page does not provide a link to go back to home. No worries, you can
 directly use the path (prefixed with . or /) at the prompt.
 
-Let's try it out. Quit the pager (`q`), and enter:
-```
-/
-```
+Let's try it out. Quit the pager (**`q`**), and **type `/` and press enter**
+
 Voila, you're at the front page again!
 
-Thanks for trying out this quickstart tutorial, there is still much to explore. Type in `help`
+Thanks for trying out this quickstart tutorial, there is still much to explore. Type in **`help`**
 from the prompt and check out the commands, have fun!
 
 ## config
