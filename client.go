@@ -149,17 +149,17 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			// NOT doing this anymore!
 			// (because it looked bad if quotes are continuous)
 			// TODO: remove extra new lines in the end
-			rendered += ansiwrap.WrapIndent(line, width, 1, 3) + "\n"
+			rendered += ansiwrap.GreedyIndent(line, width, 1, 3) + "\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
 			// Using width - 3 because of 3 spaces "   " indent at the start
-			rendered += "   " + ansiwrap.WrapIndent(strings.Replace(line, "*", "•", 1), width-3, 0, 5) + "\n"
+			rendered += "   " + ansiwrap.GreedyIndent(strings.Replace(line, "*", "•", 1), width-3, 0, 5) + "\n"
 
 		} else if strings.HasPrefix(line, "#") { // whitespace after #'s are optional for headings as per spec
-			rendered += ansiwrap.Wrap(h1Style(line), width) + "\n"
+			rendered += ansiwrap.Greedy(h1Style(line), width) + "\n"
 
 		} else if strings.HasPrefix(line, "##") {
-			rendered += ansiwrap.Wrap(h2Style(line), width) + "\n"
+			rendered += ansiwrap.Greedy(h2Style(line), width) + "\n"
 
 		} else if strings.HasPrefix(line, "=>") || (page.u.Scheme == "spartan" && strings.HasPrefix(line, "=:")) {
 			originalLine := line
@@ -185,9 +185,9 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			if link.Scheme != "gemini" {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
-			rendered += ansiwrap.Wrap(linkLine, width) + "\n"
+			rendered += ansiwrap.Greedy(linkLine, width) + "\n"
 		} else {
-			rendered += ansiwrap.Wrap(line, width) + "\n"
+			rendered += ansiwrap.Greedy(line, width) + "\n"
 		}
 	}
 	// Remove last \n
