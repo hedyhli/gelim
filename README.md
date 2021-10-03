@@ -8,10 +8,9 @@ improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hed
 on srht or the one on [github](https://github.com/hedyhli/gelim).**
 
 
-<table><tr>
-<td> <img src="https://hedy.smol.pub/gelim-cmds.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/gelim-pager.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr></table>
+![screenshot](https://hedy.smol.pub/gelim-pager.png)
+
+[more screenshots](#screenshots)
 
 
 ## features
@@ -168,22 +167,19 @@ and will be fixed in the near future.
 Add `--mouse` (if your version of less supports it) to `lessOpts` option
 in your config file.
 
-### screenshots
+## screenshots
 
-<table>
-<tr>
-<td> <img src="https://hedy.smol.pub/tour.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/editurl.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr>
-<tr>
-<td> <img src="https://hedy.smol.pub/spartan-colors.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/link.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr>
-<tr>
-<td> <img src="https://hedy.smol.pub/search.png" alt="screenshot" style="width: 250px;"/> </td>
-<td> <img src="https://hedy.smol.pub/spartan-input.png" alt="screenshot" style="width: 250px;"/> </td>
-</tr>
-</table>
+![screenshot of tour command](https://hedy.smol.pub/tour.png)
+
+![screenshot of editting url](https://hedy.smol.pub/editurl.png)
+
+![screenshot of spartan colors](https://hedy.smol.pub/spartan-colors.png)
+
+![screenshot of links](https://hedy.smol.pub/link.png)
+
+![screenshot of search command](https://hedy.smol.pub/search.png)
+
+![screenshot of spartan input functionality](https://hedy.smol.pub/spartan-input.png)
 
 ## remotes
 
