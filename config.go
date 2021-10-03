@@ -18,6 +18,8 @@ type Config struct {
 	LessOpts       string
 	SearchURL      string
 	Index0Shortcut int
+	LeftMargin     float32
+	MaxWidth       int
 }
 
 func LoadConfig() (*Config, error) {
@@ -29,6 +31,8 @@ func LoadConfig() (*Config, error) {
 	conf.StartURL = ""
 	conf.LessOpts = "-FSXR~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://geminispace.info/search"
+	conf.LeftMargin = 0.15
+	conf.MaxWidth = 102 // 100 + allowance of 2 ;P
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
 	_, err = os.Stat(path)
