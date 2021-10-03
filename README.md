@@ -169,15 +169,31 @@ in your config file.
 
 ## screenshots
 
+**commands**
+
+![screenshot of `help` command output](https://hedy.smol.pub/gelim-cmds.png)
+
+**tour**
+
 ![screenshot of tour command](https://hedy.smol.pub/tour.png)
 
-![screenshot of editting url](https://hedy.smol.pub/editurl.png)
+**edit url**
+
+![screenshot of editing url](https://hedy.smol.pub/editurl.png)
+
+**spartan**
 
 ![screenshot of spartan colors](https://hedy.smol.pub/spartan-colors.png)
 
+**links**
+
 ![screenshot of links](https://hedy.smol.pub/link.png)
 
+**search**
+
 ![screenshot of search command](https://hedy.smol.pub/search.png)
+
+**spartan input**
 
 ![screenshot of spartan input functionality](https://hedy.smol.pub/spartan-input.png)
 
