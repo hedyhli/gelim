@@ -146,7 +146,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			preformatted = !preformatted
 
 		} else if preformatted {
-			rendered += line + "\n"
+			rendered += strings.Repeat(" ", sides) + preStyle(line) + "\n"
 
 		} else if strings.HasPrefix(line, "> ") { // not sure if whitespace after > is mandatory for this
 			// appending extra \n here because we want quote blocks to stand out

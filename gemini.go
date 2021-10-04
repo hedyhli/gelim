@@ -31,9 +31,10 @@ type GeminiResponse struct {
 //)
 
 var (
-	h1Style   = color.New(color.Bold).Add(color.Underline).Add(color.FgYellow).SprintFunc()
+	h1Style   = color.New(color.Bold).Add(color.Underline).Add(color.FgHiMagenta).SprintFunc()
 	h2Style   = color.New(color.Bold).Add(color.FgGreen).SprintFunc()
-	h3Style   = color.New(color.Bold).Add(color.FgMagenta).SprintfFunc()
+	h3Style   = color.New(color.Bold).Add(color.FgMagenta).SprintFunc()
+	preStyle  = color.New(color.FgYellow).SprintFunc()
 	linkStyle = color.New(color.FgBlue).SprintFunc()
 	// style only applied to first line for some reason, so removing it all together :P
 	// quoteStyle = color.New(color.Italic).SprintFunc()
