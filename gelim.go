@@ -152,8 +152,13 @@ func main() {
 		color.Unset()
 
 		if err != nil {
-			if err != ln.ErrPromptAborted {
+			if err != ln.ErrPromptAborted && err != io.EOF {
 				c.style.ErrorMsg("error reading line input: " + err.Error())
+			}
+			fmt.Println("")
+			if err == io.EOF {
+				// Exit by CTRL-D.
+				c.QuitClient(0)
 			}
 			// Exiting because it will cause an infinite loop of error if used 'continue' here
 			c.QuitClient(1)
