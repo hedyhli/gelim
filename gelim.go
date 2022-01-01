@@ -152,17 +152,18 @@ func main() {
 		color.Unset()
 
 		if err != nil {
-			if err != ln.ErrPromptAborted && err != io.EOF {
-				c.style.ErrorMsg("error reading line input: " + err.Error())
-			}
-			fmt.Println()
-			if err == io.EOF {
-				// Exit by CTRL-D.
+			if err == ln.ErrPromptAborted || err == io.EOF {
+				// Exit by ^C or ^D
 				c.QuitClient(0)
+				if err == io.EOF {
+					fmt.Println()
+				}
 			}
+			c.style.ErrorMsg("Error reading input: " + err.Error())
 			// Exiting because it will cause an infinite loop of error if used 'continue' here
 			c.QuitClient(1)
 		}
+
 		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)
 		if line == "" {
