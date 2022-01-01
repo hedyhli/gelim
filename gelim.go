@@ -155,7 +155,7 @@ func main() {
 			if err != ln.ErrPromptAborted && err != io.EOF {
 				c.style.ErrorMsg("error reading line input: " + err.Error())
 			}
-			fmt.Println("")
+			fmt.Println()
 			if err == io.EOF {
 				// Exit by CTRL-D.
 				c.QuitClient(0)
