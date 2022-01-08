@@ -40,7 +40,7 @@ var (
 	// quoteStyle = color.New(color.Italic).SprintFunc()
 )
 
-// GeminiParsedURL fetches u and retruns *GeminiResponse
+// GeminiParsedURL fetches u and returns *GeminiResponse
 func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 	host := u.Host
 	// Connect to server

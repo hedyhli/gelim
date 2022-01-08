@@ -35,7 +35,7 @@ func printHelp() {
 	minSepSpaceLen := 2 // min space between command and the description
 	// Here comes the fun part
 	// We are now *actually* printing the help
-	fmt.Println("You can directy enter a url or link-index (number) at the prompt.")
+	fmt.Println("You can directly enter a url or link-index (number) at the prompt.")
 	fmt.Println()
 	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
 	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported\nlike the shell, but escaping quotes is not support yet.")

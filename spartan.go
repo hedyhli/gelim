@@ -19,7 +19,7 @@ type SpartanResponse struct {
 	connClosed       bool
 }
 
-// SpartanParsedURL fetches u and resturns a SpartanResponse
+// SpartanParsedURL fetches u and returns a SpartanResponse
 func SpartanParsedURL(u *url.URL) (res *SpartanResponse, err error) {
 	host := u.Host
 	if u.Port() == "" {
