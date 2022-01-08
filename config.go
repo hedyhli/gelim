@@ -29,7 +29,9 @@ func LoadConfig() (*Config, error) {
 	conf.Prompt = "%U>"
 	conf.MaxRedirects = 10
 	conf.StartURL = ""
-	conf.LessOpts = "-FSXR~ -P pager (q to quit)"
+	// FIXME: -R is supposedly better than -r, but -R resets ansi formats on
+	// newlines :/
+	conf.LessOpts = "-FSXr~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://geminispace.info/search"
 	conf.LeftMargin = 0.15
 	conf.MaxWidth = 102 // 100 + allowance of 2 ;P

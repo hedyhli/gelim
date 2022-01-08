@@ -176,6 +176,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			if err != nil {
 				continue
 			}
+
 			link := page.u.ResolveReference(parsedLink) // link url
 			var label string                            // link text
 			if len(bits) == 1 {
@@ -183,17 +184,85 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			} else {
 				label = strings.Join(bits[1:], " ")
 			}
-			if strings.HasPrefix(originalLine, "=:") && page.u.Scheme == "spartan" {
-				label += " [INPUT]"
-				c.inputLinks = append(c.inputLinks, len(c.links)) // using len(c.links) because it is only appended below so the value from that is just right
-			}
+
 			c.links = append(c.links, link.String())
-			linkLine := fmt.Sprintf("[%d] ", len(c.links)) + linkStyle(label)
+			linkLine := fmt.Sprintf("[%d] ", len(c.links))
+			leftWidth := len(linkLine) // Used when wrapping below
+			linkLine += linkStyle(label)
+
+			// Format the link so that when it wraps the rest indent is after the [%d]:
+			//    [10] foo bar baz. I am the first line of the link
+			//         I am wrapped from the link
+			//
+			// Or for ones that are a single word:
+			//    [10] gemini://super-duper-long-host.site/super-lo
+			//         ng-url/slug/path/to/file.gmi
+
+			// So if the label is a single word
+			if !strings.Contains(label, " ") {
+				// We special-case links where the label is the literal link
+				// (no label) or the link text is a single long word, because
+				// ansiwrap doesn't handle that.
+				if len(linkLine) > width {
+					// Quite a clumsy but simple wrapping algorithm that
+					// doesn't care about the word splits because, hey, our
+					// whole link is a word ;P
+
+					// Wraps a given wordby a given length and takes care of
+					// indentation for gelim page displays.
+					restIndent := strings.Repeat(" ", sides+leftWidth+1)
+
+					newLinkLine := strings.Repeat(" ", sides) // First indent
+					newLinkLine += linkLine[:width] + "\n"    // Add in initial chunk first
+
+					llen := len(linkLine)
+					start := width - 1
+
+					// Loop through each `width` and build up newLinkLine on
+					// each iteration.
+
+					// It had been a while since I first wrote this and when I
+					// comitted this. In other words I forgot how this worked,
+					// but it seems to work ok so I won't be touching it until
+					// I have time to remember how this worked.
+					for end := width + width; ; end += width {
+						if end >= llen {
+							// End
+							newLinkLine += restIndent + linkLine[start:]
+							break
+						}
+						newLinkLine += restIndent + linkLine[start:end] + "\n"
+						start += width
+					}
+
+					linkLine = newLinkLine
+				} else {
+					// If this single worded link length is less than desired width
+					// Don't wrap if it doesn't need wrapping
+					linkLine = strings.Repeat(" ", sides) + linkLine
+				}
+			}
+			// Spartan input label
+			if strings.HasPrefix(originalLine, "=:") && page.u.Scheme == "spartan" {
+				linkLine += " [INPUT]"
+				// c.inputLinks is 0-indexed
+				c.inputLinks = append(c.inputLinks, len(c.links)-1)
+			}
+
+			// TODO: Config for protocols that appends `(protocol-name)` at the
+			// end of link
 			if link.Scheme != "gemini" {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
-			rendered += ansiwrap.GreedyIndent(linkLine, width, sides, sides) + "\n"
+			// XXX: wrap twice for single word
+
+			linkLine = ansiwrap.GreedyIndent(linkLine, width, sides, sides+leftWidth)
+			if len(c.links) < 10 {
+				linkLine = " " + linkLine
+			}
+			rendered += linkLine + "\n"
 		} else {
+			// Normal paragraph
 			rendered += ansiwrap.GreedyIndent(line, width, sides, sides) + "\n"
 		}
 	}
