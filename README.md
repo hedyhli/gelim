@@ -52,7 +52,7 @@ your man path
 I'm also planning to have a mirror of that manual hosted on man.sr.ht
 
 Note that the manpage may not be the most recently updated. But new features and things like that
-will definetely be put in there once it's tested stable.
+will definitely be put in there once it's tested stable.
 
 ### quickstart
 
@@ -82,7 +82,7 @@ Go to the bottom of the page, where the link to signing up is provided. **Type `
 
 Then, you have to quit the pager. **Press `q`**
 
-Look for the link number that links to the sign up page, and enter it directy at the prompt.
+Look for the link number that links to the sign up page, and enter it directly at the prompt.
 As of writing, the link number is 38, but keep in mind this number may change when you are
 trying this out.
 ```

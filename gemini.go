@@ -23,7 +23,7 @@ type GeminiResponse struct {
 	connClosed       bool
 }
 
-// these should be used but atm it isnt, lol
+// these should be used but atm it isn't, lol
 //var (
 //ErrConnFail       = errors.New("connection failed")
 //ErrInvalidStatus  = errors.New("invalid status code")

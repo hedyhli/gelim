@@ -222,7 +222,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 					// each iteration.
 
 					// It had been a while since I first wrote this and when I
-					// comitted this. In other words I forgot how this worked,
+					// committed this. In other words I forgot how this worked,
 					// but it seems to work ok so I won't be touching it until
 					// I have time to remember how this worked.
 					for end := width + width; ; end += width {
