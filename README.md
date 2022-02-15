@@ -22,37 +22,73 @@ on srht or the one on [github](https://github.com/hedyhli/gelim).**
 - configuration file
   - custom search URL
   - custom pager opts
-  - and more!
+  - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
 
 ## install
 
 I plan to set up automated uploads of pre-built binaries to each
-[release](https://git.sr.ht/~hedy/gelim/refs) at some point in the future. at the moment
-you can clone the repo and `go build`:
+[release](https://git.sr.ht/~hedy/gelim/refs) at some point in the future.
+As of now the only option is to build from source.
+
+First, install the dependencies:
+
+* go (I think >=1.16)
+* [scdoc](https://sr.ht/~sircmpwn/scdoc) (for building manpage)
+
+Clone the repo somewhere reasonable:
 
 ```
 git clone https://git.sr.ht/~hedy/gelim
 cd gelim
 # git checkout v0.0.0  # pin specific version or commit
-go build
 ```
 
-and move the `gelim` binary somewhere in your $PATH (like `/usr/local/bin`)
+Build, optionally set `PREFIX` (default is `PREFIX=/usr/local`):
 
-I could also write a Makefile, and have the build put $VERSION number in there or something
-too, [let me know](mailto:~hedy/inbox@lists.sr.ht) if you'd like that since I'm not wanting
-to do that yet.
+```
+make
+```
+
+If all goes well, install gelim:
+
+```
+make install
+```
+
+Remember to use the same `PREFIX` too.
+
+Optionally verify your installation:
+
+```
+make checkinstall
+```
+
+The gelim binary would be sitting at `$PREFIX/bin/` with manpage at
+`$PREFIX/share/man/` :)
+
+
+### troubleshooting
+
+* **"scdoc: command not found"**:
+  Make sure [scdoc](https://sr.ht/~sircmpwn/scdoc/) is installed before building.
+* **Something to do with `io.ReadAll`**:
+  Upgrade your go version to something higher or equal to v1.16 and then try again.
+
+If you're having other issues with installation, please send an email to the
+[mailing list](mailto:~hedy/inbox@lists.sr.ht) with errors/logs if available.
+
 
 ## usage
 
-use [scdoc](https://sr.ht/~sircmpwn/scdoc) to compile [gelim.1.scd](gelim.1.scd) and put it in
-your man path
+If you used the Makefile to install gelim the manpage should automatically be
+built and installed. See gelim(1)
 
-I'm also planning to have a mirror of that manual hosted on man.sr.ht
+I'm also planning to have a mirror of that manual hosted on man.sr.ht in the
+future if easy access.
 
-Note that the manpage may not be the most recently updated. But new features and things like that
-will definitely be put in there once it's tested stable.
+Note that the manpage may not be the most recently updated. But new features
+and things like that will definitely be put in there once it's tested stable.
 
 ### quickstart
 

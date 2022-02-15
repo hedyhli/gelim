@@ -21,6 +21,7 @@ var (
 	appendInput   = flag.StringP("input", "i", "", "append input to URL ('?' + percent-encoded input)\n")
 	helpFlag      = flag.BoolP("help", "h", false, "get help on the cli")
 	searchFlag    = flag.StringP("search", "s", "", "search with the search engine (this takes priority over URL and --input)\n")
+	versionFlag   = flag.BoolP("version", "v", false, "print the version and exit\n")
 )
 
 var (
@@ -86,6 +87,10 @@ func queryEscape(s string) string {
 	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
 }
 
+var (
+	Version string
+)
+
 func main() {
 	// command-line stuff
 	flag.Usage = func() { // Usage override
@@ -99,6 +104,12 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	if *versionFlag {
+		fmt.Println("gelim", Version)
+		return
+	}
+
 	u := ""
 	cliURL := false // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 

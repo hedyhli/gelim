@@ -1,0 +1,21 @@
+image: debian/stable
+packages:
+- golang
+- scdoc
+sources:
+- https://git.sr.ht/~hedy/gelim
+environment:
+  DESTDIR: ./out
+
+tasks:
+- build: |
+    cd gelim
+    make
+- install: |
+    cd gelim
+    make install
+    make checkinstall
+- test: |
+    cd gelim
+    make checkfmt
+    go test
