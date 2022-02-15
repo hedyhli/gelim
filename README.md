@@ -1,5 +1,8 @@
 # gelim
 
+[![builds.sr.ht status](https://builds.sr.ht/~hedy/gelim.svg)](https://builds.sr.ht/~hedy/gelim?)
+[![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~hedy/gelim)](https://goreportcard.com/report/git.sr.ht/~hedy/gelim)
+
 a minimalist line-mode gemini client written in go.
 
 **WARNING: the project is still in its early stages so do expect bugs and
