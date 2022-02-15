@@ -78,7 +78,7 @@ func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 // META which is equal to "text/gemini; charset=utf-8" according to the spec.
 func ParseMeta(meta string) (string, map[string]string, error) {
 	if meta == "" {
-		return "text/gemini", make(map[string]string), nil
+		return "text/gemini", map[string]string{"charset": "utf-8"}, nil
 	}
 
 	mediatype, params, err := mime.ParseMediaType(meta)
