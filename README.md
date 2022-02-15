@@ -3,8 +3,8 @@
 a minimalist line-mode gemini client written in go.
 
 **WARNING: the project is still in its early stages so do expect bugs and
-incomplete features, if you encounter them, or would like to suggest an
-improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim).
+incomplete features, if you encounter them or would like to suggest an
+improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim)
 on srht or the one on [github](https://github.com/hedyhli/gelim).**
 
 
@@ -232,23 +232,29 @@ in your config file.
 - [github](https://github.com/hedyhli/gelim)
 - [codeberg](https://codeberg.org/hedy/gelim)
 
-## bugs, features, feedback, contribution
+## bugs, features, feedback, and contributions
 
-**questions, general feedback**:
+**questions and general feedback**:
 
 * send a ([plain text](https://useplaintext.email)) email to my
 [public inbox](https://lists.sr.ht/~hedy/inbox).
-* [How to subscribe to the mailing list without a sourcehut account](https://man.sr.ht/lists.sr.ht/#email-controls)
-* join `#gelim` on libera.chat irc for questions and suggestion
+* [How to subscribe to the mailing list without a sourcehut
+  account](https://man.sr.ht/lists.sr.ht/#email-controls)
+* or join `#gelim` on libera.chat irc for questions and suggestion
 
-**bugs, feature requests**
+**bugs and feature requests**
 
 * submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
-* you don't need a sourcehut account to subscribe or submit a ticket, [here's how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
-* you can also use the one on [github](https://github.com/hedyhli/gelim/issues) if you prefer.
+* you don't need a sourcehut account to subscribe or submit a ticket, [here's
+  how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
+* or you can also use the one on
+  [github](https://github.com/hedyhli/gelim/issues) if you prefer.
 
 **pull request, patches**
 
 * send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
-* If you prefer pull requests instead, [this](https://github.com/hedyhli/gelim/pulls) is where PRs should go. You could also send PRs to my public inbox but I'll have to search up how to merge them (lol)
+* If you prefer pull requests instead,
+  [this](https://github.com/hedyhli/gelim/pulls) is where PRs should go. You
+  could also send PRs to my public inbox but I'll have to search up how to
+  merge them (lol)
 
