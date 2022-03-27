@@ -341,7 +341,7 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 }
 
 // HandleSpartanParsedURL makes an requested to parsed URL, displays the page,
-// and returns whether it was successfull.
+// and returns whether it was successful.
 func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	res, err := SpartanParsedURL(parsed)
 	if err != nil {
@@ -384,7 +384,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 }
 
 // HandleGeminiParsedURL makes an requested to parsed URL, displays the page,
-// and returns whether it was successfull.
+// and returns whether it was successful.
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	res, err := GeminiParsedURL(*parsed)
 	if err != nil {
