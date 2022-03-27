@@ -190,7 +190,7 @@ func main() {
 		// Command stuff
 		if ok := c.Command(cmd, args...); !ok {
 			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
-				// look like an URL
+				// looks like an URL
 				u = cmd
 				parsed, err := url.Parse(u)
 				if err != nil {
@@ -205,6 +205,13 @@ func main() {
 				// so if user want to do relative path it has to start with / or .
 				if (parsed.Scheme == "" || parsed.Host == "") && (!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
 					parsed, err = url.Parse("gemini://" + u)
+					if err != nil {
+						// Haven't actually encountered this case before (not
+						// sure if it's even possible) but I'll put it here
+						// just in case
+						c.style.ErrorMsg("Invalid url")
+						continue
+					}
 				}
 				// this allows users to use relative urls at the prompt
 				if len(c.history) != 0 {
