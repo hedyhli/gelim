@@ -14,6 +14,7 @@ import (
 	"golang.org/x/term"
 )
 
+// Page is the structure of a fetched resource
 type Page struct {
 	bodyBytes []byte
 	mediaType string
@@ -21,6 +22,7 @@ type Page struct {
 	u         *url.URL
 }
 
+// Client contains all the data for a gelim session
 type Client struct {
 	links            []string
 	inputLinks       []int // contains index to links in `links` that needs spartan input
@@ -37,6 +39,7 @@ type Client struct {
 	tourNext  int      // The index for link that will be visit next time user uses tour
 }
 
+// NewClient loads the config file and returns a new client object
 func NewClient() (*Client, error) {
 	var c Client
 	var err error
@@ -85,6 +88,7 @@ func (c *Client) QuitClient(code int) {
 	os.Exit(code)
 }
 
+// GetLinkFromIndex retrieves the link on the current page
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 	spartanInput = false
 	if len(c.links) < i {
@@ -101,6 +105,7 @@ func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 	return
 }
 
+// DisplayPage renders a given page object in the client
 func (c *Client) DisplayPage(page *Page) {
 	// TODO: proper stream - read the reader and stuff
 	if page.mediaType == "application/octet-stream" {
@@ -122,6 +127,8 @@ func (c *Client) DisplayPage(page *Page) {
 	Pager(string(page.bodyBytes), c.conf)
 }
 
+// ParseGeminiPage parses bytes in page in returns a rendered string for the
+// page
 func (c *Client) ParseGeminiPage(page *Page) string {
 	termWidth, _, err := term.GetSize(0)
 	if err != nil {
@@ -300,6 +307,8 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	return c.HandleURL(u)
 }
 
+// HandleURL parses the URL, then calls HandleParsedURL. It returns whether it
+// was a valid URL
 func (c *Client) HandleURL(u string) bool {
 	// Parse URL
 	parsed, err := url.Parse(u)
@@ -331,6 +340,8 @@ func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	return c.HandleSpartanParsedURL(parsed)
 }
 
+// HandleSpartanParsedURL makes an requested to parsed URL, displays the page,
+// and returns whether it was successfull.
 func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	res, err := SpartanParsedURL(parsed)
 	if err != nil {
@@ -372,6 +383,8 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	return true
 }
 
+// HandleGeminiParsedURL makes an requested to parsed URL, displays the page,
+// and returns whether it was successfull.
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	res, err := GeminiParsedURL(*parsed)
 	if err != nil {
@@ -439,11 +452,14 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 	return true
 }
 
+// Search opens the SearchURL in config with query-escaped query
 func (c *Client) Search(query string) {
 	u := c.conf.SearchURL + "?" + queryEscape(query)
 	c.HandleURL(u)
 }
 
+// LookupCommand attempts to get the corresponding command from cmdStr,
+// returning the command and whether the command was found
 func (c *Client) LookupCommand(cmdStr string) (cmd Command, ok bool) {
 	cmdName := ""
 	ok = false
@@ -468,6 +484,8 @@ func (c *Client) LookupCommand(cmdStr string) (cmd Command, ok bool) {
 	return
 }
 
+// Command attempts to execute a given gelim command and returns whether the
+// command was found
 func (c *Client) Command(cmdStr string, args ...string) bool {
 	cmdName := ""
 	for name, v := range metaCommands {

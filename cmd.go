@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Command is the metadata of all (non-meta) commands in the client
 type Command struct {
 	aliases    []string
 	do         func(client *Client, args ...string)
@@ -80,6 +81,8 @@ func formatCommandHelp(cmd *Command, name string, format bool) (formatted []stri
 	return
 }
 
+// ResolveNonPositiveIndex returns the implied index number based on user's
+// configuration for a given non-positive index query
 func (c *Client) ResolveNonPositiveIndex(index int, totalLength int) int {
 	if index == 0 {
 		if c.conf.Index0Shortcut == 0 {
@@ -465,6 +468,7 @@ Examples:
 	// },
 }
 
+// CommandCompleter returns a suitable command to complete an input line
 func CommandCompleter(line string) (c []string) {
 	for name := range commands {
 		if strings.HasPrefix(name, strings.ToLower(line)) {

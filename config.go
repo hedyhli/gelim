@@ -11,6 +11,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// Config is the configuration structure for gelim
 type Config struct {
 	Prompt         string
 	MaxRedirects   int
@@ -22,6 +23,8 @@ type Config struct {
 	MaxWidth       int
 }
 
+// LoadConfig opes the configuration file at $XDG_CONFIG_HOME/gelim/config.toml
+// if exists and returns a parsed configuration structure
 func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
