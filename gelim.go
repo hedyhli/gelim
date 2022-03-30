@@ -88,7 +88,7 @@ func queryEscape(s string) string {
 }
 
 var (
-	Version string
+	Version string = "version unknown"
 )
 
 func main() {
