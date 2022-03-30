@@ -83,8 +83,8 @@ func (c *Client) QuitClient(code int) {
 	c.inputReader.WriteHistory(c.inputHistory)
 	c.promptHistory.Close()
 	c.inputHistory.Close()
-	c.mainReader.Close()
 	c.inputReader.Close()
+	c.mainReader.Close()
 	os.Exit(code)
 }
 
