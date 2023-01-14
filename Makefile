@@ -21,6 +21,8 @@ GOSRC+=go.mod go.sum
 
 DOCS := gelim.1
 
+
+.PHONY: all
 all: gelim $(DOCS)
 
 gelim: $(GOSRC)
@@ -41,14 +43,17 @@ checkfmt:
 .1.scd.1:
 	scdoc < $< > $@
 
+.PHONY: doc
 doc: $(DOCS)
 
 # Exists in GNUMake but not in NetBSD make and others.
 RM?=rm -f
 
+.PHONY: clean
 clean:
 	$(RM) $(DOCS) gelim
 
+.PHONY: install
 install: $(DOCS) gelim
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m755 gelim $(DESTDIR)$(BINDIR)/gelim
@@ -62,6 +67,7 @@ checkinstall:
 
 RMDIR_IF_EMPTY:=sh -c '! [ -d $$0 ] || ls -1qA $$0 | grep -q . || rmdir $$0'
 
+.PHONY: uninstall
 uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/gelim
 	$(RM) $(DESTDIR)$(MANDIR)/man1/gelim.1
@@ -69,5 +75,3 @@ uninstall:
 	${RMDIR_IF_EMPTY} $(DESTDIR)$(BINDIR)
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man1
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)
-
-.PHONY: all doc clean install uninstall
