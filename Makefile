@@ -75,3 +75,7 @@ uninstall:
 	${RMDIR_IF_EMPTY} $(DESTDIR)$(BINDIR)
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man1
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)
+
+.PHONY: release
+release:
+	goreleaser release --skip-publish --skip-validate --rm-dist
