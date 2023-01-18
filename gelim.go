@@ -86,7 +86,7 @@ func Pager(body string, conf *Config) {
 }
 
 func queryEscape(s string) string {
-	return strings.Replace(url.QueryEscape(s), "+", "%20", -1)
+	return strings.ReplaceAll(url.QueryEscape(s), "+", "%20")
 }
 
 var (
