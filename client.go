@@ -130,6 +130,15 @@ func (c *Client) DisplayPage(page *Page) {
 // ParseGeminiPage parses bytes in page in returns a rendered string for the
 // page
 func (c *Client) ParseGeminiPage(page *Page) string {
+	var (
+		h1Style    = c.style.gmiH1.Sprint
+		h2Style    = c.style.gmiH2.Sprint
+		h3Style    = c.style.gmiH3.Sprint
+		preStyle   = c.style.gmiPre.Sprint
+		linkStyle  = c.style.gmiLink.Sprint
+		quoteStyle = c.style.gmiQuote.Sprint
+	)
+
 	termWidth, _, err := term.GetSize(0)
 	if err != nil {
 		// TODO do something
@@ -162,7 +171,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			// NOT doing this anymore!
 			// (because it looked bad if quotes are continuous)
 			// TODO: remove extra new lines in the end
-			rendered += ansiwrap.GreedyIndent(line, width, 1+sides, 3+sides) + "\n"
+			rendered += ansiwrap.GreedyIndent(quoteStyle(line), width, 1+sides, 3+sides) + "\n"
 
 		} else if strings.HasPrefix(line, "* ") { // whitespace after * is mandatory
 			// Using width - 3 because of 3 spaces "   " indent at the start

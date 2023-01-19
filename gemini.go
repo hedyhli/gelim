@@ -10,8 +10,6 @@ import (
 	//"errors"
 	"net/url"
 	"strings"
-
-	"github.com/fatih/color"
 )
 
 type GeminiResponse struct {
@@ -29,16 +27,6 @@ type GeminiResponse struct {
 //ErrInvalidStatus  = errors.New("invalid status code")
 //ErrDecodeMetaFail = errors.New("failed to decode meta header")
 //)
-
-var (
-	h1Style   = color.New(color.Bold).Add(color.Underline).Add(color.FgHiMagenta).SprintFunc()
-	h2Style   = color.New(color.Bold).Add(color.FgGreen).SprintFunc()
-	h3Style   = color.New(color.Bold).Add(color.FgMagenta).SprintFunc()
-	preStyle  = color.New(color.FgYellow).SprintFunc()
-	linkStyle = color.New(color.FgBlue).SprintFunc()
-	// style only applied to first line for some reason, so removing it all together :P
-	// quoteStyle = color.New(color.Italic).SprintFunc()
-)
 
 // GeminiParsedURL fetches u and returns *GeminiResponse
 func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
@@ -67,7 +55,7 @@ func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 	status, err := strconv.Atoi(parts[0])
 	if err != nil {
 		conn.Close()
-		return res, errors.New("Invalid status code")
+		return res, errors.New("invalid status code")
 	}
 	meta := strings.Join(parts[1:], " ")
 	res = &GeminiResponse{status, meta, reader, false, conn, false}

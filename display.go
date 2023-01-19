@@ -27,10 +27,12 @@ var DefaultStyle = Style{
 	Prompt:      color.FgCyan,
 	StatusError: color.New(color.FgYellow),
 
-	gmiH1:   color.New(color.Bold, color.Underline, color.FgYellow),
-	gmiH2:   color.New(color.Bold, color.FgGreen),
-	gmiH3:   color.New(color.FgMagenta),
-	gmiLink: color.New(color.FgBlue),
+	gmiH1:    color.New(color.Bold, color.Underline, color.FgYellow),
+	gmiH2:    color.New(color.Bold, color.FgMagenta),
+	gmiH3:    color.New(color.FgHiGreen),
+	gmiPre:   color.New(color.FgYellow),
+	gmiLink:  color.New(color.FgBlue),
+	gmiQuote: color.New(color.Italic, color.FgGreen),
 }
 
 var (
