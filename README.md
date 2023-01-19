@@ -1,9 +1,9 @@
-# gelim
+# Gelim
 
-[![builds.sr.ht status](https://builds.sr.ht/~hedy/gelim.svg)](https://builds.sr.ht/~hedy/gelim?)
+[![builds.sr.ht status](https://builds.sr.ht/~hedy/gelim.svg)](https://builds.sr.ht/~hedy/gelim)
 [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~hedy/gelim)](https://goreportcard.com/report/git.sr.ht/~hedy/gelim)
 
-a minimalist line-mode gemini client written in go.
+A minimalist line-mode gemini client written in go.
 
 **WARNING: the project is still in its early stages so do expect bugs and
 incomplete features, if you encounter them or would like to suggest an
@@ -15,20 +15,23 @@ on srht or the one on [github](https://github.com/hedyhli/gelim).**
 
 [more screenshots](#screenshots)
 
+You get a simple line-mode interface to navigate URLs, plus a pager to view
+pages. Seriously, what more do you want?
 
-## features
 
-- searching from the command line
-- inputs from the command line
-- relative url at prompt
-- pager (requires less(1))
-- configuration file
-  - custom search URL
-  - custom pager opts
+## Features
+
+- Searching from the command line
+- Inputs from the command line
+- Relative url at prompt
+- Pager (requires less(1))
+- Configuration
+  - Custom search URL
+  - Custom pager opts
   - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
 
-## install
+## Install
 
 I plan to set up automated uploads of pre-built binaries to each
 [release](https://git.sr.ht/~hedy/gelim/refs) at some point in the future.
@@ -71,7 +74,7 @@ The gelim binary would be sitting at `$PREFIX/bin/` with manpage at
 `$PREFIX/share/man/` :)
 
 
-### troubleshooting
+### Troubleshooting
 
 * **"scdoc: command not found"**:
   Make sure [scdoc](https://sr.ht/~sircmpwn/scdoc/) is installed before building.
@@ -82,7 +85,7 @@ If you're having other issues with installation, please send an email to the
 [mailing list](mailto:~hedy/inbox@lists.sr.ht) with errors/logs if available.
 
 
-## usage
+## Usage
 
 If you used the Makefile to install gelim the manpage should automatically be
 built and installed. See gelim(1)
@@ -93,7 +96,7 @@ future if easy access.
 Note that the manpage may not be the most recently updated. But new features
 and things like that will definitely be put in there once it's tested stable.
 
-### quickstart
+### Quickstart
 
 ```
 gelim gemini.circumlunar.space
@@ -138,7 +141,7 @@ Voila, you're at the front page again!
 Thanks for trying out this quickstart tutorial, there is still much to explore. Type in **`help`**
 from the prompt and check out the commands, have fun!
 
-## config
+## Config
 
 For people on a Unix system it will look for configuration in `~/.config/gelim/config.toml`.
 
@@ -159,14 +162,14 @@ lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
 searchURL = "geminispace.info/search"  # this is the default
 ```
 
-### prompt options
+### Prompt format options
 
-you can use a number of options for your prompt (like PS1 in bash):
+You can use a number of placeholders for your prompt (like PS1 in bash):
 
-- `%U`: full url of current page including scheme (gemini://example.com/foo/bar)
-- `%u`: full url of current page without scheme (example.com/foo/bar)
-- `%P`: absolute path of the current url (/foo/bar)
-- `%p`: base path of the current url (bar)
+- `%U`: Full url of current page including scheme (gemini://example.com/foo/bar)
+- `%u`: Full url of current page without scheme (example.com/foo/bar)
+- `%P`: Absolute path of the current url (/foo/bar)
+- `%p`: Base path of the current url (bar)
 
 Use `%%` for a literal percent character, and percent-prefixed option that is not supported
 will be ignored and presented literally.
@@ -187,75 +190,75 @@ config    resulting prompt
 "%%%% $"  "%% $ "
 ```
 
-## a note about the pager
+## A note about the pager
 
-gelim requires less(1) for paged output. If you don't have that installed, or is on windows,
+Gelim requires less(1) for paged output. If you don't have that installed, or is on windows,
 it will print the page directly and you'll have to scroll the page yourself. This is a bug
 and will be fixed in the near future.
 
-### mouse support
+### Mouse support
 
 Add `--mouse` (if your version of less supports it) to `lessOpts` option
 in your config file.
 
-## screenshots
+## Screenshots
 
-**commands**
+**Commands**
 
 ![screenshot of `help` command output](https://hedy.smol.pub/gelim-cmds.png)
 
-**tour**
+**Tour**
 
 ![screenshot of tour command](https://hedy.smol.pub/tour.png)
 
-**edit url**
+**Edit url**
 
 ![screenshot of editing url](https://hedy.smol.pub/editurl.png)
 
-**spartan**
+**Spartan**
 
 ![screenshot of spartan colors](https://hedy.smol.pub/spartan-colors.png)
 
-**links**
+**Links**
 
 ![screenshot of links](https://hedy.smol.pub/link.png)
 
-**search**
+**Search**
 
 ![screenshot of search command](https://hedy.smol.pub/search.png)
 
-**spartan input**
+**Spartan input**
 
 ![screenshot of spartan input functionality](https://hedy.smol.pub/spartan-input.png)
 
-## remotes
+## Remotes
 
-- [sourcehut](https://sr.ht/~hedy/gelim)
-- [tildegit (gitea)](https://tildegit.org/hedy/gelim)
-- [github](https://github.com/hedyhli/gelim)
-- [codeberg](https://codeberg.org/hedy/gelim)
+- [SourceHut](https://sr.ht/~hedy/gelim)
+- [Tildegit (gitea)](https://tildegit.org/hedy/gelim)
+- [GitHub](https://github.com/hedyhli/gelim)
+- [Codeberg](https://codeberg.org/hedy/gelim)
 
-## bugs, features, feedback, and contributions
+## Bugs, features, feedback, and contributions
 
-**questions and general feedback**:
+**Questions and general feedback**:
 
 * send a ([plain text](https://useplaintext.email)) email to my
 [public inbox](https://lists.sr.ht/~hedy/inbox).
 * [How to subscribe to the mailing list without a sourcehut
   account](https://man.sr.ht/lists.sr.ht/#email-controls)
-* or join `#gelim` on libera.chat irc for questions and suggestion
+* or join `#gelim` on libera.chat irc for questions and suggestions
 
-**bugs and feature requests**
+**Bugs and feature requests**
 
-* submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
+* Submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
 * you don't need a sourcehut account to subscribe or submit a ticket, [here's
   how to do them with email](https://man.sr.ht/todo.sr.ht/#email-access)
-* or you can also use the one on
+* Or you can also use the one on
   [github](https://github.com/hedyhli/gelim/issues) if you prefer.
 
-**pull request, patches**
+**Pull request, patches**
 
-* send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
+* Send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
 * If you prefer pull requests instead,
   [this](https://github.com/hedyhli/gelim/pulls) is where PRs should go. You
   could also send PRs to my public inbox but I'll have to search up how to
