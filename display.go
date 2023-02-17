@@ -19,6 +19,11 @@ type Style struct {
 	gmiLink  *color.Color
 	gmiQuote *color.Color
 	gmiPre   *color.Color
+
+	// Line mode interface
+	cmdSynopsis    *color.Color
+	cmdPlaceholder *color.Color
+	cmdLabels      *color.Color // Eg: Usage:
 }
 
 var DefaultStyle = Style{
@@ -33,6 +38,10 @@ var DefaultStyle = Style{
 	gmiPre:   color.New(color.FgYellow),
 	gmiLink:  color.New(color.FgBlue),
 	gmiQuote: color.New(color.Italic, color.FgGreen),
+
+	cmdSynopsis:    color.New(color.Italic),
+	cmdPlaceholder: color.New(color.FgBlue, color.Italic),
+	cmdLabels:      color.New(color.Bold),
 }
 
 var (

@@ -37,6 +37,8 @@ type Client struct {
 
 	tourLinks []string // List of links to tour
 	tourNext  int      // The index for link that will be visit next time user uses tour
+
+	lastPage *Page // Last viewed page information
 }
 
 // NewClient loads the config file and returns a new client object
@@ -378,6 +380,7 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		page.mediaType = mediaType
 		page.params = params
 		c.DisplayPage(page)
+		c.lastPage = page
 	case 3:
 		c.HandleURL("spartan://" + parsed.Host + res.meta)
 	case 4:
@@ -428,6 +431,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
+		c.lastPage = page
 		c.DisplayPage(page)
 	case 3:
 		return c.HandleURL(res.meta) // TODO: max redirect times
@@ -469,8 +473,7 @@ func (c *Client) Search(query string) {
 
 // LookupCommand attempts to get the corresponding command from cmdStr,
 // returning the command and whether the command was found
-func (c *Client) LookupCommand(cmdStr string) (cmd Command, ok bool) {
-	cmdName := ""
+func (c *Client) LookupCommand(cmdStr string) (cmdName string, cmd Command, ok bool) {
 	ok = false
 	// skipping metaCommands
 	for name, v := range commands {
@@ -513,9 +516,13 @@ func (c *Client) Command(cmdStr string, args ...string) bool {
 		metaCommands[cmdName].do(c, args...)
 		return true
 	}
-	cmd, ok := c.LookupCommand(cmdStr)
+	_, cmd, ok := c.LookupCommand(cmdStr)
 	if !ok {
 		return ok
+	}
+	// "<cmd> help"
+	if len(args) > 0 && (args[0] == "help" || args[0] == "?" || args[0] == "--help") {
+		return c.Command("help", cmdStr)
 	}
 	cmd.do(c, args...)
 	return true

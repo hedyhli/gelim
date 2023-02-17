@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -12,9 +15,10 @@ type Command struct {
 	do         func(client *Client, args ...string)
 	help       string
 	quotedArgs bool
+	hidden     bool
 }
 
-func printHelp() {
+func printHelp(style *Style) {
 	maxWidth := 0
 	var placeholder string
 	curWidth := 0
@@ -41,42 +45,52 @@ func printHelp() {
 	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
 	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported\nlike the shell, but escaping quotes is not support yet.")
 	fmt.Println()
-	fmt.Println("You can supply a command name to `help` to see the help for a specific command")
+	fmt.Println("You can supply a command name to `help` to see the help for a specific command, like `help tour`.")
 	fmt.Println()
 	fmt.Println("Commands:")
 	var spacesBetween int
 	for name, cmd := range commands {
 		// TODO: wrap description with... aniswrap?
 		// also maybe add some colors in the help!
-		parts := formatCommandHelp(&cmd, name, false)
-		spacesBetween = maxWidth + minSepSpaceLen - len(parts[0])
-		fmt.Printf("  %s%s %s\n", parts[0], strings.Repeat(" ", spacesBetween), parts[1])
+		if cmd.hidden {
+			continue
+		}
+		parts := formatCommandHelp(&cmd, name, false, style)
+		// FIXME: formatcmd help behaviour changed, alter other places!
+		spacesBetween = maxWidth + minSepSpaceLen - len(parts[0]) - len(name) - 1
+		fmt.Printf("  %s %s%s %s\n", name, style.cmdPlaceholder.Sprint(parts[0]), strings.Repeat(" ", spacesBetween), parts[1])
 	}
+	fmt.Println("\nMeta commands:")
+	fmt.Println("  help | ? | h  [<cmd>...]")
+	fmt.Println("  aliases | alias | synonym  [<cmd>...]")
 }
 
 // Handles placeholders in cmd.help if any, if format is true it will return the placeholder
 // string and the help string concatenated, if format is false, it returns them separately.
-func formatCommandHelp(cmd *Command, name string, format bool) (formatted []string) {
+func formatCommandHelp(cmd *Command, name string, format bool, style *Style) (formatted []string) {
 	firstLine := strings.SplitN(cmd.help, "\n", 2)[0]
 	parts := strings.SplitN(firstLine, ":", 2)
+
 	var placeholder, desc string
+
+	desc = firstLine
 	if len(parts) == 2 {
 		placeholder = strings.TrimSpace(parts[0])
 		desc = strings.TrimSpace(parts[1])
 	}
 	left := ""
-	if placeholder != "" {
-		left = fmt.Sprintf("%s %s", name, placeholder)
-	} else {
-		left = name
-		desc = firstLine
-	}
 	formatted = make([]string, 2)
 	if format {
-		formatted[0] = fmt.Sprintf("%s  %s", left, desc)
+		if placeholder != "" {
+			left = fmt.Sprintf("%s %s", name, style.cmdPlaceholder.Sprint(placeholder))
+		} else {
+			left = name
+			desc = firstLine
+		}
+		formatted[0] = style.cmdLabels.Sprint("Usage") + fmt.Sprintf(": %s\n\n", left) + style.cmdSynopsis.Sprint(desc)
 		return
 	}
-	formatted[0] = left
+	formatted[0] = placeholder
 	formatted[1] = desc
 	return
 }
@@ -108,36 +122,45 @@ var metaCommands = map[string]Command{
 		aliases: []string{"h", "?", "hi"},
 		do: func(c *Client, args ...string) {
 			if len(args) > 0 {
-				for _, v := range args {
+				for i, v := range args {
+					// Separator
+					if len(args) > 1 && i > 0 {
+						fmt.Println("---")
+					}
 					// Yes, have to do metaCommands manually
 					switch v {
 					case "help", "?", "h", "hi":
-						fmt.Println("You literally just get help :P")
-						return
+						fmt.Println("help: You literally just get help :P")
+						continue
 					case "alias", "aliases", "synonymn":
-						fmt.Println("See aliases for a command or all commands")
-						return
+						fmt.Println("alias: See aliases for a command or all commands")
+						continue
 					}
 
-					cmd, ok := c.LookupCommand(v)
+					name, cmd, ok := c.LookupCommand(v)
 					if !ok {
 						fmt.Println(v, "command not found")
-						return
+						continue
 					}
-					formatted := formatCommandHelp(&cmd, v, true)
+					formatted := formatCommandHelp(&cmd, name, true, c.style)
 					fmt.Println(formatted[0])
+					if len(cmd.aliases) > 0 {
+						fmt.Println("\n"+c.style.cmdLabels.Sprint("Aliases")+": [", strings.Join(cmd.aliases, ", "), "]")
+					}
 					// Extra help for command if the command supports it
-					extra := strings.SplitN(cmd.help, "\n", 2)[1]
-					if extra != "" {
-						fmt.Println()
-						fmt.Println(extra)
+					if strings.Contains(cmd.help, "\n") {
+						extra := strings.SplitN(cmd.help, "\n", 2)[1]
+						if extra != "" {
+							fmt.Println()
+							fmt.Println(extra)
+						}
 					}
 				}
 				return
 			}
-			printHelp()
+			printHelp(c.style)
 		},
-		help: "<cmd...> : print the usage or the help for a command",
+		help: "[<cmd...>] : print the usage or the help for a command",
 	},
 	"aliases": {
 		aliases: []string{"alias", "synonym"},
@@ -148,19 +171,19 @@ var metaCommands = map[string]Command{
 					// but I can't find a better solution UGH
 					switch v {
 					case "help", "?", "h", "hi":
-						fmt.Println("help, ?, h, hi")
-						return
+						fmt.Println("help ? h hi")
+						continue
 					case "alias", "aliases", "synonym":
-						fmt.Println("alias, aliases, synonym")
-						return
+						fmt.Println("alias aliases synonym")
+						continue
 					}
-					cmd, ok := c.LookupCommand(v)
+					name, cmd, ok := c.LookupCommand(v)
 					if !ok {
 						fmt.Println(v, "command not found")
 					}
-					fmt.Println(strings.Join(cmd.aliases, ", "))
-					return
+					fmt.Println(name, strings.Join(cmd.aliases, " "))
 				}
+				return
 			}
 			fmt.Println("todo")
 		},
@@ -174,7 +197,7 @@ var commands = map[string]Command{
 		do: func(c *Client, args ...string) {
 			c.Search(strings.Join(args, " "))
 		},
-		help: "<query...> : search with search engine",
+		help: "[<query...>] : search with search engine",
 	},
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
@@ -195,7 +218,7 @@ var commands = map[string]Command{
 		help: "reload current page",
 	},
 	"history": {
-		aliases: []string{"hist"},
+		aliases: []string{"hist", "his"},
 		do: func(c *Client, args ...string) {
 			if len(args) == 0 {
 				for i, v := range c.history {
@@ -220,14 +243,14 @@ var commands = map[string]Command{
 			// TODO: handle spartan input
 			c.HandleParsedURL(c.history[index-1])
 		},
-		help: `<index> : print list of previously visited URLs, or visit an item in history
+		help: `[<index>] : print list of previously visited URLs, or visit an item in history
 Examples:
   - history
-  - history 1
-  - history -3`,
+  - his 1
+  - hist -3`,
 	},
 	"link": {
-		aliases: []string{"l", "peek", "p", "links"},
+		aliases: []string{"l", "peek", "links"},
 		do: func(c *Client, args ...string) {
 			if len(args) < 1 {
 				for i, v := range c.links {
@@ -255,7 +278,7 @@ Examples:
 				fmt.Println(index, link) // TODO: also save the label in c.links
 			}
 		},
-		help: `<index>... : peek what a link index would link to, or see the list of all links
+		help: `[<index>...] : peek what a link index would link to, or see the list of all links
 You can use non-positive indexes too, see ` + "`links 0`" + ` for more information
 Examples:
   - links
@@ -280,7 +303,8 @@ Examples:
 		do: func(c *Client, args ...string) {
 			fmt.Println("not implemented yet!")
 		},
-		help: "go forward in history",
+		help:   "go forward in history",
+		hidden: true,
 	},
 	"current": {
 		aliases: []string{"u", "url", "cur"},
@@ -293,8 +317,49 @@ Examples:
 		},
 		help: "print current url",
 	},
+	"copyurl": {
+		aliases: []string{"cu", "yy"},
+		do: func(c *Client, args ...string) {
+			var urlStr string
+			if len(args) < 1 {
+				if len(c.history) == 0 {
+					fmt.Println("No history yet!")
+					return
+				}
+				urlStr = c.history[len(c.history)-1].String()
+				fmt.Println("url:", urlStr)
+				c.ClipboardCopy(urlStr)
+				return
+			}
+			var index int
+			var err error
+			for i, arg := range args {
+				index, err = strconv.Atoi(arg)
+				if err != nil {
+					c.style.ErrorMsg(arg + ": Invalid link index")
+					continue
+				}
+				index = c.ResolveNonPositiveIndex(index, len(c.links))
+				if index == 0 {
+					continue
+				}
+				if index < 1 || index > len(c.links) {
+					c.style.ErrorMsg(arg + ": Invalid link index")
+					continue
+				}
+				link, _ := c.GetLinkFromIndex(index)
+				if len(args) > 1 && i != 0 {
+					urlStr += "\n"
+				}
+				urlStr += link
+				fmt.Println("url:", link)
+			}
+			c.ClipboardCopy(urlStr)
+		},
+		help: "[<index>...] : copy current url or links on page to clipboard",
+	},
 	"editurl": {
-		aliases: []string{"e", "edit"},
+		aliases: []string{"e", "eu", "edit"},
 		do: func(c *Client, args ...string) {
 			// TODO: Use a link from current page or from history instead of current url
 			var link string
@@ -441,7 +506,12 @@ Examples:
 				fmt.Println("Added", added, "items to tour list")
 			}
 		},
-		help: `<range or number>... : loop over selection of links in current page
+		help: `[<range or number>...] : loop over selection of links in current page
+Subcommands:
+- l[s]      list items in tour
+- c[lear]   clear tour list
+- g[o]      jump to item in tour
+
 Use tour * to add all links. you can use ranges like 1,10 or 10,1 with single links as multiple arguments.
 Use tour ls/clear to view items or clear all.
 tour go <index> takes you to an item in the tour list
@@ -466,6 +536,13 @@ Examples:
 	// 	help: "<key> <value>: set a configuration value for the current gelim session",
 	// 	quotedArgs: true,
 	// },
+	"page": {
+		aliases: []string{"p", "print", "view", "display"},
+		do: func(c *Client, args ...string) {
+			c.DisplayPage(c.lastPage)
+		},
+		help: "view current page again without reloading",
+	},
 }
 
 // CommandCompleter returns a suitable command to complete an input line
@@ -475,5 +552,36 @@ func CommandCompleter(line string) (c []string) {
 			c = append(c, name)
 		}
 	}
+	return
+}
+
+func (c *Client) ClipboardCopy(content string) (ok bool) {
+	ok = true
+
+	clip := c.conf.ClipboardCmd
+	if clip == "" {
+		ok = false
+		c.style.ErrorMsg("please set a clipboard command in config file option 'clipboardCmd'\nThe content to copy will be piped into that command as stdin")
+		return
+	}
+	cmd := exec.Command(clip)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		ok = false
+		c.style.ErrorMsg("Error running command '" + clip + "': " + err.Error())
+		return
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err = cmd.Start(); err != nil {
+		ok = false
+		c.style.ErrorMsg("Error running command '" + clip + "': " + err.Error())
+		return
+	}
+	io.WriteString(stdin, content)
+	stdin.Close()
+	cmd.Stdin = os.Stdin
+	cmd.Wait()
+	fmt.Println("Copied successfully")
 	return
 }

@@ -21,6 +21,7 @@ type Config struct {
 	Index0Shortcut int
 	LeftMargin     float32
 	MaxWidth       int
+	ClipboardCmd   string
 }
 
 // LoadConfig opes the configuration file at $XDG_CONFIG_HOME/gelim/config.toml
@@ -38,6 +39,7 @@ func LoadConfig() (*Config, error) {
 	conf.SearchURL = "gemini://geminispace.info/search"
 	conf.LeftMargin = 0.15
 	conf.MaxWidth = 102 // 100 + allowance of 2 ;P
+	conf.ClipboardCmd = ""
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
 	_, err = os.Stat(path)
