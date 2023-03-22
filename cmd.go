@@ -356,7 +356,10 @@ Examples:
 			}
 			c.ClipboardCopy(urlStr)
 		},
-		help: "[<index>...] : copy current url or links on page to clipboard",
+		help: `[<index>...] : copy current url or links on page to clipboard
+Set config file option clipboardCopyCmd to the command where stdin will be piped,
+to let it handle clipboard copying.
+(eg: echo 'clipboardCopyCmd = "pbcopy"' >> ~/.config/gelim/config.toml)`,
 	},
 	"editurl": {
 		aliases: []string{"e", "eu", "edit"},
@@ -558,10 +561,10 @@ func CommandCompleter(line string) (c []string) {
 func (c *Client) ClipboardCopy(content string) (ok bool) {
 	ok = true
 
-	clip := c.conf.ClipboardCmd
+	clip := c.conf.ClipboardCopyCmd
 	if clip == "" {
 		ok = false
-		c.style.ErrorMsg("please set a clipboard command in config file option 'clipboardCmd'\nThe content to copy will be piped into that command as stdin")
+		c.style.ErrorMsg("please set a clipboard command in config file option 'clipboardCopyCmd'\nThe content to copy will be piped into that command as stdin")
 		return
 	}
 	cmd := exec.Command(clip)
