@@ -93,8 +93,8 @@ func (c *Client) QuitClient(code int) {
 // GetLinkFromIndex retrieves the link on the current page
 func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 	spartanInput = false
-	if len(c.links) < i {
-		c.style.ErrorMsg(fmt.Sprintf("invalid link index, I have %d links so far", len(c.links)))
+	if len(c.links) < i || i < 1 {
+		c.style.ErrorMsg(fmt.Sprintf("Link index argument out of range. There are %d links on the page", len(c.links)))
 		return
 	}
 	link = c.links[i-1]

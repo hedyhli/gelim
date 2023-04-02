@@ -220,6 +220,10 @@ var commands = map[string]Command{
 	"history": {
 		aliases: []string{"hist", "his"},
 		do: func(c *Client, args ...string) {
+			if len(c.history) == 0 {
+				c.style.WarningMsg("No history yet")
+				return
+			}
 			if len(args) == 0 {
 				for i, v := range c.history {
 					fmt.Println(i+1, v.String())
@@ -252,6 +256,11 @@ Examples:
 	"link": {
 		aliases: []string{"l", "peek", "links"},
 		do: func(c *Client, args ...string) {
+			if c.links[0] == "" {
+				c.style.WarningMsg("There are no links")
+				return
+			}
+
 			if len(args) < 1 {
 				for i, v := range c.links {
 					fmt.Println(i+1, v)
@@ -542,6 +551,10 @@ Examples:
 	"page": {
 		aliases: []string{"p", "print", "view", "display"},
 		do: func(c *Client, args ...string) {
+			if c.lastPage == nil {
+				c.style.ErrorMsg("No previous page to redisplay")
+				return
+			}
 			c.DisplayPage(c.lastPage)
 		},
 		help: "view current page again without reloading",
