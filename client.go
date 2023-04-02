@@ -471,8 +471,11 @@ func (c *Client) Search(query string) {
 	c.HandleURL(u)
 }
 
+////// Command stuff //////
+
 // LookupCommand attempts to get the corresponding command from cmdStr,
-// returning the command and whether the command was found
+// returning the command and whether the command was found. Does not repect
+// meta commands
 func (c *Client) LookupCommand(cmdStr string) (cmdName string, cmd Command, ok bool) {
 	ok = false
 	// skipping metaCommands
@@ -496,9 +499,11 @@ func (c *Client) LookupCommand(cmdStr string) (cmdName string, cmd Command, ok b
 	return
 }
 
-// Command attempts to execute a given gelim command and returns whether the
-// command was found
-func (c *Client) Command(cmdStr string, args ...string) bool {
+// LookupCommandWithMeta does the same as LookupCommand but it respects metaCommands.
+//
+// LookupCommandWithMeta attempts to resolve cmdStr into the proper command,
+// respecting meta commands.
+func (c *Client) LookupCommandWithMeta(cmdStr string) (cmd Command, ok bool) {
 	cmdName := ""
 	for name, v := range metaCommands {
 		if name == cmdStr {
@@ -513,17 +518,80 @@ func (c *Client) Command(cmdStr string, args ...string) bool {
 		}
 	}
 	if cmdName != "" {
-		metaCommands[cmdName].do(c, args...)
-		return true
+		cmd = metaCommands[cmdName]
+		ok = true
+		return
 	}
-	_, cmd, ok := c.LookupCommand(cmdStr)
+	// Not a meta command, then:
+	_, cmd, ok = c.LookupCommand(cmdStr)
 	if !ok {
-		return ok
+		return
 	}
+	// below logic is moved to places where LookupCommandWithMeta is called to
+	// (counter-intuitively) remove duplication.
 	// "<cmd> help"
+	// if (firstArg == "help" || firstArg == "?" || firstArg == "--help") {
+	// 	return c.LookupCommandWithMeta("help", cmdStr)
+	// }
+	return
+}
+
+// Command uses LookupCommandWithMeta to search for the appropriate command
+// then runs it
+func (c *Client) Command(cmdStr string, args ...string) (ok bool) {
+	var cmd Command
+
 	if len(args) > 0 && (args[0] == "help" || args[0] == "?" || args[0] == "--help") {
-		return c.Command("help", cmdStr)
+		ok = true
+		metaCommands["help"].do(c, cmdStr)
+		return
+	}
+
+	cmd, ok = c.LookupCommandWithMeta(cmdStr)
+	if !ok {
+		return
 	}
 	cmd.do(c, args...)
-	return true
+	return
+}
+
+// GetCommandAndArgs parses a command line string, looks up using
+// LookupCommandWithMeta, then splits arguments respecting the comamnd's
+// quotedArgs field.
+//
+// Returns ok = false if the command is not found
+func (c *Client) GetCommandAndArgs(line string) (
+	cmd Command, cmdStr string, args []string, ok bool,
+) {
+
+	// Split by spaces by default
+	lineFields := strings.Split(line, " ")
+
+	// Command and the rest of the line is always separated by a space
+	cmdStr = lineFields[0]
+	if len(lineFields) > 1 {
+		args = lineFields[1:]
+	}
+
+	if len(args) > 0 &&
+		(args[0] == "help" || args[0] == "?" || args[0] == "--help") {
+
+		ok = true
+		cmd = metaCommands["help"]
+		// Discarding the rest of the arguments, if any. Because it may be used
+		// confused with "help cmd1 cmd2 cmd3"
+		args = []string{cmdStr}
+
+		cmdStr = "help"
+		return
+	}
+
+	cmd, ok = c.LookupCommandWithMeta(cmdStr)
+	if !ok || !cmd.quotedArgs {
+		return
+	}
+
+	// Rejoin args, split using QuotedFields
+	args = QuotedFields(strings.Join(args, " "))
+	return
 }

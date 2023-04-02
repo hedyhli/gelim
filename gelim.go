@@ -182,67 +182,83 @@ func main() {
 		if line == "" {
 			continue
 		}
-		// TODO: put arg splitting logic into client.go or cmd.go so it can respect Command.quotedArgs value
-		lineFields := strings.Fields(line)
-		cmd := strings.ToLower(lineFields[0])
-		var args []string
-		if len(lineFields) > 1 {
-			args = lineFields[1:]
+		// Get our command and args! ✨
+		cmd, cmdStr, args, ok := c.GetCommandAndArgs(line)
+		// Vamos
+		if ok {
+			cmd.do(c, args...)
+			continue
 		}
-		// Command stuff
-		if ok := c.Command(cmd, args...); !ok {
-			if strings.Contains(cmd, ".") || strings.Contains(cmd, "/") {
-				// looks like an URL
-				u = cmd
-				parsed, err := url.Parse(u)
+		// Reaches here only if it was not a valid command
+		if strings.Contains(cmdStr, ".") || strings.Contains(cmdStr, "/") {
+			// looks like an URL
+
+			var parsed *url.URL
+
+			u = cmdStr
+			parsed, err = url.Parse(u)
+			if err != nil {
+				c.style.ErrorMsg("Invalid url")
+				continue
+			}
+			// Adding default scheme
+			// Example:
+			// If current url is example.com, and user would like to visit
+			// example.com/foo.txt they can type "/foo.txt", and if they use
+			// "foo.txt" it would lead to gemini://foo.txt which means if
+			// current url is example.com/bar/ and user wants
+			// example.com/bar/foo.txt, they can either use "/bar/foo.txt" or
+			// "./foo.txt" so if user want to do relative path it has to start
+			// with / or .
+			//
+			// TLDR
+			// ----
+			//   "foo.txt" -> "gemini://foo.txt"
+			//   "./foo.txt" -> "gemini://current-url.org/foo.txt"
+			if (parsed.Scheme == "" || parsed.Host == "") &&
+				(!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
+				parsed, err = url.Parse("gemini://" + u)
 				if err != nil {
+					// Haven't actually encountered this case before (not
+					// sure if it's even possible) but I'll put it here
+					// just in case
 					c.style.ErrorMsg("Invalid url")
 					continue
 				}
-				// example:
-				// if current url is example.com, and user would like to visit example.com/foo.txt
-				// they can type "/foo.txt", and if they use "foo.txt" it would lead to gemini://foo.txt
-				// which means if current url is example.com/bar/ and user wants example.com/bar/foo.txt,
-				// they can either use "/bar/foo.txt" or "./foo.txt"
-				// so if user want to do relative path it has to start with / or .
-				if (parsed.Scheme == "" || parsed.Host == "") && (!strings.HasPrefix(u, ".")) && (!strings.HasPrefix(u, "/")) {
-					parsed, err = url.Parse("gemini://" + u)
-					if err != nil {
-						// Haven't actually encountered this case before (not
-						// sure if it's even possible) but I'll put it here
-						// just in case
-						c.style.ErrorMsg("Invalid url")
-						continue
-					}
+			}
+			// this allows users to use relative urls at the prompt
+			if len(c.history) != 0 {
+				parsed = c.history[len(c.history)-1].ResolveReference(parsed)
+			} else {
+				if strings.HasPrefix(u, ".") || strings.HasPrefix(u, "/") {
+					c.style.ErrorMsg("No history yet, cannot use relative URLs")
+					continue
 				}
-				// this allows users to use relative urls at the prompt
-				if len(c.history) != 0 {
-					parsed = c.history[len(c.history)-1].ResolveReference(parsed)
-				} else {
-					if strings.HasPrefix(u, ".") && strings.HasPrefix(u, "/") {
-						fmt.Println("no history yet, cannot use relative path")
-					}
-				}
-				c.HandleParsedURL(parsed)
-				continue
 			}
-			// at this point the user input is probably not an url
-			index, err := strconv.Atoi(cmd)
-			if err != nil {
-				// looks like an unknown command
-				c.style.ErrorMsg("Unknown command. Hint: try typing ? and hit enter")
-				continue
-			}
-			// link index lookup
-			u, spartanInput := c.GetLinkFromIndex(index)
-			if u == "" {
-				continue
-			}
-			if spartanInput {
-				c.Input(u, false)
-				continue
-			}
-			c.HandleURL(u)
+			c.HandleParsedURL(parsed)
+			continue
 		}
+		// at this point the user input is probably not an url
+		index, err := strconv.Atoi(cmdStr)
+		if err != nil {
+			// looks like an unknown command
+			c.style.ErrorMsg("Unknown command. Hint: try typing ? and hit enter")
+			continue
+		}
+		// link index lookup
+		if len(c.history) == 0 {
+			c.style.ErrorMsg("No history yet, cannot use link indexing")
+			continue
+		}
+		u, spartanInput := c.GetLinkFromIndex(index)
+		if u == "" {
+			// TODO: When is this reached? Add message?
+			continue
+		}
+		if spartanInput {
+			c.Input(u, false)
+			continue
+		}
+		c.HandleURL(u)
 	}
 }

@@ -14,7 +14,7 @@ type Command struct {
 	aliases    []string
 	do         func(client *Client, args ...string)
 	help       string
-	quotedArgs bool
+	quotedArgs bool // Default false
 	hidden     bool
 }
 
@@ -197,7 +197,8 @@ var commands = map[string]Command{
 		do: func(c *Client, args ...string) {
 			c.Search(strings.Join(args, " "))
 		},
-		help: "[<query...>] : search with search engine",
+		quotedArgs: false,
+		help:       "[<query...>] : search with search engine",
 	},
 	"quit": {
 		aliases: []string{"exit", "x", "q"},
