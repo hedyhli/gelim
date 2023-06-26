@@ -575,24 +575,24 @@ func CommandCompleter(line string) (c []string) {
 func (c *Client) ClipboardCopy(content string) (ok bool) {
 	ok = true
 
-	clip := c.conf.ClipboardCopyCmd
-	if clip == "" {
+	if c.conf.ClipboardCopyCmd == "" {
 		ok = false
 		c.style.ErrorMsg("please set a clipboard command in config file option 'clipboardCopyCmd'\nThe content to copy will be piped into that command as stdin")
 		return
 	}
-	cmd := exec.Command(clip)
+	parts := strings.Split(c.conf.ClipboardCopyCmd, " ")
+	cmd := exec.Command(parts[0], parts[1:]...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		ok = false
-		c.style.ErrorMsg("Error running command '" + clip + "': " + err.Error())
+		c.style.ErrorMsg(fmt.Sprintf("Error running command %s with arguments %v: %s", parts[0], parts[1:], err.Error()))
 		return
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err = cmd.Start(); err != nil {
 		ok = false
-		c.style.ErrorMsg("Error running command '" + clip + "': " + err.Error())
+		c.style.ErrorMsg(fmt.Sprintf("Error running command %s with arguments %v: %s", parts[0], parts[1:], err.Error()))
 		return
 	}
 	io.WriteString(stdin, content)
