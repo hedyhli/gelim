@@ -295,3 +295,53 @@ information.
   could also send PRs to my public inbox but I'll have to search up how to
   merge them (lol)
 
+
+## Meta
+
+Gelim = "**ge**mini" + "**li**ne-**m**ode"-like interface
+
+Pronounciation = Ge like "Jelly", lim like "limits"
+
+(Imagine the Ubuntu jellyfish learning calculus)
+
+---
+
+once upon a time, a curious programmer stumbles upon `ssh
+kiosk@gemini.circumlunar.space`. then tries out `bombadillo` and `amfora`...
+
+"how do I move? most pagers allow pressing space... oops that opens the command
+prompt"
+
+"ok so I can press a number to go to that link... hmm how about 10, 11, 12 etc?
+is it like vim where it has a timeout for numeric keys? oops, looks like only
+single digits are supported..."
+
+"wait so, single key press for single digit link indices, use a command prompt
+for all others? okay sure"
+
+Tries out `AV-98`
+
+"I love the interface!"
+
+"wait why is it scrolling to the bottom of the page already? like our good-ol
+`cat`?"
+
+"I have to manually scroll my terminal screen? I have to reach for my mouse?
+otherwise I have to have a geeky window manager setup?"
+
+"typing `go` command each time and navigating by relative URLs are a bit of a
+pain..."
+
+---
+
+"ok you know what: all links are commands. all link indices are commands. all
+relative URL paths are commands. we shall put all content longer than screen's
+height into a pager *everyone's familiar with*. [just like git (CLIs), but
+without typing the `git`](https://git.sr.ht/~sircmpwn/shit)!"
+
+the programmer sets off to code[...](https://yewtu.be/watch?v=dQw4w9WgXcQ)
+
+
+
+
+<!--salutations, curious one.-->
