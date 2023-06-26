@@ -30,6 +30,7 @@ pages. Seriously, what more do you want?
   - Custom pager opts
   - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
+- Copying to clipboard
 
 ## Install
 
@@ -141,6 +142,24 @@ Voila, you're at the front page again!
 Thanks for trying out this quickstart tutorial, there is still much to explore. Type in **`help`**
 from the prompt and check out the commands, have fun!
 
+## Navigating a page/document
+
+Everything in page rendering is handled with less(1). less is called with
+opptions specified from your config file. gelim has no intervention in
+pre-processing any keys.
+
+Hence, anything that works in less should work normally when less is called by
+gelim.
+
+Useful navigation keys include: `d`/`u`/`PgDn`/`PgUp`/`Space`.
+
+Useful keys for jumping to positions include: `g`/`G`.
+
+**In case you've never used a pager before, please keep calm under the
+circumstance of realizing that ctrl-c/ctrl-d does not quit. Please press `q`
+:P**
+
+
 ## Config
 
 For people on a Unix system it will look for configuration in `~/.config/gelim/config.toml`.
@@ -160,7 +179,14 @@ startURL = "example.com"  # default: ""
 lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
 
 searchURL = "geminispace.info/search"  # this is the default
+
+clipboardCopyCmd = "pbcopy"  # Example for MacOS. default = "" (unset)
 ```
+
+**clipboardCopyCmd**: Example for linux with xclip: `xclip -sel c`
+
+Contents to be copied will be piped to the command as stdin.
+
 
 ### Prompt format options
 
@@ -200,6 +226,11 @@ and will be fixed in the near future.
 
 Add `--mouse` (if your version of less supports it) to `lessOpts` option
 in your config file.
+
+### Search in page
+
+Type `/<your search query>` when less is running. See less(1) for more
+information.
 
 ## Screenshots
 
