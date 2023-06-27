@@ -102,7 +102,7 @@ func (c *Client) ResolveNonPositiveIndex(index int, totalLength int) int {
 		if c.conf.Index0Shortcut == 0 {
 			c.style.ErrorMsg("Behaviour for index 0 is undefined.")
 			fmt.Println("You can use -1 for accessing the last item, -2 for second last, etc.")
-			fmt.Println("Configure the behaviour of 0 in the config file. Example: index0shortcut = -1, then whenever you use 0 it will be -1 instead. This works for commands history, links, editurl, and tour.")
+			fmt.Println("Configure the behaviour of 0 in the config file.\nExample: index0shortcut = -1, then whenever you use 0 it will be -1 instead.\nThis works for commands history, links, editurl, and tour.")
 			return 0
 		}
 		index = c.conf.Index0Shortcut
@@ -282,6 +282,7 @@ Examples:
 				}
 				if index < 1 || index > len(c.links) {
 					c.style.ErrorMsg(arg + ": Invalid link index")
+					fmt.Println("Total number of links is", len(c.links))
 					continue
 				}
 				link, _ := c.GetLinkFromIndex(index)
