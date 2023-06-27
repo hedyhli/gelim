@@ -58,6 +58,7 @@ func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 		return res, errors.New("invalid status code")
 	}
 	meta := strings.Join(parts[1:], " ")
+	meta = strings.TrimSpace(meta)
 	res = &GeminiResponse{status, meta, reader, false, conn, false}
 	return
 }

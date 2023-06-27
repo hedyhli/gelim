@@ -13,15 +13,16 @@ import (
 
 // Config is the configuration structure for gelim
 type Config struct {
-	Prompt           string
-	MaxRedirects     int
-	StartURL         string
-	LessOpts         string
-	SearchURL        string
-	Index0Shortcut   int
-	LeftMargin       float32
-	MaxWidth         int
-	ClipboardCopyCmd string
+	Prompt              string
+	MaxRedirects        int
+	ShowRedirectHistory bool
+	StartURL            string
+	LessOpts            string
+	SearchURL           string
+	Index0Shortcut      int
+	LeftMargin          float32
+	MaxWidth            int
+	ClipboardCopyCmd    string
 }
 
 // LoadConfig opes the configuration file at $XDG_CONFIG_HOME/gelim/config.toml
@@ -31,7 +32,8 @@ func LoadConfig() (*Config, error) {
 	var conf Config
 	// Defaults
 	conf.Prompt = "%U>"
-	conf.MaxRedirects = 10
+	conf.MaxRedirects = 5
+	conf.ShowRedirectHistory = true
 	conf.StartURL = ""
 	// FIXME: -R is supposedly better than -r, but -R resets ansi formats on
 	// newlines :/

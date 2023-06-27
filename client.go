@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -22,6 +23,23 @@ type Page struct {
 	u         *url.URL
 }
 
+type RedirectInfo struct {
+	history []string
+	// Total length of the history slice (10 if c.MaxRedirects <- 0). We cap it
+	// at 10 to prevent it from infinetely overflowing, effectively we store
+	// only the last 10 redirect URLs, hence user only see those last 10.
+	historyCap int
+	// Number of elems in redir history
+	// that is occupied. Also used as
+	// index.
+	historyLen int
+	// Total number of redirects made. >= historyLen
+	count int
+
+	showHistory func()
+	reset       func()
+}
+
 // Client contains all the data for a gelim session
 type Client struct {
 	links            []string
@@ -39,6 +57,8 @@ type Client struct {
 	tourNext  int      // The index for link that will be visit next time user uses tour
 
 	lastPage *Page // Last viewed page information
+
+	redir *RedirectInfo // The object itself does not get changed, only attributes in it -- throughout the runtime of gelim
 }
 
 // NewClient loads the config file and returns a new client object
@@ -52,6 +72,30 @@ func NewClient() (*Client, error) {
 	}
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
+
+	c.redir = &RedirectInfo{historyCap: conf.MaxRedirects, historyLen: 0}
+	if c.redir.historyCap <= 0 {
+		c.redir.historyCap = 10
+	}
+	c.redir.history = make([]string, c.redir.historyCap)
+	c.redir.showHistory = func() {
+		for i := 0; i < c.redir.historyLen; i++ {
+			fmt.Println(i+1, c.redir.history[i])
+		}
+	}
+	c.redir.reset = func() {
+		// Reset redirects
+		c.redir.count = 0
+		c.redir.historyLen = 0
+
+		// Not initializing new slice with make() so we don't rely too much on GC.
+		// Initial c.redir.historyCap is ideally maintained.
+		for i := range c.redir.history {
+			c.redir.history[i] = ""
+		}
+	}
+	// note that the c.redir.history slice is initialized at HandleURLWrapper
+
 	c.conf = conf
 	c.style = &DefaultStyle // TODO: config styles
 	c.mainReader = ln.NewLiner()
@@ -188,10 +232,16 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 
 		} else if strings.HasPrefix(line, "=>") || (page.u.Scheme == "spartan" && strings.HasPrefix(line, "=:")) {
 			originalLine := line
-			line = line[2:]
+			line = strings.TrimSpace(line[2:])
+			if line == "" {
+				// Empty link line
+				rendered += strings.Repeat(" ", sides) + originalLine + "\n"
+				continue
+			}
 			bits := strings.Fields(line)
 			parsedLink, err := url.Parse(bits[0])
 			if err != nil {
+				// FIXME: not adding to rendered?
 				continue
 			}
 
@@ -315,6 +365,111 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 		c.inputReader.AppendHistory(query)
 	}
 	u = u + "?" + queryEscape(query)
+	return c.HandleURLWrapper(u)
+}
+
+// PromptRedirect asks for input on whether to follow a redirect. Return user's
+// choice and whether the prompt was successful (in that order!).
+func (c *Client) PromptRedirect(nextDest string) (opt bool, ok bool) {
+	ok = true
+
+	if c.conf.ShowRedirectHistory {
+		c.redir.showHistory()
+		fmt.Println()
+	}
+
+	fmt.Println("Redirect to:")
+	fmt.Println(nextDest)
+
+	for { // Our good old 'prompt until valid' structure ;P
+		optStr, err := c.inputReader.PromptWithSuggestion("[y/n]> ", "", 1)
+
+		if err != nil {
+			opt = false
+			if err == ln.ErrPromptAborted || err == io.EOF {
+				fmt.Println()
+				// ok is true here
+				c.style.WarningMsg("Cancelled")
+				return
+			}
+			ok = false
+			fmt.Println()
+			c.style.ErrorMsg("Error reading input: " + err.Error())
+			return
+		}
+
+		optStr = strings.ToLower(optStr)
+
+		switch optStr {
+		case "y":
+			opt = true
+		case "n":
+			opt = false
+		default:
+			c.style.ErrorMsg("Please input y or n only.")
+			continue
+		}
+		break
+	}
+	return
+}
+
+// RedirectURL handles a redirect by checking MaxRedirects and calling PromptRedirect
+func (c *Client) RedirectURL(u string) (ok bool) {
+	var opt = true
+	var promptCalled = false
+	ok = true
+
+	if c.conf.MaxRedirects == 0 {
+		// Option to prompt for all redirects
+		opt, ok = c.PromptRedirect(u)
+	} else if c.conf.MaxRedirects > 0 && c.conf.MaxRedirects <= c.redir.count {
+		c.style.WarningMsg(fmt.Sprintf("Max redirects of %d reached", c.redir.count))
+		opt, ok = c.PromptRedirect(u)
+		promptCalled = true
+	} // for MaxRedidrects set to negative value, follow all redirects
+
+	if !ok || !opt {
+		return false
+	}
+
+	if promptCalled {
+		// Say max redirects is set to 2. User visits a link. Gets redirected 2
+		// times. gelim prompts whether to follow the next redirect. User
+		// inputs yes. Then gelim must reset the redirects as if user is
+		// visiting a fresh new links, so that the next 2 redirects (if any)
+		// should be handled automatically as before.
+		//
+		// So if the URL was to redirect the user a total of 4 times and max
+		// redirects conf is set to 2, the user will be prompted only 2 times.
+		// Once after first two redirects, another time after the next 2
+		// redirects.
+		c.redir.reset()
+		return c.HandleURL(u)
+	}
+
+	c.redir.count += 1
+	if c.redir.historyLen+1 > len(c.redir.history) && c.conf.MaxRedirects <= 0 {
+		// This should not happen if c.conf.MaxRedirects > 0.
+		//
+		// If 10 redirects are reached we use the rolling window, effectively
+		// c.redir.history will always only contain the 10 MOST RECENT
+		// redirects. Older ones are discarded
+		// XXX: Is this memory safe/efficient?
+		c.redir.history = c.redir.history[1:]
+		c.redir.history = append(c.redir.history, u)
+
+		if c.redir.count >= 20 {
+			// XXX: Can redirects be implmented without recursion?
+			c.style.ErrorMsg("The URL redirected you 20 times. Stack overflow may be reached soon, aborting.")
+			fmt.Println("Here are the", c.redir.historyLen, "most recent redirects.")
+			c.redir.showHistory()
+			return false
+		}
+	} else {
+		c.redir.historyLen += 1
+		c.redir.history[c.redir.historyLen-1] = u // -1 due to 0-indexing
+	}
 	return c.HandleURL(u)
 }
 
@@ -338,11 +493,22 @@ func (c *Client) HandleURL(u string) bool {
 	return c.HandleParsedURL(parsed)
 }
 
+// HandleURLWrapper is like HandleURL but should only be used for the first
+// request
+//
+// It sets c.redir.count and c.redir.historyLen to 0 before calling c.HandleURL
+// with the same argument(s).
+func (c *Client) HandleURLWrapper(u string) bool {
+	c.redir.reset()
+	return c.HandleURL(u)
+}
+
 // Handles either a spartan URL or a gemini URL
 func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	// TODO; config proxies or program to do other shemes
 	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" {
-		c.style.ErrorMsg("Unsupported scheme " + parsed.Scheme)
+		c.style.ErrorMsg("Unsupported protocol " + parsed.Scheme)
+		fmt.Println("URL:", parsed)
 		return false
 	}
 	if parsed.Scheme == "gemini" {
@@ -360,8 +526,6 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		return false
 	}
 	defer (*res.conn).Close()
-	c.links = make([]string, 0, 100) // reset links
-	c.inputLinks = make([]int, 0, 100)
 
 	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
 	// Handle status
@@ -376,13 +540,17 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		if err != nil {
 			c.style.ErrorMsg("Unable to read body: " + err.Error())
 		}
+		// Only reset links if the page is a success
+		c.links = make([]string, 0, 100) // reset links
+		c.inputLinks = make([]int, 0, 100)
+
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
 		c.DisplayPage(page)
 		c.lastPage = page
 	case 3:
-		c.HandleURL("spartan://" + parsed.Host + res.meta)
+		return c.RedirectURL("spartan://" + parsed.Host + res.meta)
 	case 4:
 		fmt.Println("Error: " + res.meta)
 	case 5:
@@ -404,14 +572,17 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		return false
 	}
 	defer res.conn.Close()
-	c.links = make([]string, 0, 100) // reset links
-	c.inputLinks = make([]int, 0, 100)
 
 	// mediaType and params will be parsed later
 	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
 	statusGroup := res.status / 10 // floor division
+	statusRightDigit := res.status - statusGroup*10
 	switch statusGroup {
 	case 1:
+		if statusRightDigit > 1 {
+			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
+		}
+
 		u := strings.TrimRight(page.u.String(), "?"+page.u.RawQuery)
 		fmt.Println(res.meta)
 		if res.status == 11 {
@@ -419,6 +590,10 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		}
 		return c.Input(u, false)
 	case 2:
+		if statusRightDigit > 0 {
+			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
+		}
+
 		mediaType, params, err := ParseMeta(res.meta)
 		if err != nil {
 			c.style.ErrorMsg(fmt.Sprintf("Unable to parse header meta\"%s\": %s", res.meta, err))
@@ -428,36 +603,58 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		if err != nil {
 			c.style.ErrorMsg("Unable to read body: " + err.Error())
 		}
+
+		// Only reset links if the page is a success
+		c.links = make([]string, 0, 100) // reset links
+		c.inputLinks = make([]int, 0, 100)
+
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
 		c.lastPage = page
 		c.DisplayPage(page)
 	case 3:
-		return c.HandleURL(res.meta) // TODO: max redirect times
+		if statusRightDigit > 1 {
+			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
+		}
+		// TODO: permanent vs temporary redir
+
+		if res.meta == "" {
+			c.style.ErrorMsg(fmt.Sprintf("Redirect status code %d with no redirect URL returned by server.", res.status))
+			return false
+		}
+		return c.RedirectURL(res.meta)
 	case 4, 5:
 		// TODO: use res.meta
-		switch res.status {
-		case 40:
-			c.style.ErrorMsg("Temperorary failure")
-		case 41:
-			c.style.ErrorMsg("Server unavailable")
-		case 42:
-			c.style.ErrorMsg("CGI error")
-		case 43:
-			c.style.ErrorMsg("Proxy error")
-		case 44:
-			c.style.ErrorMsg("Slow down")
-		case 52:
-			c.style.ErrorMsg("Gone")
+		c.style.WarningMsg("The server responded with an erroneous status:")
+		// switch res.status {
+		// case 40:
+		// 	c.style.ErrorMsg("Temperorary failure")
+		// case 41:
+		// 	c.style.ErrorMsg("Server unavailable")
+		// case 42:
+		// 	c.style.ErrorMsg("CGI error")
+		// case 43:
+		// 	c.style.ErrorMsg("Proxy error")
+		// case 44:
+		// 	c.style.ErrorMsg("Slow down")
+		// case 52:
+		// 	c.style.ErrorMsg("Gone")
+		// }
+		c.style.WarningMsg(fmt.Sprintf("%d %s", res.status, res.meta))
+		if statusGroup == 4 && statusRightDigit > 4 || statusGroup == 5 && (statusRightDigit > 3 && statusRightDigit != 9) {
+			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
 		}
-		c.style.ErrorMsg(fmt.Sprintf("%d %s", res.status, res.meta))
+
 	case 6:
+		if statusRightDigit > 2 {
+			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
+		}
 		fmt.Println(res.meta)
 		fmt.Println("Sorry, gelim does not support client certificates yet.")
 	default:
 		c.style.ErrorMsg(fmt.Sprintf("Invalid status code %d", res.status))
-		return false
+		// return false
 	}
 	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
 		c.history = append(c.history, parsed)
@@ -468,7 +665,7 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 // Search opens the SearchURL in config with query-escaped query
 func (c *Client) Search(query string) {
 	u := c.conf.SearchURL + "?" + queryEscape(query)
-	c.HandleURL(u)
+	c.HandleURLWrapper(u)
 }
 
 ////// Command stuff //////

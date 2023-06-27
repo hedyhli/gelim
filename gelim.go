@@ -129,7 +129,7 @@ func main() {
 			if *appendInput != "" {
 				u = u + "?" + queryEscape(*appendInput)
 			}
-			c.HandleURL(u)
+			c.HandleURLWrapper(u)
 			cliURL = true
 		} else {
 			// if --input used but url arg is not present
@@ -145,7 +145,7 @@ func main() {
 	}
 
 	if c.conf.StartURL != "" && !cliURL {
-		c.HandleURL(c.conf.StartURL)
+		c.HandleURLWrapper(c.conf.StartURL)
 	}
 
 	// and now here comes the line-mode prompts and stuff
@@ -259,6 +259,6 @@ func main() {
 			c.Input(u, false)
 			continue
 		}
-		c.HandleURL(u)
+		c.HandleURLWrapper(u)
 	}
 }

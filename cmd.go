@@ -257,7 +257,7 @@ Examples:
 	"link": {
 		aliases: []string{"l", "peek", "links"},
 		do: func(c *Client, args ...string) {
-			if c.links[0] == "" {
+			if len(c.links) == 0 || c.links[0] == "" {
 				c.style.WarningMsg("There are no links")
 				return
 			}
@@ -310,7 +310,7 @@ Examples:
 	},
 	"forward": {
 		aliases: []string{"f"},
-		do: func(c *Client, args ...string) {
+		do: func(*Client, ...string) {
 			fmt.Println("not implemented yet!")
 		},
 		help:   "go forward in history",
@@ -417,7 +417,7 @@ to let it handle clipboard copying.
 					fmt.Println("Use `tour go 1` to go back to the beginning")
 					return
 				}
-				c.HandleURL(c.tourLinks[c.tourNext])
+				c.HandleURLWrapper(c.tourLinks[c.tourNext])
 				c.tourNext++
 				return
 			}
@@ -456,7 +456,7 @@ to let it handle clipboard copying.
 					return
 				}
 				// Because user provided number is 1-indexed and tourNext is 0-indexed
-				c.HandleURL(c.tourLinks[number-1])
+				c.HandleURLWrapper(c.tourLinks[number-1])
 				c.tourNext = number
 			case "*", "all":
 				c.tourLinks = append(c.tourLinks, c.links...)
@@ -559,6 +559,21 @@ Examples:
 			c.DisplayPage(c.lastPage)
 		},
 		help: "view current page again without reloading",
+	},
+	"redirects": {
+		aliases: []string{"redir", "redirstack", "redirect"},
+		do: func(c *Client, args ...string) {
+			if c.redir.count > 0 {
+				// Should be synced with that from PromptRedirect
+				if c.redir.count > c.redir.historyLen {
+					fmt.Println("Showing the last", c.redir.historyLen, "redirects:")
+				}
+				c.redir.showHistory()
+			} else {
+				fmt.Println("No redirects")
+			}
+		},
+		help: "view the redirects that led to current page (if any)",
 	},
 }
 
