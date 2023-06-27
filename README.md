@@ -30,6 +30,7 @@ pages. Seriously, what more do you want?
   - Custom pager opts
   - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
+- Copying to clipboard
 
 ## Install
 
@@ -141,6 +142,24 @@ Voila, you're at the front page again!
 Thanks for trying out this quickstart tutorial, there is still much to explore. Type in **`help`**
 from the prompt and check out the commands, have fun!
 
+## Navigating a page/document
+
+Everything in page rendering is handled with less(1). less is called with
+opptions specified from your config file. gelim has no intervention in
+pre-processing any keys.
+
+Hence, anything that works in less should work normally when less is called by
+gelim.
+
+Useful navigation keys include: `d`/`u`/`PgDn`/`PgUp`/`Space`.
+
+Useful keys for jumping to positions include: `g`/`G`.
+
+**In case you've never used a pager before, please keep calm under the
+circumstance of realizing that ctrl-c/ctrl-d does not quit. Please press `q`
+:P**
+
+
 ## Config
 
 For people on a Unix system it will look for configuration in `~/.config/gelim/config.toml`.
@@ -160,7 +179,14 @@ startURL = "example.com"  # default: ""
 lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
 
 searchURL = "geminispace.info/search"  # this is the default
+
+clipboardCopyCmd = "pbcopy"  # Example for MacOS. default = "" (unset)
 ```
+
+**clipboardCopyCmd**: Example for linux with xclip: `xclip -sel c`
+
+Contents to be copied will be piped to the command as stdin.
+
 
 ### Prompt format options
 
@@ -200,6 +226,11 @@ and will be fixed in the near future.
 
 Add `--mouse` (if your version of less supports it) to `lessOpts` option
 in your config file.
+
+### Search in page
+
+Type `/<your search query>` when less is running. See less(1) for more
+information.
 
 ## Screenshots
 
@@ -264,3 +295,53 @@ in your config file.
   could also send PRs to my public inbox but I'll have to search up how to
   merge them (lol)
 
+
+## Meta
+
+Gelim = "**ge**mini" + "**li**ne-**m**ode"-like interface
+
+Pronounciation = Ge like "Jelly", lim like "limits"
+
+(Imagine the Ubuntu jellyfish learning calculus)
+
+---
+
+once upon a time, a curious programmer stumbles upon `ssh
+kiosk@gemini.circumlunar.space`. then tries out `bombadillo` and `amfora`...
+
+"how do I move? most pagers allow pressing space... oops that opens the command
+prompt"
+
+"ok so I can press a number to go to that link... hmm how about 10, 11, 12 etc?
+is it like vim where it has a timeout for numeric keys? oops, looks like only
+single digits are supported..."
+
+"wait so, single key press for single digit link indices, use a command prompt
+for all others? okay sure"
+
+Tries out `AV-98`
+
+"I love the interface!"
+
+"wait why is it scrolling to the bottom of the page already? like our good-ol
+`cat`?"
+
+"I have to manually scroll my terminal screen? I have to reach for my mouse?
+otherwise I have to have a geeky window manager setup?"
+
+"typing `go` command each time and navigating by relative URLs are a bit of a
+pain..."
+
+---
+
+"ok you know what: all links are commands. all link indices are commands. all
+relative URL paths are commands. we shall put all content longer than screen's
+height into a pager *everyone's familiar with*. [just like git (CLIs), but
+without typing the `git`](https://git.sr.ht/~sircmpwn/shit)!"
+
+the programmer sets off to code[...](https://yewtu.be/watch?v=dQw4w9WgXcQ)
+
+
+
+
+<!--salutations, curious one.-->
