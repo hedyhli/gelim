@@ -61,7 +61,17 @@ on srht or the one on [github](https://github.com/hedyhli/gelim).**
 
 I plan to set up automated uploads of pre-built binaries to each
 [release](https://git.sr.ht/~hedy/gelim/refs) at some point in the future.
-As of now the only option is to build from source.
+
+As of now you can either build from source or use `go install`.
+
+```
+# Recommended to use latest pinned version, rather than @latest
+go install git.sr.ht/~hedy/gelim@v0.0.0
+```
+All set! [Skip to usage](#usage)
+
+
+To build from source, read on...
 
 First, install the dependencies:
 
@@ -73,7 +83,8 @@ Clone the repo somewhere reasonable:
 ```
 git clone https://git.sr.ht/~hedy/gelim
 cd gelim
-# git checkout v0.0.0  # pin specific version or commit
+# Recommended to use latest pinned version, rather than @latest
+# git checkout v0.0.0
 ```
 
 Build, optionally set `PREFIX` (default is `PREFIX=/usr/local`):
@@ -82,13 +93,23 @@ Build, optionally set `PREFIX` (default is `PREFIX=/usr/local`):
 make
 ```
 
-If all goes well, install gelim:
+If all goes well, install gelim.
+
+Remember to use the **same** `PREFIX` too.
 
 ```
 make install
+
+# Example:
+# make PREFIX=~/.local install
 ```
 
-Remember to use the same `PREFIX` too.
+If you don't want to build the manual, you may put your hacker hat on, dive into
+the Makefile, and copy the `go build` command used to compile gelim. This lets
+you store version info accessible at `--version`.
+
+Or you know what? Just a `go build` works too! The resulting binary will be
+in the current directory.
 
 Optionally verify your installation:
 
