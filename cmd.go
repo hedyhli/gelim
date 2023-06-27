@@ -520,18 +520,24 @@ to let it handle clipboard copying.
 			}
 		},
 		help: `[<range or number>...] : loop over selection of links in current page
+tour command with no arguments will visit the next link in tour
+
 Subcommands:
 - l[s]      list items in tour
 - c[lear]   clear tour list
 - g[o]      jump to item in tour
 
 Use tour * to add all links. you can use ranges like 1,10 or 10,1 with single links as multiple arguments.
+
 Use tour ls/clear to view items or clear all.
+
 tour go <index> takes you to an item in the tour list
+
 Examples:
   - tour ,5 6,7 -1 9 11,
   - tour ls
-  - tour g 2
+  - tour
+  - tour g 3
   - tour clear`,
 	},
 	// TODO: didn't have time to finish this lol
