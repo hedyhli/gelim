@@ -17,6 +17,8 @@ view pages. Seriously, what more do you want?
 
 * [Features](#features)
 * [Install](#install)
+  * [With `go install`](#with-go-install)
+  * [Build from source](#build-from-source)
   * [Troubleshooting](#troubleshooting)
 * [Usage](#usage)
   * [Quickstart](#quickstart)
@@ -36,6 +38,7 @@ view pages. Seriously, what more do you want?
 * [Remotes](#remotes)
 * [Bugs, features, feedback, and contributions](#bugs-features-feedback-and-contributions)
 * [Meta](#meta)
+  * [Motivation](#motivation)
 
 <!-- vim-markdown-toc -->
 
@@ -64,14 +67,16 @@ I plan to set up automated uploads of pre-built binaries to each
 
 As of now you can either build from source or use `go install`.
 
-```
-# Recommended to use latest pinned version, rather than @latest
-go install git.sr.ht/~hedy/gelim@v0.0.0
+### With `go install`
+
+```sh
+go install git.sr.ht/~hedy/gelim@latest
 ```
 All set! [Skip to usage](#usage)
 
+Note that this method does not provide version information
 
-To build from source, read on...
+### Build from source
 
 First, install the dependencies:
 
@@ -80,7 +85,7 @@ First, install the dependencies:
 
 Clone the repo somewhere reasonable:
 
-```
+```sh
 git clone https://git.sr.ht/~hedy/gelim
 cd gelim
 # Recommended to use latest pinned version, rather than @latest
@@ -97,11 +102,11 @@ If all goes well, install gelim.
 
 Remember to use the **same** `PREFIX` too.
 
-```
-make install
+```sh
+sudo make install
 
-# Example:
-# make PREFIX=~/.local install
+# Or without sudo:
+# $ make PREFIX=~/.local install
 ```
 
 If you don't want to build the manual, you may put your hacker hat on, dive into
@@ -124,9 +129,14 @@ The gelim binary would be sitting at `$PREFIX/bin/` with manpage at
 ### Troubleshooting
 
 * **"scdoc: command not found"**:
-  Make sure [scdoc](https://sr.ht/~sircmpwn/scdoc/) is installed before building.
+
+  Make sure [scdoc](https://sr.ht/~sircmpwn/scdoc/) is installed before
+  building. Or you can skip building the manpage and just run `go build`
+  instead. Check the Makefile for reference.
+
 * **Something to do with `io.ReadAll`**:
-  Upgrade your go version to something higher or equal to v1.16 and then try again.
+
+  Gelim requires go version >= 1.16.
 
 If you're having other issues with installation, please send an email to the
 [mailing list](mailto:~hedy/inbox@lists.sr.ht) with errors/logs if available.
@@ -138,7 +148,7 @@ If you used the Makefile to install gelim the manpage should automatically be
 built and installed. See gelim(1)
 
 I'm also planning to have a mirror of that manual hosted on man.sr.ht in the
-future if easy access.
+future for easy access.
 
 Note that the manpage may not be the most recently updated. But new features
 and things like that will definitely be put in there once it's tested stable.
@@ -153,7 +163,7 @@ This will bring you to less(1). You can use less to browse the page normally.
 *Note: if you see something like "-P is not an option", don't panic, this is
 because your system does not support one of gelim's default less options, you
 should skip over to the 'config' section below, and configure your lessOpts to
-remove the mouse option, and any other your version of less doesn't have.*
+remove the -P option, and any other your version of less doesn't have.*
 
 When you want to visit a link, you have to quit less first. **Press `q`**
 
@@ -438,7 +448,7 @@ This works for commands history, links, editurl, and tour.
 
 At the moment, ranges of link indices only work for command **tour**.
 
-Ranges can be specifed with an upper bound and a lower bound, separated by a
+Ranges can be specified with an upper bound and a lower bound, separated by a
 comma. Both bounds can be omitted.
 
 The default value of upper bound is the first link index, and the default value
@@ -618,11 +628,11 @@ contact described below.
 
 Gelim = "**ge**mini" + "**li**ne-**m**ode"-like interface
 
-Pronounciation = Ge like "Jelly", lim like "limits"
+Pronunciation = Ge like "Jelly", lim like "limits"
 
 (Imagine the Ubuntu jellyfish learning calculus)
 
----
+### Motivation
 
 once upon a time, a curious programmer stumbles upon `ssh
 kiosk@gemini.circumlunar.space`. then tries out `bombadillo` and `amfora`...
@@ -648,9 +658,9 @@ Tries out `AV-98`
 otherwise I have to have a geeky window manager setup?"
 
 "typing `go` command each time and navigating by relative URLs are a bit of a
-pain..."
+pain"
 
----
+...
 
 "ok you know what: all links are commands. all link indices are commands. all
 relative URL paths are commands. we shall put all content longer than screen's
@@ -658,7 +668,6 @@ height into a pager *everyone's familiar with*. [just like git (CLIs), but
 without typing the `git`](https://git.sr.ht/~sircmpwn/shit)!"
 
 the programmer sets off to code[...](https://yewtu.be/watch?v=dQw4w9WgXcQ)
-
 
 
 
