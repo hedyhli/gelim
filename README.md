@@ -3,6 +3,11 @@
 [![builds.sr.ht status](https://builds.sr.ht/~hedy/gelim.svg)](https://builds.sr.ht/~hedy/gelim)
 [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~hedy/gelim)](https://goreportcard.com/report/git.sr.ht/~hedy/gelim)
 
+[Source (SourceHut)](https://git.sr.ht/~hedy/gelim) |
+[Issues](https://todo.sr.ht/~hedy/gelim) |
+[Patches](https://lists.sr.ht/~hedy/inbox) |
+[Chat](irc://ircs.libera.chat:6697/#gelim)
+
 A minimalist line-mode gemini client written in go.
 
 ![screenshot](https://hedy.smol.pub/gelim-pager.png)
@@ -17,28 +22,28 @@ view pages. Seriously, what more do you want?
 
 * [Features](#features)
 * [Install](#install)
-  * [With `go install`](#with-go-install)
-  * [Build from source](#build-from-source)
-  * [Troubleshooting](#troubleshooting)
+    * [With `go install`](#with-go-install)
+    * [Build from source](#build-from-source)
+    * [Troubleshooting](#troubleshooting)
 * [Usage](#usage)
-  * [Quickstart](#quickstart)
+    * [Quickstart](#quickstart)
 * [Navigating a page/document](#navigating-a-pagedocument)
 * [Config](#config)
-  * [Prompt format options](#prompt-format-options)
+    * [Prompt format options](#prompt-format-options)
 * [A note about the pager](#a-note-about-the-pager)
-  * [Mouse support](#mouse-support)
-  * [Search in page](#search-in-page)
+    * [Mouse support](#mouse-support)
+    * [Search in page](#search-in-page)
 * [CLI Options](#cli-options)
 * [Screenshots](#screenshots)
 * [Behavior details](#behavior-details)
-  * [Link indexing](#link-indexing)
-  * [Redirects](#redirects)
-  * [More...](#more)
-  * [Inconsistent behavior?](#inconsistent-behavior)
+    * [Link indexing](#link-indexing)
+    * [Redirects](#redirects)
+    * [More...](#more)
+    * [Inconsistent behavior?](#inconsistent-behavior)
 * [Remotes](#remotes)
 * [Bugs, features, feedback, and contributions](#bugs-features-feedback-and-contributions)
 * [Meta](#meta)
-  * [Motivation](#motivation)
+    * [Motivation](#motivation)
 
 <!-- vim-markdown-toc -->
 
