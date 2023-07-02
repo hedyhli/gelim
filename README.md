@@ -6,7 +6,7 @@
 [Source (SourceHut)](https://git.sr.ht/~hedy/gelim) |
 [Issues](https://todo.sr.ht/~hedy/gelim) |
 [Patches](https://lists.sr.ht/~hedy/inbox) |
-[Chat](irc://ircs.libera.chat:6697/#gelim)
+[Chat](https://web.libera.chat/#gelim)
 
 A minimalist line-mode gemini client written in go.
 
@@ -610,7 +610,7 @@ contact described below.
 [public inbox](https://lists.sr.ht/~hedy/inbox).
 * [How to subscribe to the mailing list without a sourcehut
   account](https://man.sr.ht/lists.sr.ht/#email-controls)
-* Join `#gelim` on libera.chat irc
+* Join `#gelim` on libera.chat IRC
 
 **Bugs and feature requests**
 
