@@ -158,6 +158,13 @@ func (c *Client) DisplayPage(page *Page) {
 		Pager(string(page.bodyBytes), c.conf)
 		return
 	}
+	if page.mediaType == "nex/directory" {
+		// The directory listings in Nex is like gemtext except it's all plain
+		// text, only "=>" links are parsed.
+		rendered := c.ParseNexDirectoryPage(page)
+		Pager(rendered, c.conf)
+		return
+	}
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(page.mediaType, "text/") {
@@ -503,16 +510,19 @@ func (c *Client) HandleURLWrapper(u string) bool {
 	return c.HandleURL(u)
 }
 
-// Handles either a spartan URL or a gemini URL
+// Handles either a spartan URL, Nex, or a gemini URL
 func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	// TODO; config proxies or program to do other shemes
-	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" {
+	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" && parsed.Scheme != "nex" {
 		c.style.ErrorMsg("Unsupported protocol " + parsed.Scheme)
 		fmt.Println("URL:", parsed)
 		return false
 	}
 	if parsed.Scheme == "gemini" {
 		return c.HandleGeminiParsedURL(parsed)
+	}
+	if parsed.Scheme == "nex" {
+		return c.HandleNexParsedURL(parsed)
 	}
 	return c.HandleSpartanParsedURL(parsed)
 }
@@ -556,6 +566,43 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	case 5:
 		fmt.Println("Server error: " + res.meta)
 	}
+
+	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
+		c.history = append(c.history, parsed)
+	}
+	return true
+}
+
+// HandleNexParsedURL makes an requested to parsed URL, displays the page,
+// and returns whether it was successful.
+func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
+	res, err := NexParsedURL(parsed)
+	if err != nil {
+		c.style.ErrorMsg(err.Error())
+		return false
+	}
+	defer (*res.conn).Close()
+
+	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	bodyBytes, err := ioutil.ReadAll(res.bodyReader)
+	if err != nil {
+		c.style.ErrorMsg("Unable to read body: " + err.Error())
+	}
+	// Only reset links if the page is a success
+	c.links = make([]string, 0, 100) // reset links
+	c.inputLinks = make([]int, 0, 100)
+
+	page.bodyBytes = bodyBytes
+
+	// TODO: check file extension
+	if res.fileExt == "/" {
+		page.mediaType = "nex/directory"
+	} else {
+		// Assume plain text for now
+		page.mediaType = "text/plain"
+	}
+	c.DisplayPage(page)
+	c.lastPage = page
 
 	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
 		c.history = append(c.history, parsed)

@@ -8,7 +8,7 @@
 [Patches](https://lists.sr.ht/~hedy/inbox) |
 [Chat](https://web.libera.chat/#gelim)
 
-A minimalist line-mode gemini client written in go.
+A minimalist line-mode smolnet client written in go.
 
 ![screenshot](https://hedy.smol.pub/gelim-pager.png)
 
@@ -58,6 +58,7 @@ view pages. Seriously, what more do you want?
   - Custom pager opts
   - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
+- [nex:// protocol](https://nex.nightfall.city) support
 - Copying to clipboard
 
 ## Install
