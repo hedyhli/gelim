@@ -22,14 +22,13 @@ type NexResponse struct {
 func NexParsedURL(u *url.URL) (res *NexResponse, err error) {
 	host := u.Host
 	if u.Port() == "" {
-		host += ":1900"
+		host += ":1900" // Default port
 	}
-	// Connect to server
+	// Connect to server, no TLS
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
 		return
 	}
-	// Send request
 	path := u.Path
 	if u.Path == "" {
 		path = "/"
@@ -38,6 +37,7 @@ func NexParsedURL(u *url.URL) (res *NexResponse, err error) {
 	if !strings.HasSuffix(path, "/") {
 		fileExt = strings.SplitN(path, ".", 2)[1]
 	}
+	// Requests are simply file paths
 	conn.Write([]byte(fmt.Sprintf("%s\n", path)))
 	// Receive and parse response header
 	reader := bufio.NewReader(conn)
