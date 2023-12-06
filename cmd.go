@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/google/shlex"
 )
 
 // Command is the metadata of all (non-meta) commands in the client
@@ -40,18 +42,19 @@ func printHelp(style *Style) {
 	minSepSpaceLen := 2 // min space between command and the description
 	// Here comes the fun part
 	// We are now *actually* printing the help
-	fmt.Println("You can directly enter a url or link-index (number) at the prompt.")
-	fmt.Println()
-	fmt.Println("Otherwise, there are plenty of useful commands you can use.")
-	fmt.Println("Arguments are separated by spaces, and quoting with ' and \" is supported\nlike the shell, but escaping quotes is not support yet.")
-	fmt.Println()
-	fmt.Println("You can supply a command name to `help` to see the help for a specific command, like `help tour`.")
-	fmt.Println()
-	fmt.Println("Commands:")
+	fmt.Println(`You can directly enter a url or link-index (number) at the prompt.
+
+Otherwise, there are plenty of useful commands you can use. Arguments
+are separated by spaces, and quoting with ' and " is supported like the
+shell, escaping quotes is also supported.
+
+You can supply a command name to 'help' to see the help for a specific
+command, like 'help tour.
+
+Commands:`)
 	var spacesBetween int
 	for name, cmd := range commands {
 		// TODO: wrap description with... aniswrap?
-		// also maybe add some colors in the help!
 		if cmd.hidden {
 			continue
 		}
@@ -602,7 +605,12 @@ func (c *Client) ClipboardCopy(content string) (ok bool) {
 		c.style.ErrorMsg("please set a clipboard command in config file option 'clipboardCopyCmd'\nThe content to copy will be piped into that command as stdin")
 		return
 	}
-	parts := strings.Split(c.conf.ClipboardCopyCmd, " ")
+	parts, err := shlex.Split(c.conf.ClipboardCopyCmd)
+	if err != nil {
+		ok = false
+		c.style.ErrorMsg("Could not parse ClipboardCopyCmd into command and arguments: " + c.conf.ClipboardCopyCmd)
+		return
+	}
 	cmd := exec.Command(parts[0], parts[1:]...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

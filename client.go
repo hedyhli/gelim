@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~adnano/go-xdg"
+	"github.com/google/shlex"
 	"github.com/manifoldco/ansiwrap"
 	ln "github.com/peterh/liner"
 	"golang.org/x/term"
@@ -835,7 +836,8 @@ func (c *Client) GetCommandAndArgs(line string) (
 		return
 	}
 
-	// Rejoin args, split using QuotedFields
-	args = QuotedFields(strings.Join(args, " "))
+	// Rejoin args, split using shlex
+	// XXX: err is ignored
+	args, _ = shlex.Split(strings.Join(args, " "))
 	return
 }
