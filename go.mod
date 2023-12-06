@@ -8,10 +8,7 @@ require (
 	github.com/fatih/color v1.15.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/manifoldco/ansiwrap v1.1.0
-	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/peterh/liner v1.2.2
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/peterh/liner v1.2.1
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/term v0.10.0
+	golang.org/x/term v0.0.0-20210429154555-c04ba851c2a4
 )
