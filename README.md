@@ -338,18 +338,27 @@ For help on the TUI client, type ? at interactive prompt, or see gelim(1)
 
 Search
 ```
-gelim -s "astrobotany"
+$ gelim -s "astrobotany"
 ```
 
-Test your awesome, boring, classic, totally OG CGI script (exits immediately)
+Test your awesome, boring, classic, totally OG CGI scripts (exits immediately)
 ```
-gelim example.org/cgi-bin/greet.sh -Ii 'world'
+$ gelim example.org/cgi-bin/greet.sh -Ii 'world'
+Hello, world!
+
+$
 ```
 
 Use it in scripts to show outputs in stdout
-```
-~> gelim hedy.tilde.cafe/help/py -Ii "${REPLY:-input}"
-Help on built-in function input in module builtins:
+```sh
+$ cat <<EOF > python-help.sh
+read -p "help> "
+gelim do.hedy.dev/help/py -Ii "${REPLY:-help}"
+EOF
+
+$ bash python-help.sh
+help> input
+'Help on built-in function input in module builtins:
 
 input(prompt=None, /)
     Read a string from standard input.  The trailing newline is stripped.
@@ -359,8 +368,14 @@ input(prompt=None, /)
 
     If the user hits EOF (*nix: Ctrl-D, Windows: Ctrl-Z+Return), raise EOFError.
     On *nix systems, readline is used if available.
+```
 
-~>
+(Leading quote added on output to aid syntax highlighting.)
+
+Submit your twtxt to antenna
+```
+$ gelim -I 'gemini://warmedal.se/~antenna/submit' -i 'gemini://do.hedy.dev/tw.txt'
+Thank you for your submission! Antenna has now been updated.
 ```
 
 
