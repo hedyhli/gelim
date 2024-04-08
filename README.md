@@ -367,7 +367,7 @@ input(prompt=None, /)
     trailing newline before reading input.
 
     If the user hits EOF (*nix: Ctrl-D, Windows: Ctrl-Z+Return), raise EOFError.
-    On *nix systems, readline is used if available.
+    On *nix systems, readline is used if available.'
 ```
 
 (Leading quote added on output to aid syntax highlighting.)
