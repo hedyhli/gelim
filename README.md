@@ -338,25 +338,25 @@ For help on the TUI client, type ? at interactive prompt, or see gelim(1)
 
 Search
 ```
-$ gelim -s "astrobotany"
+~> gelim -s "astrobotany"
 ```
 
 Test your awesome, boring, classic, totally OG CGI scripts (exits immediately)
 ```
-$ gelim example.org/cgi-bin/greet.sh -Ii 'world'
+~> gelim example.org/cgi-bin/greet.sh -Ii 'world'
 Hello, world!
 
-$
+~>
 ```
 
 Use it in scripts to show outputs in stdout
 ```sh
-$ cat <<EOF > python-help.sh
+~> cat <<EOF > python-help.sh
 read -p "help> "
 gelim do.hedy.dev/help/py -Ii "${REPLY:-help}"
 EOF
 
-$ bash python-help.sh
+~> bash python-help.sh
 help> input
 'Help on built-in function input in module builtins:
 
@@ -374,7 +374,7 @@ input(prompt=None, /)
 
 Submit your twtxt to antenna
 ```
-$ gelim -I 'gemini://warmedal.se/~antenna/submit' -i 'gemini://do.hedy.dev/tw.txt'
+~> gelim -I 'gemini://warmedal.se/~antenna/submit' -i 'gemini://do.hedy.dev/tw.txt'
 Thank you for your submission! Antenna has now been updated.
 ```
 
