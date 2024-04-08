@@ -370,7 +370,7 @@ input(prompt=None, /)
     On *nix systems, readline is used if available.'
 ```
 
-(Leading quote added on output to aid syntax highlighting.)
+(Single quotes added on output to aid syntax highlighting.)
 
 Submit your twtxt to antenna
 ```
