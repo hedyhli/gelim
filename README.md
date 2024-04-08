@@ -10,7 +10,7 @@
 
 A minimalist line-mode smolnet client written in go.
 
-![screenshot](https://hedy.smol.pub/gelim-pager.png)
+![screenshot](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/gelim-pager.png)
 
 [More screenshots](#screenshots)
 
@@ -368,31 +368,31 @@ input(prompt=None, /)
 
 **Commands**
 
-![screenshot of `help` command output](https://hedy.smol.pub/gelim-cmds.png)
+![screenshot of `help` command output](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/gelim-cmds.png)
 
 **Tour**
 
-![screenshot of tour command](https://hedy.smol.pub/tour.png)
+![screenshot of tour command](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/tour.png)
 
 **Edit url**
 
-![screenshot of editing url](https://hedy.smol.pub/editurl.png)
+![screenshot of editing url](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/editurl.png)
 
 **Spartan**
 
-![screenshot of spartan colors](https://hedy.smol.pub/spartan-colors.png)
+![screenshot of spartan colors](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/spartan-colors.png)
 
 **Links**
 
-![screenshot of links](https://hedy.smol.pub/link.png)
+![screenshot of links](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/link.png)
 
 **Search**
 
-![screenshot of search command](https://hedy.smol.pub/search.png)
+![screenshot of search command](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/search.png)
 
 **Spartan input**
 
-![screenshot of spartan input functionality](https://hedy.smol.pub/spartan-input.png)
+![screenshot of spartan input functionality](https://raw.githubusercontent.com/hedyhli/gelim/master/assets/spartan-input.png)
 
 
 ## Behavior details
