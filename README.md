@@ -18,34 +18,36 @@ You get a simple line-mode browser interface to navigate URLs, plus a pager to
 view pages. Seriously, what more do you want?
 
 **Table of contents**
-<!-- vim-markdown-toc GFM -->
+
+<!-- mtoc-start -->
 
 * [Features](#features)
 * [Install](#install)
-    * [With `go install`](#with-go-install)
-    * [Build from source](#build-from-source)
-    * [Troubleshooting](#troubleshooting)
+  * [Prebuilt binaries](#prebuilt-binaries)
+  * [With `go install`](#with-go-install)
+  * [Build from source](#build-from-source)
+  * [Troubleshooting](#troubleshooting)
 * [Usage](#usage)
-    * [Quickstart](#quickstart)
+  * [Quickstart](#quickstart)
 * [Navigating a page/document](#navigating-a-pagedocument)
 * [Config](#config)
-    * [Prompt format options](#prompt-format-options)
+  * [Prompt format options](#prompt-format-options)
 * [A note about the pager](#a-note-about-the-pager)
-    * [Mouse support](#mouse-support)
-    * [Search in page](#search-in-page)
+  * [Mouse support](#mouse-support)
+  * [Search in page](#search-in-page)
 * [CLI Options](#cli-options)
 * [Screenshots](#screenshots)
 * [Behavior details](#behavior-details)
-    * [Link indexing](#link-indexing)
-    * [Redirects](#redirects)
-    * [More...](#more)
-    * [Inconsistent behavior?](#inconsistent-behavior)
+  * [Link indexing](#link-indexing)
+  * [Redirects](#redirects)
+  * [More...](#more)
+  * [Inconsistent behavior?](#inconsistent-behavior)
 * [Remotes](#remotes)
 * [Bugs, features, feedback, and contributions](#bugs-features-feedback-and-contributions)
 * [Meta](#meta)
-    * [Motivation](#motivation)
+  * [Motivation](#motivation)
 
-<!-- vim-markdown-toc -->
+<!-- mtoc-end -->
 
 ## Features
 
@@ -63,15 +65,14 @@ view pages. Seriously, what more do you want?
 
 ## Install
 
-**WARNING: the project is still in its early stages so do expect bugs and
-incomplete features, if you encounter them or would like to suggest an
-improvement, feel free to submit to the [ticket tracker](https://todo.sr.ht/~hedy/gelim)
-on srht or the one on [github](https://github.com/hedyhli/gelim).**
+### Prebuilt binaries
 
-I plan to set up automated uploads of pre-built binaries to each
-[release](https://git.sr.ht/~hedy/gelim/refs) at some point in the future.
+Download the latest binary from either SourceHut or GitHub:
 
-As of now you can either build from source or use `go install`.
+- SourceHut: Visit https://git.sr.ht/~hedy/gelim and click on the "release
+  notes" link on the latest version shown under "refs"
+- GitHub: Visit https://github.com/hedyhli/gelim/releases to see the list of
+  attached assets.
 
 ### With `go install`
 
