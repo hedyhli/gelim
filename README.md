@@ -250,6 +250,8 @@ clipboardCopyCmd = "pbcopy"  # Example for MacOS. default = "" (unset)
 maxRedirects = 5
 
 index0shortcut = -1  # default: unset (0). an alias for link index 0
+
+maxWidth = 80  # width of each page is max(<terminalWidth>, maxWidth)
 ```
 
 **clipboardCopyCmd**:

@@ -199,11 +199,11 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 		c.style.ErrorMsg("Error getting terminal size")
 		return ""
 	}
-	sides := int(float32(termWidth) * c.conf.LeftMargin)
-	width := termWidth - sides
+	width := termWidth
 	if width > c.conf.MaxWidth {
 		width = c.conf.MaxWidth
 	}
+	sides := int((termWidth - width) / 2)
 
 	preformatted := false
 	rendered := ""
