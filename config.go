@@ -38,7 +38,7 @@ func LoadConfig() (*Config, error) {
 	// newlines :/
 	conf.LessOpts = "-FSXr~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://geminispace.info/search"
-	conf.MaxWidth = 80
+	conf.MaxWidth = 90
 	conf.ClipboardCopyCmd = ""
 
 	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")

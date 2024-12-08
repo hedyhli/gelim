@@ -251,7 +251,7 @@ maxRedirects = 5
 
 index0shortcut = -1  # default: unset (0). an alias for link index 0
 
-maxWidth = 80  # width of each page is max(<terminalWidth>, maxWidth)
+maxWidth = 90  # width of each page is max(<terminalWidth>, maxWidth)
 ```
 
 **clipboardCopyCmd**:
