@@ -285,7 +285,12 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 			bits := strings.Fields(line)
 			parsedLink, err := url.Parse(bits[0])
 			if err != nil {
-				// FIXME: not adding to rendered?
+				linkLine := fmt.Sprintf(
+					"[%s: \"%s\"]",
+					c.style.StyleSprint(c.style.Error, "invalid link"),
+					bits[0],
+				)
+				rendered += ansiwrap.GreedyIndent(linkLine, width, sides, sides) + "\n"
 				continue
 			}
 

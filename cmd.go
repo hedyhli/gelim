@@ -39,7 +39,6 @@ func printHelp(style *Style, conf *Config) {
 			maxWidth = curWidth
 		}
 	}
-	minSepSpaceLen := 2 // min space between command and the description
 	// Here comes the fun part
 	// We are now *actually* printing the help
 	helpStr := `Directly enter a url or link-index at the prompt,
@@ -49,20 +48,16 @@ Arguments are separated by spaces, quoting with ' and "
 and escaping quotes are both supported. Use the help
 command to see detailed usage on a command.
 `
-	var spacesBetween int
 	for name, cmd := range commands {
-		// TODO: wrap description with... aniswrap?
 		if cmd.hidden {
 			continue
 		}
 		parts := formatCommandHelp(&cmd, name, false, style)
-		// FIXME: formatcmd help behaviour changed, alter other places!
-		spacesBetween = maxWidth + minSepSpaceLen - len(parts[0]) - len(name) - 1
 		aliases := ""
 		if len(cmd.aliases) > 0 {
 			aliases = fmt.Sprintf(" | %s", cmd.aliases[0])
 		}
-		helpStr += fmt.Sprintf("  %s%s %s%s\n", name, aliases, style.cmdPlaceholder.Sprint(parts[0]), strings.Repeat(" ", spacesBetween))
+		helpStr += fmt.Sprintf("  %s%s %s\n", name, aliases, style.cmdPlaceholder.Sprint(parts[0]))
 		helpStr += fmt.Sprintf("    %s\n", parts[1])
 	}
 	helpStr += fmt.Sprintln("\nMeta commands:")
