@@ -34,7 +34,7 @@ func LoadConfig() (*Config, error) {
 	conf.MaxRedirects = 5
 	conf.ShowRedirectHistory = true
 	conf.StartURL = ""
-	// FIXME: -R is supposedly better than -r, but -R resets ansi formats on
+	// XXX: -R is supposedly better than -r, but -R resets ansi formats on
 	// newlines :/
 	conf.LessOpts = "-FSXr~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://kennedy.gemi.dev/search"

@@ -376,7 +376,6 @@ to let it handle clipboard copying.
 	"editurl": {
 		aliases: []string{"e", "eu", "edit"},
 		do: func(c *Client, args ...string) {
-			// TODO: Use a link from current page or from history instead of current url
 			var link string
 			if len(args) != 0 {
 				arg := args[0]
