@@ -111,8 +111,12 @@ func main() {
 		return
 	}
 
-	if c.conf.StartURL != "" && !cliURL {
-		c.HandleURLWrapper(c.conf.StartURL)
+	if !cliURL {
+		if c.conf.StartURL != "" {
+			c.HandleURLWrapper(c.conf.StartURL)
+		} else {
+			fmt.Println("Welcome! Use the 'help' command to get started.")
+		}
 	}
 
 	// and now here comes the line-mode prompts and stuff

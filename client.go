@@ -57,7 +57,7 @@ type Client struct {
 	tourLinks []string // List of links to tour
 	tourNext  int      // The index for link that will be visit next time user uses tour
 
-	lastPage *Page // Last viewed page information
+	lastPage string
 
 	redir *RedirectInfo // The object itself does not get changed, only attributes in it -- throughout the runtime of gelim
 }
@@ -99,6 +99,7 @@ func NewClient() (*Client, error) {
 
 	c.conf = conf
 	c.style = &DefaultStyle // TODO: config styles
+	c.lastPage = ""
 	c.mainReader = ln.NewLiner()
 	c.mainReader.SetCtrlCAborts(true)
 	c.inputReader = ln.NewLiner()
@@ -156,14 +157,16 @@ func (c *Client) GetLinkFromIndex(i int) (link string, spartanInput bool) {
 func (c *Client) DisplayPage(page *Page) {
 	// TODO: proper stream - read the reader and stuff
 	if page.mediaType == "application/octet-stream" {
-		Pager(string(page.bodyBytes), c.conf)
+		c.lastPage = string(page.bodyBytes)
+		Pager(c.lastPage, c.conf)
 		return
 	}
 	if page.mediaType == "nex/directory" {
 		// The directory listings in Nex is like gemtext except it's all plain
 		// text, only "=>" links are parsed.
 		rendered := c.ParseNexDirectoryPage(page)
-		Pager(rendered, c.conf)
+		c.lastPage = rendered
+		Pager(c.lastPage, c.conf)
 		return
 	}
 	// text/* content only for now
@@ -174,11 +177,13 @@ func (c *Client) DisplayPage(page *Page) {
 	}
 	if page.mediaType == "text/gemini" {
 		rendered := c.ParseGeminiPage(page)
-		Pager(rendered, c.conf)
+		c.lastPage = rendered
+		Pager(c.lastPage, c.conf)
 		return
 	}
 	// other text/* stuff
-	Pager(string(page.bodyBytes), c.conf)
+	c.lastPage = string(page.bodyBytes)
+	Pager(c.lastPage, c.conf)
 }
 
 // ParseGeminiPage parses bytes in page in returns a rendered string for the
@@ -562,7 +567,6 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 		page.mediaType = mediaType
 		page.params = params
 		c.DisplayPage(page)
-		c.lastPage = page
 	case 3:
 		return c.RedirectURL("spartan://" + parsed.Host + res.meta)
 	case 4:
@@ -606,7 +610,6 @@ func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
 		page.mediaType = "text/plain"
 	}
 	c.DisplayPage(page)
-	c.lastPage = page
 
 	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
 		c.history = append(c.history, parsed)
@@ -662,7 +665,6 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		page.bodyBytes = bodyBytes
 		page.mediaType = mediaType
 		page.params = params
-		c.lastPage = page
 		c.DisplayPage(page)
 	case 3:
 		if statusRightDigit > 1 {

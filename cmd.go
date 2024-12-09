@@ -20,7 +20,7 @@ type Command struct {
 	hidden     bool
 }
 
-func printHelp(style *Style) {
+func printHelp(style *Style, conf *Config) {
 	maxWidth := 0
 	var placeholder string
 	curWidth := 0
@@ -42,16 +42,13 @@ func printHelp(style *Style) {
 	minSepSpaceLen := 2 // min space between command and the description
 	// Here comes the fun part
 	// We are now *actually* printing the help
-	fmt.Println(`You can directly enter a url or link-index (number) at the prompt.
+	helpStr := `Directly enter a url or link-index at the prompt,
+or use a command.
 
-Otherwise, there are plenty of useful commands you can use. Arguments
-are separated by spaces, and quoting with ' and " is supported like the
-shell, escaping quotes is also supported.
-
-You can supply a command name to 'help' to see the help for a specific
-command, like 'help tour.
-
-Commands:`)
+Arguments are separated by spaces, quoting with ' and "
+and escaping quotes are both supported. Use the help
+command to see detailed usage on a command.
+`
 	var spacesBetween int
 	for name, cmd := range commands {
 		// TODO: wrap description with... aniswrap?
@@ -61,11 +58,17 @@ Commands:`)
 		parts := formatCommandHelp(&cmd, name, false, style)
 		// FIXME: formatcmd help behaviour changed, alter other places!
 		spacesBetween = maxWidth + minSepSpaceLen - len(parts[0]) - len(name) - 1
-		fmt.Printf("  %s %s%s %s\n", name, style.cmdPlaceholder.Sprint(parts[0]), strings.Repeat(" ", spacesBetween), parts[1])
+		aliases := ""
+		if len(cmd.aliases) > 0 {
+			aliases = fmt.Sprintf(" | %s", cmd.aliases[0])
+		}
+		helpStr += fmt.Sprintf("  %s%s %s%s\n", name, aliases, style.cmdPlaceholder.Sprint(parts[0]), strings.Repeat(" ", spacesBetween))
+		helpStr += fmt.Sprintf("    %s\n", parts[1])
 	}
-	fmt.Println("\nMeta commands:")
-	fmt.Println("  help | ? | h  [<cmd>...]")
-	fmt.Println("  aliases | alias | synonym  [<cmd>...]")
+	helpStr += fmt.Sprintln("\nMeta commands:")
+	helpStr += fmt.Sprintln("  help | ? | h  [<cmd>...]")
+	helpStr += fmt.Sprintln("  aliases | alias | synonym  [<cmd>...]")
+	Pager(helpStr, conf)
 }
 
 // Handles placeholders in cmd.help if any, if format is true it will return the placeholder
@@ -161,7 +164,7 @@ var metaCommands = map[string]Command{
 				}
 				return
 			}
-			printHelp(c.style)
+			printHelp(c.style, c.conf)
 		},
 		help: "[<cmd...>] : print the usage or the help for a command",
 	},
@@ -204,7 +207,7 @@ var commands = map[string]Command{
 		help:       "[<query...>] : search with search engine",
 	},
 	"quit": {
-		aliases: []string{"exit", "x", "q"},
+		aliases: []string{"q", "exit", "x"},
 		do: func(c *Client, args ...string) {
 			c.QuitClient(0)
 		},
@@ -219,7 +222,7 @@ var commands = map[string]Command{
 			}
 			c.HandleParsedURL(c.history[len(c.history)-1])
 		},
-		help: "reload current page",
+		help: "re-fetch current page",
 	},
 	"history": {
 		aliases: []string{"hist", "his"},
@@ -251,7 +254,7 @@ var commands = map[string]Command{
 			// TODO: handle spartan input
 			c.HandleParsedURL(c.history[index-1])
 		},
-		help: `[<index>] : print list of previously visited URLs, or visit an item in history
+		help: `[<index>] : visit an item in history, or print all for current session
 Examples:
   - history
   - his 1
@@ -406,7 +409,7 @@ to let it handle clipboard copying.
 			}
 			c.promptSuggestion = link
 		},
-		help: "[<index>] : edit the current url or a link on the current page",
+		help: "[<index>] : edit the current url or a link on the current page, then visit it",
 	},
 	"tour": {
 		aliases: []string{"t", "loop"},
@@ -562,13 +565,13 @@ Examples:
 	"page": {
 		aliases: []string{"p", "print", "view", "display"},
 		do: func(c *Client, args ...string) {
-			if c.lastPage == nil {
+			if c.lastPage == "" {
 				c.style.ErrorMsg("No previous page to redisplay")
 				return
 			}
-			c.DisplayPage(c.lastPage)
+			Pager(c.lastPage, c.conf)
 		},
-		help: "view current page again without reloading",
+		help: "redisplay current page again without reloading",
 	},
 	"redirects": {
 		aliases: []string{"redir", "redirstack", "redirect"},

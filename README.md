@@ -231,6 +231,8 @@ prompt = "-->"            # default: "%U" (the full url of
                           # below
 
 startURL = "example.com"  # default: ""
+                          # the page to visit if starting gelim without
+                          # a specified link
 
 # will be put in LESS environment variable
 lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
