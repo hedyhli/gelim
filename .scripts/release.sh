@@ -3,6 +3,8 @@
 set -e
 
 git_tag=$(git describe --exact-match)
-echo curl -H"Authorization: token $SRHT_TOKEN" \
+echo $git_tag
+ls dist/gelim*{.txt,.tar.gz} | xargs -pI % \
+    curl -H"Authorization: token $SRHT_TOKEN" \
     https://git.sr.ht/api/~hedy/repos/gelim/artifacts/$git_tag \
-    -F "file=@$1"
+    -F "file=@%"
