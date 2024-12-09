@@ -265,6 +265,11 @@ Contents to be copied will be piped to the command as stdin.
 How gelim should treat link index argument "0"; please see [this
 section](#link-indexing) for details.
 
+**maxWidth**:
+
+This value is only used for non-preformatted page formats. This includes
+gemtext, where each line is a paragraph, but does not include `text/plain` and
+Nex protocol directory pages.
 
 ### Prompt format options
 

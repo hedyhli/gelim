@@ -182,8 +182,36 @@ func (c *Client) DisplayPage(page *Page) {
 		return
 	}
 	// other text/* stuff
-	c.lastPage = string(page.bodyBytes)
+	c.lastPage = c.Centered(strings.Split(string(page.bodyBytes), "\n"), 0)
 	Pager(c.lastPage, c.conf)
+}
+
+// Centered wraps lines at given width using ansiwrap, then centers content
+// based on terminal width.
+func (c *Client) Centered(lines []string, width int) string {
+	if width == 0 {
+		for _, line := range lines {
+			if len(line) > width {
+				width = len(line)
+			}
+		}
+	}
+
+	termWidth, _, err := term.GetSize(0)
+	if err != nil {
+		// TODO do something
+		c.style.ErrorMsg("Error getting terminal size")
+		return ""
+	}
+	sides := int((termWidth - width) / 2)
+	if width > termWidth {
+		sides = 0
+	}
+
+	for i, line := range lines {
+		lines[i] = strings.Repeat(" ", sides) + line
+	}
+	return strings.Join(lines, "\n")
 }
 
 // ParseGeminiPage parses bytes in page in returns a rendered string for the

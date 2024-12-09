@@ -53,37 +53,26 @@ func NexParsedURL(u *url.URL) (res *NexResponse, err error) {
 
 func (c *Client) ParseNexDirectoryPage(page *Page) string {
 	var linkStyle = c.style.gmiLink.Sprint
-
-	// termWidth, _, err := term.GetSize(0)
-	// if err != nil {
-	// 	// TODO do something
-	// 	c.style.ErrorMsg("Error getting terminal size")
-	// 	return ""
-	// }
-	// sides := int(float32(termWidth) * c.conf.LeftMargin)
-	// width := termWidth - sides
-	// if width > c.conf.MaxWidth {
-	// 	width = c.conf.MaxWidth
-	// }
-
-	rendered := ""
 	body := string(page.bodyBytes)
+	rendered := []string{}
+	maxWidth := 0
+
 	for _, line := range strings.Split(body, "\n") {
 		if strings.HasSuffix(line, "\r") {
 			line = strings.Trim(line, "\r")
-
-		} else if strings.HasPrefix(line, "=>") {
+		}
+		if strings.HasPrefix(line, "=>") {
 			originalLine := line
 			line = strings.TrimSpace(line[2:])
 			if line == "" {
 				// Empty link line
-				rendered += originalLine + "\n"
+				rendered = append(rendered, originalLine)
 				continue
 			}
 			bits := strings.Fields(line)
 			parsedLink, err := url.Parse(bits[0])
 			if err != nil {
-				rendered += originalLine + "\n"
+				rendered = append(rendered, originalLine)
 				continue
 			}
 
@@ -107,16 +96,15 @@ func (c *Client) ParseNexDirectoryPage(page *Page) string {
 			if len(c.links) < 10 {
 				linkLine = " " + linkLine
 			}
-			rendered += linkLine + "\n"
+			rendered = append(rendered, linkLine)
 		} else {
 			// Normal paragraph
-			// rendered += ansiwrap.GreedyIndent(line, width, sides, sides) + "\n"
-			rendered += line + "\n"
+			rendered = append(rendered, line)
+			if len(line) > maxWidth {
+				maxWidth = len(line)
+			}
 		}
 	}
-	// Remove last \n
-	if len(rendered) > 0 {
-		rendered = rendered[:len(rendered)-1]
-	}
-	return rendered
+
+	return c.Centered(rendered, maxWidth)
 }
