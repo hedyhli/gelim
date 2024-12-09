@@ -61,13 +61,17 @@ func LoadConfig() (*Config, error) {
 	return &conf, nil
 }
 
-func (c *Client) parsePrompt() (prompt string) {
-	percent := false
+func (c *Client) parsePrompt() string {
 	var u *url.URL
 	if len(c.history) != 0 {
 		u = c.history[len(c.history)-1]
 	}
-	for _, char := range c.conf.Prompt {
+	return BuildPrompt(u, c.conf.Prompt)
+}
+
+func BuildPrompt(u *url.URL, promptConf string) (prompt string) {
+	percent := false
+	for _, char := range promptConf {
 		if char == '%' {
 			if percent {
 				prompt += "%"
@@ -95,6 +99,10 @@ func (c *Client) parsePrompt() (prompt string) {
 				prompt += u.Path
 			case 'p':
 				prompt += filepath.Base(u.Path)
+			case 'H':
+				prompt += u.Host
+			case 'h':
+				prompt += u.Hostname()
 			default:
 				prompt += "%" + string(char)
 			}

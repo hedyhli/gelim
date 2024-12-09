@@ -272,6 +272,8 @@ You can use a number of placeholders for your prompt:
 - `%u`: Full url of current page without scheme (example.com/foo/bar)
 - `%P`: Absolute path of the current url (/foo/bar)
 - `%p`: Base path of the current url (bar)
+- `%H`: Hostname including port
+- `%h`: Hostname without port
 
 Use `%%` for a literal percent character, and percent-prefixed option that is not supported
 will be ignored and presented literally.
