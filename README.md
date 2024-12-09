@@ -2,11 +2,7 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~hedy/gelim.svg)](https://builds.sr.ht/~hedy/gelim)
 [![Go Report Card](https://goreportcard.com/badge/git.sr.ht/~hedy/gelim)](https://goreportcard.com/report/git.sr.ht/~hedy/gelim)
-
-[Source (SourceHut)](https://git.sr.ht/~hedy/gelim) |
-[Issues](https://todo.sr.ht/~hedy/gelim) |
-[Patches](https://lists.sr.ht/~hedy/inbox) |
-[Chat](https://web.libera.chat/#gelim)
+[![libera.chat/#gelim](https://img.shields.io/badge/libera.chat-%23gelim-blue)](irc://irc.libera.chat/#gelim)
 
 A minimalist line-mode smolnet client written in go.
 
@@ -14,8 +10,8 @@ A minimalist line-mode smolnet client written in go.
 
 [More screenshots](#screenshots)
 
-You get a simple line-mode browser interface to navigate URLs, plus a pager to
-view pages. Seriously, what more do you want?
+You get a simple line-mode browser interface to save and navigate Gemini,
+Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
 
 **Table of contents**
 
@@ -56,9 +52,6 @@ view pages. Seriously, what more do you want?
 - Relative url at prompt
 - Pager (requires less(1))
 - Configuration
-  - Custom search URL
-  - Custom pager opts
-  - and more
 - [spartan:// protocol](gemini://spartan.mozz.us) support
 - [nex:// protocol](https://nex.nightfall.city) support
 - Copying to clipboard
@@ -71,24 +64,31 @@ Download the latest binary from either SourceHut or GitHub:
 
 - SourceHut: Visit https://git.sr.ht/~hedy/gelim and click on the "release
   notes" link on the latest version shown under "refs"
-- GitHub: Visit https://github.com/hedyhli/gelim/releases to see the list of
-  attached assets.
+- GitHub: Visit [the latest release on
+  GitHub](https://github.com/hedyhli/gelim/releases/latest) and scroll down to see
+  the list of attached assets.
+
+Prebuilt binaries for linux and darwin are provided with both x86 and ARM
+architectures.
+
+[Skip to usage](#usage)
 
 ### With `go install`
 
 ```sh
 go install git.sr.ht/~hedy/gelim@latest
 ```
-All set! [Skip to usage](#usage)
 
 Note that this method does not provide version information
+
+[Skip to usage](#usage)
 
 ### Build from source
 
 First, install the dependencies:
 
-* go (I think >=1.16)
-* [scdoc](https://sr.ht/~sircmpwn/scdoc) (for building manpage)
+* go (>=1.16)
+* [scdoc](https://sr.ht/~sircmpwn/scdoc) (for building the manpage)
 
 Clone the repo somewhere reasonable:
 
@@ -151,26 +151,20 @@ If you're having other issues with installation, please send an email to the
 
 ## Usage
 
-If you used the Makefile to install gelim the manpage should automatically be
-built and installed. See gelim(1)
-
-I'm also planning to have a mirror of that manual hosted on man.sr.ht in the
-future for easy access.
-
 Note that the manpage may not be the most recently updated. But new features
 and things like that will definitely be put in there once it's tested stable.
 
 ### Quickstart
 
 ```
-gelim gemini.circumlunar.space
+gelim geminiprotocol.net
 ```
 This will bring you to less(1). You can use less to browse the page normally.
 
-*Note: if you see something like "-P is not an option", don't panic, this is
-because your system does not support one of gelim's default less options, you
-should skip over to the 'config' section below, and configure your lessOpts to
-remove the -P option, and any other your version of less doesn't have.*
+*Note: if you see something like "-P is not an option", this is because your
+system does not support one of gelim's default less options, you should skip
+over to the 'config' section below, and configure your lessOpts to remove the -P
+option, and any other your version of less doesn't have.*
 
 When you want to visit a link, you have to quit less first. **Press `q`**
 
@@ -182,7 +176,7 @@ While you're at the prompt type:
 ```
 rawtext.club
 ```
-Say you don't have an account on RTC yet and would like to sign up.
+Say you don't have an account on rawtext.club yet and would like to sign up.
 
 Go to the bottom of the page, where the link to signing up is provided. **Type `G`**
 
@@ -208,7 +202,7 @@ from the prompt and check out the commands, have fun!
 ## Navigating a page/document
 
 Everything in page rendering is handled with less(1). less is called with
-opptions specified from your config file. gelim has no intervention in
+options specified from your config file. gelim has no intervention in
 pre-processing any keys.
 
 Hence, anything that works in less should work normally when less is called by
@@ -218,10 +212,7 @@ Useful navigation keys include: `d`/`u`/`PgDn`/`PgUp`/`Space`.
 
 Useful keys for jumping to positions include: `g`/`G`.
 
-**In case you've never used a pager before, please keep calm under the
-circumstance of realizing that ctrl-c/ctrl-d does not quit. Please press `q`
-:P**
-
+Use `q` to quit.
 
 ## Config
 
@@ -244,7 +235,7 @@ startURL = "example.com"  # default: ""
 # will be put in LESS environment variable
 lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
 
-searchURL = "geminispace.info/search"  # this is the default
+searchURL = "gemini://kennedy.gemi.dev/search"
 
 clipboardCopyCmd = "pbcopy"  # Example for MacOS. default = "" (unset)
 
@@ -263,19 +254,19 @@ Contents to be copied will be piped to the command as stdin.
 
 **maxRedirects**:
 - 0: Always confirm redirects
-- >0: Ask to confirm redirects after a set number of redirects
-- <0: Never confirm redirects. (Please see [this section](#redirects) for
+- `>0`: Ask to confirm redirects after a set number of redirects
+- `<0`: Never confirm redirects. (Please see [this section](#redirects) for
   behavior details)
 
 **index0shortcut**:
 
-How gelim should treat link index argument "0", please see [this
-section](#link-indexing) for behavior details.
+How gelim should treat link index argument "0"; please see [this
+section](#link-indexing) for details.
 
 
 ### Prompt format options
 
-You can use a number of placeholders for your prompt (like PS1 in bash):
+You can use a number of placeholders for your prompt:
 
 - `%U`: Full url of current page including scheme (gemini://example.com/foo/bar)
 - `%u`: Full url of current page without scheme (example.com/foo/bar)
@@ -285,10 +276,7 @@ You can use a number of placeholders for your prompt (like PS1 in bash):
 Use `%%` for a literal percent character, and percent-prefixed option that is not supported
 will be ignored and presented literally.
 
-The query part of the URL will be stripped for all options, for security reasons. (If the
-input was to be sensitive -- 11 status code -- the full query percent-encoded would be
-printed as the prompt, which could mean revealing passwords, etc. Hence the query including
-the `?` is stripped.)
+The query part of the URL is stripped for all options.
 
 Here are some examples:
 
@@ -653,8 +641,6 @@ contact described below.
 Gelim = "**ge**mini" + "**li**ne-**m**ode"-like interface
 
 Pronunciation = Ge like "Jelly", lim like "limits"
-
-(Imagine the Ubuntu jellyfish learning calculus)
 
 ### Motivation
 

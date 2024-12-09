@@ -37,7 +37,7 @@ func LoadConfig() (*Config, error) {
 	// FIXME: -R is supposedly better than -r, but -R resets ansi formats on
 	// newlines :/
 	conf.LessOpts = "-FSXr~ -P pager (q to quit)"
-	conf.SearchURL = "gemini://geminispace.info/search"
+	conf.SearchURL = "gemini://kennedy.gemi.dev/search"
 	conf.MaxWidth = 90
 	conf.ClipboardCopyCmd = ""
 
