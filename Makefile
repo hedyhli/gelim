@@ -25,7 +25,7 @@ DOCS := gelim.1
 .PHONY: all
 all: gelim $(DOCS)
 
-gelim: $(GOSRC)
+gelim: fmt $(GOSRC)
 	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@
 
 .PHONY: fmt
