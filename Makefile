@@ -43,9 +43,6 @@ checkfmt:
 .1.scd.1:
 	scdoc < $< > $@
 
-.PHONY: doc
-doc: $(DOCS)
-
 # Exists in GNUMake but not in NetBSD make and others.
 RM?=rm -f
 
@@ -54,7 +51,7 @@ clean:
 	$(RM) $(DOCS) gelim
 
 .PHONY: install
-install: $(DOCS) gelim
+install: gelim
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1
 	install -m755 gelim $(DESTDIR)$(BINDIR)/gelim
 	install -m644 gelim.1 $(DESTDIR)$(MANDIR)/man1/gelim.1
@@ -78,4 +75,4 @@ uninstall:
 
 .PHONY: release
 release:
-	goreleaser release --skip-publish --skip-validate --rm-dist
+	goreleaser release --skip-validate --rm-dist

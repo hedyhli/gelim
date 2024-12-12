@@ -1,28 +1,29 @@
-gelim(1)
+gelim(1) "" "line-mode smolnet client"
 
 # NAME
 
-gelim - a friendly line-mode gemini client
+*gelim* - a minimalist gemini, spartan, and nex protocol client
 
 
 # SYNOPSIS
 
-_gelim_ [OPTIONS] [URL]
+*gelim* [ _OPTIONS_ ] [ _URL_ ]
 
 
 # OPTIONS
 
-\--help, -h
+*--help*, -h
 	get cli help/usage
 
-\--input, -i _string_
+*--input*, -i _string_
 	append "?" + _string_ percent-encoded to _URL_ (will be ignored if URL not provided)
 
-\--no-interactive, -I
+*--no-interactive*, -I
 	don't enter the line-mode interface (useful for just wanting to view _URL_ then exit)
 
-\--search , -s _string_
-	search _string_ with the search engine. this takes priority over _URL_ and --input (which means _URL_ and --input will be ignored if this flag is used)
+*--search *, -s _string_
+	search _string_ with the search engine. this takes priority over _URL_ and
+	*--input* (which means _URL_ and *--input* will be ignored if this flag is used)
 
 
 # INTERFACE
@@ -32,30 +33,111 @@ at the prompt, you can directly enter a url, link index, or otherwise a command.
 
 ## COMMANDS
 
-\help, h, ?
+For details on each command, please consult the built-in help interface.
+
+*help*, h, ? _[command]_
 	get help for the interface
 
-\quit, exit, q, x
+*quit*, exit, q, x
 	exit the program
 
-\back, b
+*back*, b
 	go to previous url in history
 
-\forward, f
+*forward*, f
 	go to next url in history
 
-\history
-	print history
+*history*, hist, his _[number]_
+	print history, or visit an item in history
 
-\reload, r
+*reload*, r
 	reload current page
 
-\links, link, peek, l _number_
+*page*, p, view, print, display
+	reload current page
+
+*links*, link, peek, l _[number]_
 	get link for link-index _number_ (what the link links to).
 	if no _number_ specified, it prints a list of all the links in the current page
 
-\url, current, cur, u
+*url*, current, cur, u
 	print current url
 
-\search, s _query_...
+*editurl*, e, eu, edit
+	edit and visit current url
+
+*copyurl*, cu
+	copy current url to clipboard using _clipboardCopyCmd_ (see
+	_CONFIGURATION_).
+
+*search*, s _query_...
 	search _query_ with search engine
+
+*redirects*, redir
+	show redirects
+
+*tour*, t, loop [ _go_ | _ls_ | _ranges or numbers_... ]
+	save a list of URLs into a tour list. on each _tour_ invokation, visit the
+	next item in tour.
+
+# CONFIGURATION
+
+An optional configuration file can be specified at
+_$XDG_CONFIG_HOME/gelim/config.toml_.
+
+Configuration should be written in TOML format. For example:
+
+```
+prompt = "-->"
+startURL = "example.com"
+searchURL = "gemini://kennedy.gemi.dev/search"
+clipboardCopyCmd = "pbcopy"
+maxRedirects = 5
+```
+
+*startURL* = _URL_
+	The URL to visit when starting gelim without arguments.
+	Defaults to an empty string, which disables this feature.
+
+*searchURL* = _URL_
+	The query will be sent to this URL as _URL_?_query_ for the _search_ command
+	and the _--search_ CLI flag.
+
+	Default is "gemini://kennedy.gemi.dev/search".
+
+*clipboardCopyCmd* = _STRING_
+	Contents will be piped as stdin when the _copyurl_ (or other) command is
+	used which copies something into the system clipboard.
+
+	Defaults to an empty string, which disables this feature.
+
+*maxRedirects* = _NUMBER_
+	Control whether to ask for confirmation when a page redirects the client.
+	
+	- 0: Always confirm redirects
+	- >0: Ask to confirm redirects after a set number of redirects
+	- <0: Never confirm redirects
+
+	This is _5_ by default, following the RFC-2068.
+
+*maxWidth* = _NUMBER_
+	Each page will be rendered to maximum of max(_maxWidth_, terminal width)
+	columns wide for gemtext documents.
+
+	Default is _90_.
+
+# FILES
+
+$XDG_CONFIG_HOME/gelim/config.toml
+
+# SEE ALSO
+
+A _README.md_ file should be included in your *gelim* installation. *gelim* also
+includes a built-in help functionality accessible through the *help* command.
+
+Up-to-date information and source code can also be found at
+_https://github.com/hedyhli/gelim_.
+
+# AUTHORS
+
+Created and maintained by ~hedy <_hedy.dev@protonmail.com_>.

@@ -14,3 +14,4 @@
 
 # destination directory of built binaries for release
 dist/
+.envrc

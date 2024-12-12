@@ -40,6 +40,7 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
   * [Inconsistent behavior?](#inconsistent-behavior)
 * [Remotes](#remotes)
 * [Bugs, features, feedback, and contributions](#bugs-features-feedback-and-contributions)
+* [Development](#development)
 * [Meta](#meta)
   * [Motivation](#motivation)
 
@@ -135,18 +136,12 @@ The gelim binary would be sitting at `$PREFIX/bin/` with manpage at
 
 ### Troubleshooting
 
-* **"scdoc: command not found"**:
-
-  Make sure [scdoc](https://sr.ht/~sircmpwn/scdoc/) is installed before
-  building. Or you can skip building the manpage and just run `go build`
-  instead. Check the Makefile for reference.
-
 * **Something to do with `io.ReadAll`**:
 
   Gelim requires go version >= 1.16.
 
 If you're having other issues with installation, please send an email to the
-[mailing list](mailto:~hedy/inbox@lists.sr.ht) with errors/logs if available.
+[mailing list](mailto:~hedy/inbox@lists.sr.ht).
 
 
 ## Usage
@@ -654,6 +649,24 @@ contact described below.
   could also send PRs to my public inbox but I'll have to search up how to
   merge them (lol)
 
+## Development
+
+```sh
+make gelim
+make gelim.1
+# both
+make all # or just make
+make clean
+
+make fmt
+make checkfmt
+
+# after tagging and pushing
+# cp .envrc.example .envrc
+# requires goreleaser, and sourcehut and github tokens
+make release         # build and publish to GitHub (with goreleaser)
+.scripts/release.sh  # uploads artifacts to sourcehut
+```
 
 ## Meta
 
