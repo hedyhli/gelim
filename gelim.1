@@ -137,8 +137,14 @@ startURL = "example\&.com"
 searchURL = "gemini://kennedy\&.gemi\&.dev/search"
 clipboardCopyCmd = "pbcopy"
 maxRedirects = 5
+useCertificates = [
+    "gemini://astrobotany\&.mozz\&.us/app",
+    "gemini://bbs\&.geminispace\&.org",
+]
 .fi
 .RE
+.P
+Keys are case-insensitive.
 .P
 \fBstartURL\fR = \fIURL\fR
 .RS 4
@@ -206,9 +212,20 @@ columns wide for gemtext documents.
 Default is \fI90\fR.
 .P
 .RE
+\fBuseCertificate\fR = \fILIST\fR
+.RS 4
+The list of full URL prefixes (including scheme) that should use the client
+certificate. The certificate and key files should be in the same directory
+as the default config file location. Symlinks are supported.
+.P
+By default, this is an empty list.
+.P
+.RE
 .SH FILES
 .P
 $XDG_CONFIG_HOME/gelim/config.toml
+$XDG_CONFIG_HOME/gelim/cert.pem
+$XDG_CONFIG_HOME/gelim/key.pem
 .P
 .SH SEE ALSO
 .P
