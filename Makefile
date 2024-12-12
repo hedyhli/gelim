@@ -75,4 +75,4 @@ uninstall:
 
 .PHONY: release
 release:
-	goreleaser release --skip-validate --rm-dist
+	goreleaser release --skip validate --clean
