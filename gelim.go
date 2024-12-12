@@ -127,11 +127,19 @@ func main() {
 		var err error
 
 		color.Set(c.style.Prompt)
+		promptLines := strings.Split(c.parsePrompt() + " ", "\n")
+		for i, line := range promptLines {
+			if i == len(promptLines) - 1 {
+				break
+			}
+			fmt.Println(line)
+		}
+		prompt := promptLines[len(promptLines) - 1]
 		if c.promptSuggestion != "" {
-			line, err = rl.PromptWithSuggestion(c.parsePrompt()+" ", c.promptSuggestion, -1)
+			line, err = rl.PromptWithSuggestion(prompt, c.promptSuggestion, -1)
 			c.promptSuggestion = ""
 		} else {
-			line, err = rl.Prompt(c.parsePrompt() + " ")
+			line, err = rl.Prompt(prompt)
 		}
 		color.Unset()
 

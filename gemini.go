@@ -46,6 +46,10 @@ func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
 	// Receive and parse response header
 	reader := bufio.NewReader(conn)
 	responseHeader, err := reader.ReadString('\n')
+	if err != nil {
+		conn.Close()
+		return
+	}
 	// Parse header
 	parts := strings.Fields(responseHeader)
 	if len(parts) == 0 {

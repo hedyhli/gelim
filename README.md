@@ -226,9 +226,9 @@ Though you do not need a configuration file to have gelim working.
 ```toml
 # example config
 
-prompt = "-->"            # default: "%U" (the full url of
-                          # the current page), more info
-                          # below
+prompt = "-->"            # default: "%U\n>" (the full url of
+                          # the current page), a new line and a ">".
+                          # (more info below)
 
 startURL = "example.com"  # default: ""
                           # the page to visit if starting gelim without
@@ -297,6 +297,16 @@ config    resulting prompt
 "%z>"     "%z> "
 "%%%% $"  "%% $ "
 ```
+
+Newline characters (`"\n"`) in the prompt are supported. The default prompt is
+`%U\n>`, which produces:
+
+```
+gemini://example.com/foo/bar
+> _
+```
+
+Where `_` indicates the cursor position.
 
 ## A note about the pager
 

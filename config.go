@@ -30,7 +30,7 @@ func LoadConfig() (*Config, error) {
 	var err error
 	var conf Config
 	// Defaults
-	conf.Prompt = "%U>"
+	conf.Prompt = "%U\n>"
 	conf.MaxRedirects = 5
 	conf.ShowRedirectHistory = true
 	conf.StartURL = ""
