@@ -40,7 +40,9 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
   * [More...](#more)
   * [Inconsistent behavior?](#inconsistent-behavior)
 * [Remotes](#remotes)
-* [Bugs, features, feedback, and contributions](#bugs-features-feedback-and-contributions)
+* [Discuss](#discuss)
+* [Todo](#todo)
+* [Patches](#patches)
 * [Development](#development)
 * [Meta](#meta)
   * [Motivation](#motivation)
@@ -49,14 +51,12 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
 
 ## Features
 
-- Searching from the command line
-- Inputs from the command line
-- Relative url at prompt
-- Pager (requires less(1))
-- Configuration
+- Quickly visit relative and absolute URLs from the prompt
+- Quickly edit the current URL like a GUI URL bar
+- Client certificates
 - [spartan:// protocol](gemini://spartan.mozz.us) support
 - [nex:// protocol](https://nex.nightfall.city) support
-- Copying to clipboard
+- Tours, similar to AV-98 to loop between links
 
 ## Install
 
@@ -93,9 +93,8 @@ Note that this method does not provide version information
 First, install the dependencies:
 
 * go (>=1.16)
-* [scdoc](https://sr.ht/~sircmpwn/scdoc) (for building the manpage)
 
-Clone the repo somewhere reasonable:
+Clone the repo somewhere suitable, such as `/usr/local`:
 
 ```sh
 git clone https://git.sr.ht/~hedy/gelim
@@ -150,21 +149,30 @@ If you're having other issues with installation, please send an email to the
 
 ## Usage
 
-Note that the `gelim(1)` manpage may not be the most recently updated. But new
-features and things like that will definitely be put in there once it's tested
-stable.
+Gelim is a simple program that manages your browsing history and rendering of
+pages. It simplifies browsing the internet an action of requesting documents
+then displaying them. It provides a simple interface for navigating links found
+on documents, manage history, navigate relative URL paths, and delegates the
+display of pages to `less(1)`. Think of it as a shell-like wrapper around `curl
+... | less` for browsing pages, but for small internet protocols.
+
 
 ### Quickstart
+
+This tutorial will give you a tour of the basic features of gelim. Follow along
+to get familiar with the interface.
+
+First, let's enter gelim with a URL.
 
 ```
 gelim geminiprotocol.net
 ```
 This will bring you to less(1). You can use less to browse the page normally.
 
-*Note: if you see something like "-P is not an option", this is because your
-system does not support one of gelim's default less options, you should skip
-over to the 'config' section below, and configure your lessOpts to remove the -P
-option, and any other your version of less doesn't have.*
+> **Note**: if you see something like "-P is not an option", this is because
+> your system does not support one of gelim's default options for `less(1)`. You
+> should configure your lessOpts to remove the -P option in your
+> [configuration](#config).
 
 When you want to visit a link, you have to quit less first. **Press `q`**
 
@@ -226,28 +234,33 @@ Though you do not need a configuration file to have gelim working.
 ```toml
 # example config
 
-prompt = "-->"            # default: "%U\n>" (the full url of
-                          # the current page), a new line and a ">".
-                          # (more info below)
+prompt = "-->"
+# default: "%U\n>" (the full url of # the current page), a new line and a ">".
+# (more info below)
 
-startURL = "example.com"  # default: ""
-                          # the page to visit if starting gelim without
-                          # a specified link
+startURL = "example.com"
+# default: ""
+# the page to visit if starting gelim without a specified link
 
-# will be put in LESS environment variable
-lessOpts = "-FSXR~"       # default: "-FSXR~ -P pager (q to quit)"
+lessOpts = "-FSXR~"
+# will be put in LESS environment variable.
+# default: "-FSXR~ -P pager (q to quit)"
 
 searchURL = "gemini://kennedy.gemi.dev/search"
 
-clipboardCopyCmd = "pbcopy"  # Example for MacOS. default = "" (unset)
+clipboardCopyCmd = "pbcopy"
+# Example for MacOS. default = "" (unset)
 
 maxRedirects = 5
 
-index0shortcut = -1  # default: unset (0). an alias for link index 0
+index0shortcut = -1
+# default: unset (0). an alias for link index 0
 
-maxWidth = 90  # width of each page is max(<terminalWidth>, maxWidth)
+maxWidth = 90
+# width of each page is max(<terminalWidth>, maxWidth)
 
-useCertificates = [  # default: [] (see details below)
+useCertificates = [
+    # default: [] (see details below)
     "gemini://astrobotany.mozz.us",
     "gemini://bbs.geminispace.org",
 ]
@@ -447,11 +460,11 @@ Thank you for your submission! Antenna has now been updated.
 
 ## Behavior details
 
-A good way to master some software is to know how it works from the program's
-perspective.
+A good way to master a piece software is to understand how it works from the
+program's perspective.
 
 Let's take a look at some UX details from various parts of gelim that could
-cause confusion.
+require clarification.
 
 - [Link indexing](#link-indexing)
 - [Redirects](#redirects)
@@ -653,31 +666,22 @@ contact described below.
 - [GitHub](https://github.com/hedyhli/gelim)
 - [Codeberg](https://codeberg.org/hedy/gelim)
 
-## Bugs, features, feedback, and contributions
+## Discuss
 
-**Questions and general feedback**:
+Chat on the `#gelim` channel on libera.chat IRC.
 
-* Send a ([plain text](https://useplaintext.email)) email to my
-[public inbox](https://lists.sr.ht/~hedy/inbox).
-* [How to subscribe to the mailing list without a sourcehut
-  account](https://man.sr.ht/lists.sr.ht/#email-controls)
-* Join `#gelim` on libera.chat IRC
+You can send feature requests or bug reports on
+[GitHub](https://github.com/hedyhli/gelim/issues). If you prefer email, feel
+free to use my [public inbox](https://lists.sr.ht/~hedy/inbox).
 
-**Bugs and feature requests**
+## Todo
 
-* Submit a ticket to the [tracker](https://todo.sr.ht/~hedy/gelim).
-* You don't need a sourcehut account to subscribe or submit a ticket, [here's
-  how to do everything with email](https://man.sr.ht/todo.sr.ht/#email-access)
-* Or you can use the one on [github](https://github.com/hedyhli/gelim/issues) if
-  you prefer.
+See the [ticket tracker](https://todo.sr.ht/~hedy/gelim).
 
-**Pull requests, patches**
+## Patches
 
-* Send patches to my [public inbox](https://lists.sr.ht/~hedy/inbox)
-* If you prefer pull requests instead,
-  [this](https://github.com/hedyhli/gelim/pulls) is where PRs should go. You
-  could also send PRs to my public inbox but I'll have to search up how to
-  merge them (lol)
+Open PRs on the [GitHub repo](https://github.com/hedyhli/gelim/pulls), or if you
+prefer patches, use my [public inbox](https://lists.sr.ht/~hedy/inbox).
 
 ## Development
 
@@ -706,41 +710,13 @@ Pronunciation = Ge like "Jelly", lim like "limits"
 
 ### Motivation
 
-once upon a time, a curious programmer stumbles upon `ssh
-kiosk@gemini.circumlunar.space`. then tries out `bombadillo` and `amfora`...
+This project started off as an "AV-98 with a pager". The line-mode interface is
+largely inspired by AV-98, except URLs, links indices and relative paths can be
+directly entered at the prompt in addition to line-mode commands. Pages are
+rendered with formatting and color, and is automatically sent to a pager for
+display.
 
-"how do I move? most pagers allow pressing space... oops that opens the command
-prompt"
-
-"ok so I can press a number to go to that link... hmm how about 10, 11, 12 etc?
-is it like vim where it has a timeout for numeric keys? oops, looks like only
-single digits are supported..."
-
-"wait so, single key press for single digit link indices, use a command prompt
-for all others? okay sure"
-
-Tries out `AV-98`
-
-"I love the interface!"
-
-"wait why is it scrolling to the bottom of the page already? like our good-ol
-`cat`?"
-
-"I have to manually scroll my terminal screen? I have to reach for my mouse?
-otherwise I have to have a geeky window manager setup?"
-
-"typing `go` command each time and navigating by relative URLs are a bit of a
-pain"
-
-...
-
-"ok you know what: all links are commands. all link indices are commands. all
-relative URL paths are commands. we shall put all content longer than screen's
-height into a pager *everyone's familiar with*. [just like git (CLIs), but
-without typing the `git`](https://git.sr.ht/~sircmpwn/shit)!"
-
-the programmer sets off to code[...](https://yewtu.be/watch?v=dQw4w9WgXcQ)
-
+Gelim is written in Go because I preferred to distribute single binaries.
 
 
 <!--salutations, curious one.-->
