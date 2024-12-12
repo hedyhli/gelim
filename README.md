@@ -72,6 +72,9 @@ Download the latest binary from either SourceHut or GitHub:
 Prebuilt binaries for linux and darwin are provided with both x86 and ARM
 architectures.
 
+The tarball archive available for each release includes the **gelim** binary,
+the license, this readme, and the `gelim(1)` manpage.
+
 [Skip to usage](#usage)
 
 ### With `go install`
@@ -146,8 +149,9 @@ If you're having other issues with installation, please send an email to the
 
 ## Usage
 
-Note that the manpage may not be the most recently updated. But new features
-and things like that will definitely be put in there once it's tested stable.
+Note that the `gelim(1)` manpage may not be the most recently updated. But new
+features and things like that will definitely be put in there once it's tested
+stable.
 
 ### Quickstart
 
