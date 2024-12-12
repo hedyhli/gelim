@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -47,6 +48,7 @@ type Client struct {
 	inputLinks       []int // contains index to links in `links` that needs spartan input
 	history          []*url.URL
 	conf             *Config
+	configPath       string
 	style            *Style
 	mainReader       *ln.State
 	inputReader      *ln.State
@@ -60,16 +62,41 @@ type Client struct {
 	lastPage string
 
 	redir *RedirectInfo // The object itself does not get changed, only attributes in it -- throughout the runtime of gelim
+
+	clientCert tls.Certificate
 }
 
 // NewClient loads the config file and returns a new client object
 func NewClient() (*Client, error) {
 	var c Client
 	var err error
+
+	// this must be available in order to show error messages for these later
+	// steps
+	c.style = &DefaultStyle
+
 	// load config
-	conf, err := LoadConfig()
+	c.configPath = filepath.Join(xdg.ConfigHome(), "gelim")
+	conf, err := LoadConfig(filepath.Join(c.configPath, "config.toml"))
 	if err != nil {
 		return &c, err
+	}
+	// load client certificate
+	certFile, err := ioutil.ReadFile(filepath.Join(c.configPath, "cert.pem"))
+	if err == nil {
+		var keyFile []byte
+		keyFile, err = ioutil.ReadFile(filepath.Join(c.configPath, "key.pem"))
+		if err == nil {
+			// Build certificate
+			if len(certFile) == 0 && len(keyFile) == 0 {
+				c.clientCert = tls.Certificate{}
+			} else {
+				c.clientCert, err = tls.X509KeyPair(certFile, keyFile)
+				if err != nil {
+					return &c, err
+				}
+			}
+		}
 	}
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
@@ -98,7 +125,6 @@ func NewClient() (*Client, error) {
 	// note that the c.redir.history slice is initialized at HandleURLWrapper
 
 	c.conf = conf
-	c.style = &DefaultStyle // TODO: config styles
 	c.lastPage = ""
 	c.mainReader = ln.NewLiner()
 	c.mainReader.SetCtrlCAborts(true)
@@ -650,10 +676,20 @@ func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
 	return true
 }
 
+func (c *Client) getClientCert(parsed *url.URL) (tls.Certificate) {
+	fullURL := parsed.String()
+	for _, urlCheck := range c.conf.UseCertificate {
+		if strings.HasPrefix(fullURL, urlCheck) {
+			return c.clientCert
+		}
+	}
+	return tls.Certificate{}
+}
+
 // HandleGeminiParsedURL makes an requested to parsed URL, displays the page,
 // and returns whether it was successful.
 func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
-	res, err := GeminiParsedURL(*parsed)
+	res, err := GeminiParsedURL(*parsed, c.getClientCert(parsed))
 	if err != nil {
 		c.style.ErrorMsg(err.Error())
 		return false
@@ -736,8 +772,14 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 		if statusRightDigit > 2 {
 			c.style.WarningMsg(fmt.Sprintf("Undefined status code %v", res.status))
 		}
+		c.style.WarningMsg("The server has requested a client certificate! This is what it said:")
 		fmt.Println(res.meta)
-		fmt.Println("Sorry, gelim does not support client certificates yet.")
+		fmt.Println()
+		if c.clientCert.Certificate == nil {
+			c.style.WarningMsg("You have not configured a client certificate with gelim.")
+		}
+		fmt.Printf("1. Link or save your cert.pem and key.pem files in: %s\n", c.configPath)
+		fmt.Println("2. Set `useCertificate = [ ... ]` and include this URL in the list in your config.toml")
 	default:
 		c.style.ErrorMsg(fmt.Sprintf("Invalid status code %d", res.status))
 		// return false

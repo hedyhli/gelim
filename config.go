@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~adnano/go-xdg"
 	"github.com/BurntSushi/toml"
 )
 
@@ -22,11 +21,12 @@ type Config struct {
 	Index0Shortcut      int
 	MaxWidth            int
 	ClipboardCopyCmd    string
+	UseCertificate      []string
 }
 
-// LoadConfig opes the configuration file at $XDG_CONFIG_HOME/gelim/config.toml
-// if exists and returns a parsed configuration structure
-func LoadConfig() (*Config, error) {
+// LoadConfig opens the specified configuration file if exists and returns a
+// parsed configuration structure
+func LoadConfig(path string) (*Config, error) {
 	var err error
 	var conf Config
 	// Defaults
@@ -41,7 +41,6 @@ func LoadConfig() (*Config, error) {
 	conf.MaxWidth = 90
 	conf.ClipboardCopyCmd = ""
 
-	path := filepath.Join(xdg.ConfigHome(), "gelim", "config.toml")
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
 		return &conf, nil

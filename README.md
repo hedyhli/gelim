@@ -28,6 +28,7 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
 * [Navigating a page/document](#navigating-a-pagedocument)
 * [Config](#config)
   * [Prompt format options](#prompt-format-options)
+  * [Client certificates](#client-certificates)
 * [A note about the pager](#a-note-about-the-pager)
   * [Mouse support](#mouse-support)
   * [Search in page](#search-in-page)
@@ -245,6 +246,11 @@ maxRedirects = 5
 index0shortcut = -1  # default: unset (0). an alias for link index 0
 
 maxWidth = 90  # width of each page is max(<terminalWidth>, maxWidth)
+
+useCertificates = [  # default: [] (see details below)
+    "gemini://astrobotany.mozz.us",
+    "gemini://bbs.geminispace.org",
+]
 ```
 
 **clipboardCopyCmd**:
@@ -306,6 +312,24 @@ gemini://example.com/foo/bar
 ```
 
 Where `_` indicates the cursor position.
+
+### Client certificates
+
+Save your `cert.pem` and `key.pem` files in the gelim config directory (such as
+`~/.config/gelim/{cert,key}.pem`). Symlinks are supported.
+
+Then use the `useCertificate` config option to specify the list of URL prefixes
+that the client certificate should be used on. For example:
+
+```toml
+useCertificates = [
+    "gemini://astrobotany.mozz.us/app",
+    "gemini://bbs.geminispace.org",
+]
+```
+
+If the current visiting URL has a prefix from this list, then the client
+certificate, if available, will be used.
 
 ## A note about the pager
 

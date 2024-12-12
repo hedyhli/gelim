@@ -93,7 +93,13 @@ startURL = "example.com"
 searchURL = "gemini://kennedy.gemi.dev/search"
 clipboardCopyCmd = "pbcopy"
 maxRedirects = 5
+useCertificates = [
+    "gemini://astrobotany.mozz.us/app",
+    "gemini://bbs.geminispace.org",
+]
 ```
+
+Keys are case-insensitive.
 
 *startURL* = _URL_
 	The URL to visit when starting gelim without arguments.
@@ -126,9 +132,18 @@ maxRedirects = 5
 
 	Default is _90_.
 
+*useCertificate* = _LIST_
+	The list of full URL prefixes (including scheme) that should use the client
+	certificate. The certificate and key files should be in the same directory
+	as the default config file location. Symlinks are supported.
+
+	By default, this is an empty list.
+
 # FILES
 
 $XDG_CONFIG_HOME/gelim/config.toml
+$XDG_CONFIG_HOME/gelim/cert.pem
+$XDG_CONFIG_HOME/gelim/key.pem
 
 # SEE ALSO
 

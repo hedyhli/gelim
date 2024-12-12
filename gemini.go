@@ -29,14 +29,20 @@ type GeminiResponse struct {
 //)
 
 // GeminiParsedURL fetches u and returns *GeminiResponse
-func GeminiParsedURL(u url.URL) (res *GeminiResponse, err error) {
+func GeminiParsedURL(u url.URL, cert tls.Certificate) (res *GeminiResponse, err error) {
 	host := u.Host
 	// Connect to server
 	if u.Port() == "" {
 		host += ":1965"
 	}
-	// TODO: cert cache and stuff
-	conn, err := tls.Dial("tcp", host, &tls.Config{InsecureSkipVerify: true})
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		InsecureSkipVerify: true,
+	}
+	if cert.Certificate != nil {
+		tlsConfig.Certificates = []tls.Certificate{cert}
+	}
+	conn, err := tls.Dial("tcp", host, tlsConfig)
 	if err != nil {
 		return
 	}
