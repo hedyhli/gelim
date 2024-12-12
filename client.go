@@ -67,7 +67,7 @@ type Client struct {
 }
 
 // NewClient loads the config file and returns a new client object
-func NewClient() (*Client, error) {
+func NewClient(configPath string) (*Client, error) {
 	var c Client
 	var err error
 
@@ -76,7 +76,7 @@ func NewClient() (*Client, error) {
 	c.style = &DefaultStyle
 
 	// load config
-	c.configPath = filepath.Join(xdg.ConfigHome(), "gelim")
+	c.configPath = configPath
 	conf, err := LoadConfig(filepath.Join(c.configPath, "config.toml"))
 	if err != nil {
 		return &c, err

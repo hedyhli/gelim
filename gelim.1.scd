@@ -21,9 +21,12 @@ gelim(1) "" "line-mode smolnet client"
 *--no-interactive*, -I
 	don't enter the line-mode interface (useful for just wanting to view _URL_ then exit)
 
-*--search *, -s _string_
+*--search*, -s _string_
 	search _string_ with the search engine. this takes priority over _URL_ and
 	*--input* (which means _URL_ and *--input* will be ignored if this flag is used)
+
+*--config*, -c _path_
+	specify a non-standard config location (see *FILES*)
 
 
 # INTERFACE
@@ -141,9 +144,15 @@ Keys are case-insensitive.
 
 # FILES
 
-$XDG_CONFIG_HOME/gelim/config.toml
-$XDG_CONFIG_HOME/gelim/cert.pem
-$XDG_CONFIG_HOME/gelim/key.pem
+The config directory _$XDG_CONFIG_HOME/gelim/_ is used by default. This is
+usually _~/.config/gelim/_. A different directory can be specified using the
+*--config* option.
+
+The following files are read by gelim, relative to the config directory.
+
+- config.toml (see *CONFIGURATION*)
+- cert.pem
+- key.pem
 
 # SEE ALSO
 

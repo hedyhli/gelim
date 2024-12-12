@@ -34,10 +34,15 @@ append "?" + \fIstring\fR percent-encoded to \fIURL\fR (will be ignored if URL n
 don't enter the line-mode interface (useful for just wanting to view \fIURL\fR then exit)
 .P
 .RE
-\fB--search \fR, -s \fIstring\fR
+\fB--search\fR, -s \fIstring\fR
 .RS 4
 search \fIstring\fR with the search engine. this takes priority over \fIURL\fR and
 \fB--input\fR (which means \fIURL\fR and \fB--input\fR will be ignored if this flag is used)
+.P
+.RE
+\fB--config\fR, -c \fIpath\fR
+.RS 4
+specify a non-standard config location (see \fBFILES\fR)
 .P
 .P
 .RE
@@ -223,9 +228,40 @@ By default, this is an empty list.
 .RE
 .SH FILES
 .P
-$XDG_CONFIG_HOME/gelim/config.toml
-$XDG_CONFIG_HOME/gelim/cert.pem
-$XDG_CONFIG_HOME/gelim/key.pem
+The config directory \fI$XDG_CONFIG_HOME/gelim/\fR is used by default. This is
+usually \fI~/.config/gelim/\fR. A different directory can be specified using the
+\fB--config\fR option.
+.P
+The following files are read by gelim, relative to the config directory.
+.P
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+config.toml (see \fBCONFIGURATION\fR)
+.RE
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+cert.pem
+.RE
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.IP \(bu 4
+.\}
+key.pem
+
+.RE
 .P
 .SH SEE ALSO
 .P

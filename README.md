@@ -352,18 +352,20 @@ information.
 
 ```
 ~> gelim --help
-Usage: gelim [FLAGS] [URL]
+Usage: ./gelim [FLAGS] [URL]
 
 Flags:
+  -c, --config string    specify a different config location
+                         
   -h, --help             get help on the cli
   -i, --input string     append input to URL ('?' + percent-encoded input)
-
+                         
   -I, --no-interactive   don't go to the line-mode interface
-
+                         
   -s, --search string    search with the search engine (this takes priority over URL and --input)
-
+                         
   -v, --version          print the version and exit
-
+                         
 For help on the TUI client, type ? at interactive prompt, or see gelim(1)
 ```
 

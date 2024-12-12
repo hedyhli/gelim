@@ -6,10 +6,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"git.sr.ht/~adnano/go-xdg"
 	"github.com/fatih/color"
 	ln "github.com/peterh/liner"
 	flag "github.com/spf13/pflag"
@@ -22,6 +24,7 @@ var (
 	helpFlag      = flag.BoolP("help", "h", false, "get help on the cli")
 	searchFlag    = flag.StringP("search", "s", "", "search with the search engine (this takes priority over URL and --input)\n")
 	versionFlag   = flag.BoolP("version", "v", false, "print the version and exit\n")
+	configFlag   = flag.StringP("config", "c", "", "specify a different config location\n")
 )
 
 var (
@@ -79,10 +82,23 @@ func main() {
 		return
 	}
 
+	configPath := filepath.Join(xdg.ConfigHome(), "gelim")
+	if *configFlag != "" {
+		_, err := os.Stat(*configFlag)
+		if os.IsNotExist(err) {
+			fmt.Printf("the specified config directory \"%s\" does not exist\n", *configFlag)
+			os.Exit(1)
+		} else if err != nil {
+			fmt.Printf("unable to open the specified config directory \"%s\"\n", *configFlag)
+			os.Exit(1)
+		}
+		configPath = *configFlag
+	}
+
 	u := ""
 	cliURL := false // this is to avoid going to c.conf.StartURL if URL is visited from CLI
 
-	c, err := NewClient()
+	c, err := NewClient(configPath)
 	if err != nil {
 		c.style.ErrorMsg(err.Error())
 		os.Exit(1)
