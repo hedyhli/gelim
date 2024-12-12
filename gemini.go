@@ -36,7 +36,7 @@ func GeminiParsedURL(u url.URL, cert tls.Certificate) (res *GeminiResponse, err 
 		host += ":1965"
 	}
 	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
+		MinVersion:         tls.VersionTLS12,
 		InsecureSkipVerify: true,
 	}
 	if cert.Certificate != nil {

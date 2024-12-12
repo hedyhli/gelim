@@ -24,7 +24,7 @@ var (
 	helpFlag      = flag.BoolP("help", "h", false, "get help on the cli")
 	searchFlag    = flag.StringP("search", "s", "", "search with the search engine (this takes priority over URL and --input)\n")
 	versionFlag   = flag.BoolP("version", "v", false, "print the version and exit\n")
-	configFlag   = flag.StringP("config", "c", "", "specify a different config location\n")
+	configFlag    = flag.StringP("config", "c", "", "specify a different config location\n")
 )
 
 var (

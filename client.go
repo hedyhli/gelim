@@ -676,7 +676,7 @@ func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
 	return true
 }
 
-func (c *Client) getClientCert(parsed *url.URL) (tls.Certificate) {
+func (c *Client) getClientCert(parsed *url.URL) tls.Certificate {
 	fullURL := parsed.String()
 	for _, urlCheck := range c.conf.UseCertificate {
 		if strings.HasPrefix(fullURL, urlCheck) {
