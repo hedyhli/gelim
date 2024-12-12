@@ -2,7 +2,7 @@
 
 set -e
 
-git_tag=$(git describe --exact-match)
+git_tag=$(git describe --abbrev=0 --tags)
 echo $git_tag
 ls dist/gelim*{.txt,.tar.gz} | xargs $1 -I % \
     curl -H"Authorization: token $SRHT_TOKEN" \
