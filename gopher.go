@@ -47,7 +47,7 @@ func GopherParsedURL(u *url.URL) (res *GopherResponse, err error) {
 		return
 	}
 	fullpath := strings.TrimPrefix(u.Path, "/")
-	if u.Path == "" {
+	if fullpath == "" || fullpath == "1" {
 		fullpath = "1/"
 	}
 	pathParts := strings.SplitN(fullpath, "/", 2)
@@ -144,6 +144,5 @@ func getGophertype(t string) string {
 	if val, ok := gophertypes[t]; ok {
 		return val
 	}
-
 	return "???"
 }

@@ -238,7 +238,7 @@ func (c *Client) Centered(lines []string, width int, dedents []int) string {
 		sides = 0
 	}
 	if (maxWidth - width) > sides {
-		sides = maxWidth - width
+		sides = maxWidth - width + 1
 	}
 
 	for i, line := range lines {
