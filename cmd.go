@@ -556,9 +556,23 @@ Examples:
 			switch {
 			case strings.HasPrefix("edit", args[0]):
 				editor := os.ExpandEnv("$EDITOR")
+				if _, err := os.Stat(c.configPath); err != nil {
+					fmt.Println("config directory at", c.configPath, "does not exist. gelim is currently using its default configuration.")
+					fmt.Println("create the directory and continue to edit a new config file?")
+					opt, ok := c.PromptYesNo(true)
+					if !ok || !opt {
+						return
+					}
+					if err := os.MkdirAll(c.configPath, 0755); err != nil {
+						c.style.ErrorMsg(err.Error())
+						fmt.Println("unable to create the config directory for you")
+						return
+					}
+					fmt.Println("directory created")
+				}
 				path := filepath.Join(c.configPath, "config.toml")
+				fmt.Println("opening", path)
 				if editor == "" {
-					fmt.Println("opening" + path + "...")
 					c.style.ErrorMsg("no $EDITOR is set!")
 					return
 				}
@@ -566,7 +580,6 @@ Examples:
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stderr
 				if err := cmd.Start(); err != nil {
-					fmt.Println("opening" + path + "...")
 					c.style.ErrorMsg(err.Error())
 					return
 				}
@@ -575,15 +588,20 @@ Examples:
 				fmt.Println("you can use `config reload` to reload the updated configuration.")
 				return
 			case strings.HasPrefix("reload", args[0]):
-				fmt.Println("reloading config directory " + c.configPath + "...")
-				conf, err := LoadConfig(filepath.Join(c.configPath, "config.toml"))
-				if err != nil {
+				path := filepath.Join(c.configPath, "config.toml")
+				fmt.Println("reloading config file at ", path)
+				conf, err := LoadConfig(path)
+				if conf == nil {
 					c.style.ErrorMsg(err.Error())
 					fmt.Println("config is not updated")
 					return
 				}
 				c.conf = conf
-				fmt.Println("config file reloaded!")
+				if err != nil {
+					c.style.WarningMsg("file or directory does not exist. default configuration is used")
+				}
+				fmt.Println("config reloaded")
+
 				fmt.Println("reloading client certificate...")
 				cert, err := loadClientCert(c.configPath)
 				if err != nil {
@@ -593,11 +611,12 @@ Examples:
 				}
 				c.clientCert = cert
 				if cert.Certificate == nil {
-					fmt.Println("no client certificate was found")
+					c.style.WarningMsg("no client certificate was found")
 				} else {
 					fmt.Println("client certificate is now active")
 				}
-				fmt.Println("client certificate reloaded!")
+				fmt.Println("client certificate is reloaded")
+				return
 			}
 			c.style.ErrorMsg("unknown subcommand for config: " + args[0])
 		},

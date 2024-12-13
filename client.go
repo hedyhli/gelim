@@ -76,10 +76,11 @@ func loadClientCert(configPath string) (cert tls.Certificate, err error) {
 				cert = tls.Certificate{}
 			} else {
 				cert, err = tls.X509KeyPair(certFile, keyFile)
+				return
 			}
 		}
 	}
-	return
+	return cert, nil
 }
 
 // NewClient loads the config file and returns a new client object
@@ -94,7 +95,7 @@ func NewClient(configPath string) (*Client, error) {
 	// load config
 	c.configPath = configPath
 	conf, err := LoadConfig(filepath.Join(c.configPath, "config.toml"))
-	if err != nil {
+	if conf == nil && err != nil {
 		return &c, err
 	}
 	// load client certificate
@@ -448,27 +449,18 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	return c.HandleURLWrapper(u)
 }
 
-// PromptRedirect asks for input on whether to follow a redirect. Return user's
-// choice and whether the prompt was successful (in that order!).
-func (c *Client) PromptRedirect(nextDest string) (opt bool, ok bool) {
-	ok = true
+// PromptYesNo asks for [y/n]. Return user's choice and whether the prompt was
+// successful (in that order!).
+func (c *Client) PromptYesNo(defaultOpt bool) (opt bool, ok bool) {
+	ok = defaultOpt
 
-	if c.conf.ShowRedirectHistory {
-		c.redir.showHistory()
-		fmt.Println()
-	}
-
-	fmt.Println("Redirect to:")
-	fmt.Println(nextDest)
-
-	for { // Our good old 'prompt until valid' structure ;P
+	for {
 		optStr, err := c.inputReader.PromptWithSuggestion("[y/n]> ", "", 1)
 
 		if err != nil {
 			opt = false
 			if err == ln.ErrPromptAborted || err == io.EOF {
 				fmt.Println()
-				// ok is true here
 				c.style.WarningMsg("Cancelled")
 				return
 			}
@@ -491,6 +483,21 @@ func (c *Client) PromptRedirect(nextDest string) (opt bool, ok bool) {
 		}
 		break
 	}
+	return
+}
+
+// PromptRedirect asks for input on whether to follow a redirect. Return user's
+// choice and whether the prompt was successful (in that order!).
+func (c *Client) PromptRedirect(nextDest string) (opt bool, ok bool) {
+	if c.conf.ShowRedirectHistory {
+		c.redir.showHistory()
+		fmt.Println()
+	}
+
+	fmt.Println("Redirect to:")
+	fmt.Println(nextDest)
+
+	opt, ok = c.PromptYesNo(true)
 	return
 }
 
@@ -784,7 +791,8 @@ func (c *Client) HandleGeminiParsedURL(parsed *url.URL) bool {
 			c.style.WarningMsg("You have not configured a client certificate with gelim.")
 		}
 		fmt.Printf("1. Link or save your cert.pem and key.pem files in: %s\n", c.configPath)
-		fmt.Println("2. Set `useCertificate = [ ... ]` and include this URL in the list in your config.toml")
+		fmt.Println("2. Use `config edit` to edit your configuration, set `useCertificate = [ ... ]` and include this URL in the list in your config.toml")
+		fmt.Println("3. Reload the new client certificate and configuration using `config reload`")
 	default:
 		c.style.ErrorMsg(fmt.Sprintf("Invalid status code %d", res.status))
 		// return false

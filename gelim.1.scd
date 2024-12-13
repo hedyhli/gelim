@@ -83,6 +83,9 @@ For details on each command, please consult the built-in help interface.
 	save a list of URLs into a tour list. on each _tour_ invokation, visit the
 	next item in tour.
 
+*config* [ _e[dit]_ | _r[eload]_ ]
+	edit or reload the currently active configuration.
+
 # CONFIGURATION
 
 An optional configuration file can be specified at

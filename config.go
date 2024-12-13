@@ -43,7 +43,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	_, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		return &conf, nil
+		return &conf, err
 	}
 	f, err := os.Open(path)
 	if err == nil {
