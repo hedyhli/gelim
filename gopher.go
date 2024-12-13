@@ -115,6 +115,8 @@ func (c *Client) ParseGophermap(page *Page) string {
 				} else {
 					link = fmt.Sprintf("gopher://%s:%s/h%s", host, port, path)
 				}
+			case "7":
+				c.inputLinks = append(c.inputLinks, len(c.links))
 			}
 			c.links = append(c.links, link)
 			gophertype := "(" + getGophertype(string(columns[0][0])) + ")"

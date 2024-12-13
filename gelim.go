@@ -245,12 +245,12 @@ func main() {
 			c.style.ErrorMsg("No history yet, cannot use link indexing")
 			continue
 		}
-		u, spartanInput := c.GetLinkFromIndex(index)
+		u, isInput := c.GetLinkFromIndex(index)
 		if u == "" {
-			// TODO: When is this reached? Add message?
+			c.style.ErrorMsg("Empty URL for this input link!")
 			continue
 		}
-		if spartanInput {
+		if isInput {
 			c.Input(u, false)
 			continue
 		}

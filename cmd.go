@@ -288,7 +288,7 @@ Examples:
 					continue
 				}
 				link, _ := c.GetLinkFromIndex(index)
-				fmt.Println(index, link) // TODO: also save the label in c.links
+				fmt.Println(index, link)
 			}
 		},
 		help: `[<index>...] : peek what a link index would link to, or see the list of all links

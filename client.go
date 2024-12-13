@@ -448,7 +448,13 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 		c.style.ErrorMsg("Error reading input: " + err.Error())
 		return false
 	}
-	u = u + "?" + queryEscape(query)
+	if strings.HasPrefix(u, "gopher://") {
+		// Crude, but works because gopher URLs are fully formed when saved in
+		// c.links.
+		u = u + "%09" + queryEscape(query)
+	} else {
+		u = u + "?" + queryEscape(query)
+	}
 	return c.HandleURLWrapper(u)
 }
 
@@ -722,8 +728,9 @@ func (c *Client) HandleGopherParsedURL(parsed *url.URL) bool {
 
 	page.bodyBytes = bodyBytes
 
-	// TODO: check file extension
 	if res.gophertype == "1" {
+		page.mediaType = "gophermap"
+	} else if res.gophertype == "7" {
 		page.mediaType = "gophermap"
 	} else {
 		// Assume plain text for now
