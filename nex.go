@@ -88,9 +88,7 @@ func (c *Client) ParseNexDirectoryPage(page *Page) string {
 			linkLine := fmt.Sprintf("[%d] ", len(c.links))
 			linkLine += linkStyle(label)
 
-			// TODO: Config for protocols that appends `(protocol-name)` at the
-			// end of link
-			if link.Scheme != "gemini" {
+			if link.Scheme != "nex" {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
 			if len(c.links) < 10 {

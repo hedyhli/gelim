@@ -403,9 +403,7 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 				c.inputLinks = append(c.inputLinks, len(c.links)-1)
 			}
 
-			// TODO: Config for protocols that appends `(protocol-name)` at the
-			// end of link
-			if link.Scheme != "gemini" {
+			if link.Scheme != page.u.Scheme {
 				linkLine += fmt.Sprintf(" (%s)", link.Scheme)
 			}
 			// XXX: wrap twice for single word
