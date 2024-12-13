@@ -106,5 +106,5 @@ func (c *Client) ParseNexDirectoryPage(page *Page) string {
 		}
 	}
 
-	return c.Centered(rendered, maxWidth)
+	return c.Centered(rendered, maxWidth, []int{})
 }

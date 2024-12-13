@@ -51,6 +51,15 @@ specify a non-standard config location (see \fBFILES\fR)
 just run \fIgelim\fR and optionally provide a url. it will start the line-mode interface.
 at the prompt, you can directly enter a url, link index, or otherwise a command.
 .P
+Commands are parsed by spaces, with support for shell-like quoting and escaping.
+.P
+Gelim uses a lightweight readline-like library for parsing the command line
+within the line-mode interface. By default, the prompt shows the current URL and
+a ">" symbol, this can be configured (see \fBCONFIGURATION\fR).
+.P
+At the prompt, common line editing keys are supported. Completion for gelim's
+commands are also supported through \fBTAB\fR and \fBShift+TAB\fR.
+.P
 .SS COMMANDS
 .P
 For details on each command, please consult the built-in help interface.

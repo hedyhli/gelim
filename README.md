@@ -55,6 +55,7 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
 - Quickly visit relative and absolute URLs from the prompt
 - Quickly edit the current URL like a GUI URL bar
 - Client certificates
+- gopher:// protocol support
 - [spartan:// protocol](gemini://spartan.mozz.us) support
 - [nex:// protocol](https://nex.nightfall.city) support
 - Tours, similar to AV-98 to loop between links

@@ -183,6 +183,12 @@ func (c *Client) DisplayPage(page *Page) {
 		Pager(c.lastPage, c.conf)
 		return
 	}
+	if page.mediaType == "gophermap" {
+		rendered := c.ParseGophermap(page)
+		c.lastPage = rendered
+		Pager(c.lastPage, c.conf)
+		return
+	}
 	// text/* content only for now
 	// TODO: support more media types
 	if !strings.HasPrefix(page.mediaType, "text/") {
@@ -196,17 +202,27 @@ func (c *Client) DisplayPage(page *Page) {
 		return
 	}
 	// other text/* stuff
-	c.lastPage = c.Centered(strings.Split(string(page.bodyBytes), "\n"), 0)
+	c.lastPage = c.Centered(strings.Split(string(page.bodyBytes), "\n"), 0, []int{})
+	// FIXME: re-center on re-display
 	Pager(c.lastPage, c.conf)
 }
 
 // Centered wraps lines at given width using ansiwrap, then centers content
 // based on terminal width.
-func (c *Client) Centered(lines []string, width int) string {
+func (c *Client) Centered(lines []string, width int, dedents []int) string {
+	hasDedents := len(dedents) == len(lines)
+	maxWidth := width // assume if width given, then no dedents
 	if width == 0 {
-		for _, line := range lines {
-			if len(line) > width {
-				width = len(line)
+		for i, line := range lines {
+			length := len(line)
+			if length > width {
+				width = length
+			}
+			if hasDedents {
+				length += dedents[i]
+				if length > maxWidth {
+					maxWidth = length
+				}
 			}
 		}
 	}
@@ -215,15 +231,22 @@ func (c *Client) Centered(lines []string, width int) string {
 	if err != nil {
 		// TODO do something
 		c.style.ErrorMsg("Error getting terminal size")
-		return ""
+		return strings.Join(lines, "\n")
 	}
 	sides := int((termWidth - width) / 2)
 	if width > termWidth {
 		sides = 0
 	}
+	if (maxWidth - width) > sides {
+		sides = maxWidth - width
+	}
 
 	for i, line := range lines {
-		lines[i] = strings.Repeat(" ", sides) + line
+		indent := sides
+		if hasDedents {
+			indent -= dedents[i]
+		}
+		lines[i] = strings.Repeat(" ", indent) + line
 	}
 	return strings.Join(lines, "\n")
 }
@@ -582,18 +605,21 @@ func (c *Client) HandleURLWrapper(u string) bool {
 // Handles either a spartan URL, Nex, or a gemini URL
 func (c *Client) HandleParsedURL(parsed *url.URL) bool {
 	// TODO; config proxies or program to do other shemes
-	if parsed.Scheme != "gemini" && parsed.Scheme != "spartan" && parsed.Scheme != "nex" {
-		c.style.ErrorMsg("Unsupported protocol " + parsed.Scheme)
-		fmt.Println("URL:", parsed)
-		return false
-	}
 	if parsed.Scheme == "gemini" {
 		return c.HandleGeminiParsedURL(parsed)
+	}
+	if parsed.Scheme == "spartan" {
+		return c.HandleSpartanParsedURL(parsed)
 	}
 	if parsed.Scheme == "nex" {
 		return c.HandleNexParsedURL(parsed)
 	}
-	return c.HandleSpartanParsedURL(parsed)
+	if parsed.Scheme == "gopher" {
+		return c.HandleGopherParsedURL(parsed)
+	}
+	c.style.ErrorMsg("Unsupported protocol " + parsed.Scheme)
+	fmt.Println("URL:", parsed)
+	return false
 }
 
 // HandleSpartanParsedURL makes an requested to parsed URL, displays the page,
@@ -641,8 +667,8 @@ func (c *Client) HandleSpartanParsedURL(parsed *url.URL) bool {
 	return true
 }
 
-// HandleNexParsedURL makes an requested to parsed URL, displays the page,
-// and returns whether it was successful.
+// HandleNexParsedURL makes a request to parsed URL, displays the page, and
+// returns whether it was successful.
 func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
 	res, err := NexParsedURL(parsed)
 	if err != nil {
@@ -665,6 +691,45 @@ func (c *Client) HandleNexParsedURL(parsed *url.URL) bool {
 	// TODO: check file extension
 	if res.fileExt == "/" {
 		page.mediaType = "nex/directory"
+	} else {
+		// Assume plain text for now
+		page.mediaType = "text/plain"
+	}
+	c.DisplayPage(page)
+
+	if (len(c.history) > 0) && (c.history[len(c.history)-1].String() != parsed.String()) || len(c.history) == 0 {
+		c.history = append(c.history, parsed)
+	}
+	return true
+}
+
+// HandleGopherParsedURL makes a request to parsed URL, displays the page, and
+// returns whether it was successful.
+func (c *Client) HandleGopherParsedURL(parsed *url.URL) bool {
+	res, err := GopherParsedURL(parsed)
+	if err != nil {
+		c.style.ErrorMsg(err.Error())
+		return false
+	}
+	defer func() {
+		(*res.conn).Close()
+		res.connClosed = true
+	}()
+
+	page := &Page{bodyBytes: nil, mediaType: "", u: parsed, params: nil}
+	bodyBytes, err := ioutil.ReadAll(res.bodyReader)
+	if err != nil {
+		c.style.ErrorMsg("Unable to read body: " + err.Error())
+	}
+	// Only reset links if the page is a success
+	c.links = make([]string, 0, 100) // reset links
+	c.inputLinks = make([]int, 0, 100)
+
+	page.bodyBytes = bodyBytes
+
+	// TODO: check file extension
+	if res.gophertype == "1" {
+		page.mediaType = "gophermap"
 	} else {
 		// Assume plain text for now
 		page.mediaType = "text/plain"
