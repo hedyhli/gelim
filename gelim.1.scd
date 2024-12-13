@@ -34,6 +34,15 @@ gelim(1) "" "line-mode smolnet client"
 just run _gelim_ and optionally provide a url. it will start the line-mode interface.
 at the prompt, you can directly enter a url, link index, or otherwise a command.
 
+Commands are parsed by spaces, with support for shell-like quoting and escaping.
+
+Gelim uses a lightweight readline-like library for parsing the command line
+within the line-mode interface. By default, the prompt shows the current URL and
+a ">" symbol, this can be configured (see *CONFIGURATION*).
+
+At the prompt, common line editing keys are supported. Completion for gelim's
+commands are also supported through *TAB* and *Shift+TAB*.
+
 ## COMMANDS
 
 For details on each command, please consult the built-in help interface.

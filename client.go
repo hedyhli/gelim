@@ -49,11 +49,8 @@ type Client struct {
 	history          []*url.URL
 	conf             *Config
 	configPath       string
+	dataDir          string
 	style            *Style
-	mainReader       *ln.State
-	inputReader      *ln.State
-	promptHistory    *os.File
-	inputHistory     *os.File
 	promptSuggestion string
 
 	tourLinks []string // List of links to tour
@@ -132,39 +129,24 @@ func NewClient(configPath string) (*Client, error) {
 
 	c.conf = conf
 	c.lastPage = ""
-	c.mainReader = ln.NewLiner()
-	c.mainReader.SetCtrlCAborts(true)
-	c.inputReader = ln.NewLiner()
-	c.inputReader.SetCtrlCAborts(true)
 
-	dataDir := filepath.Join(xdg.DataHome(), "gelim")
-
-	// Create cache/data/runtime dirs/files
-	os.MkdirAll(dataDir, 0700)
-	c.promptHistory, err = os.OpenFile(filepath.Join(dataDir, "prompt_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		return &c, err
-	}
-	c.inputHistory, err = os.OpenFile(filepath.Join(dataDir, "input_history.txt"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		return &c, err
-	}
-	c.mainReader.ReadHistory(c.promptHistory)
-	c.inputReader.ReadHistory(c.inputHistory)
-
-	c.mainReader.SetCompleter(CommandCompleter)
+	c.dataDir = filepath.Join(xdg.DataHome(), "gelim")
+	os.MkdirAll(c.dataDir, 0755)
 	return &c, err
+}
+
+// getLiner creates and sets up a new reader for the main loop. Caller is
+// responsible for calling .Close().
+func (c *Client) getLiner() (l *ln.State) {
+	l = ln.NewLiner()
+	l.SetCtrlCAborts(true)
+	l.SetCompleter(CommandCompleter)
+	return
 }
 
 // QuitClient cleans up opened files and resources, saves history, and calls
 // os.Exit with the given status code
 func (c *Client) QuitClient(code int) {
-	c.mainReader.WriteHistory(c.promptHistory)
-	c.inputReader.WriteHistory(c.inputHistory)
-	c.promptHistory.Close()
-	c.inputHistory.Close()
-	c.inputReader.Close()
-	c.mainReader.Close()
 	os.Exit(code)
 }
 
@@ -426,11 +408,17 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 func (c *Client) Input(u string, sensitive bool) (ok bool) {
 	var query string
 	var err error
-	// c.inputReader.SetMultiLineMode(true)
+
+	rl := ln.NewLiner()
+	defer rl.Close()
+
+	rl.SetCtrlCAborts(true)
+	rl.SetMultiLineMode(true)
+
 	if sensitive {
-		query, err = c.inputReader.PasswordPrompt("INPUT (sensitive)> ")
+		query, err = rl.PasswordPrompt("INPUT (sensitive)> ")
 	} else {
-		query, err = c.inputReader.Prompt("INPUT> ")
+		query, err = rl.Prompt("INPUT> ")
 	}
 	if err != nil {
 		if err == ln.ErrPromptAborted {
@@ -442,9 +430,6 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 		c.style.ErrorMsg("Error reading input: " + err.Error())
 		return false
 	}
-	if !sensitive {
-		c.inputReader.AppendHistory(query)
-	}
 	u = u + "?" + queryEscape(query)
 	return c.HandleURLWrapper(u)
 }
@@ -454,8 +439,12 @@ func (c *Client) Input(u string, sensitive bool) (ok bool) {
 func (c *Client) PromptYesNo(defaultOpt bool) (opt bool, ok bool) {
 	ok = defaultOpt
 
+	rl := ln.NewLiner()
+	rl.SetCtrlCAborts(true)
+	defer rl.Close()
+
 	for {
-		optStr, err := c.inputReader.PromptWithSuggestion("[y/n]> ", "", 1)
+		optStr, err := rl.PromptWithSuggestion("[y/n]> ", "", 1)
 
 		if err != nil {
 			opt = false

@@ -26,6 +26,7 @@ Spartan, and Nex URLs, plus a pager to view pages. Nothing else.
 * [Usage](#usage)
   * [Quickstart](#quickstart)
 * [Navigating a page/document](#navigating-a-pagedocument)
+* [The prompt](#the-prompt)
 * [Config](#config)
   * [Prompt format options](#prompt-format-options)
   * [Client certificates](#client-certificates)
@@ -222,9 +223,20 @@ Useful keys for jumping to positions include: `g`/`G`.
 
 Use `q` to quit.
 
+## The prompt
+
+Gelim uses a lightweight readline-like library for parsing the command line
+within the line-mode interface. By default, the prompt shows the current URL and
+a ">" symbol, this can be [configured](#config).
+
+At the prompt, common line editing keys are supported. Completion for gelim's
+commands are also supported through <kbd>tab</kbd> and
+<kbd>shift</kbd><kbd>tab</kbd>.
+
 ## Config
 
-For people on a Unix system it will look for configuration in `~/.config/gelim/config.toml`.
+For people on a Unix system gelim will look for configuration in
+`~/.config/gelim/config.toml`.
 
 Gelim follows XDG specification for deciding where to find config and where to
 store data files.

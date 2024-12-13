@@ -70,6 +70,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "\nFlags:\n")
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "For help on the TUI client, type ? at interactive prompt, or see gelim(1)\n")
+		fmt.Fprintf(os.Stderr, "For help on the TUI client, type ? at interactive prompt, or see gelim(1)\n")
 	}
 	flag.Parse()
 	if *helpFlag { // Handling --help myself since pflag prints an ugly ErrHelp
@@ -135,9 +136,7 @@ func main() {
 		}
 	}
 
-	// and now here comes the line-mode prompts and stuff
-	rl := c.mainReader
-
+	// main loop
 	for {
 		var line string
 		var err error
@@ -151,28 +150,29 @@ func main() {
 			fmt.Println(line)
 		}
 		prompt := promptLines[len(promptLines)-1]
+		rl := c.getLiner()
 		if c.promptSuggestion != "" {
 			line, err = rl.PromptWithSuggestion(prompt, c.promptSuggestion, -1)
 			c.promptSuggestion = ""
 		} else {
 			line, err = rl.Prompt(prompt)
 		}
+		rl.Close()
 		color.Unset()
 
 		if err != nil {
 			if err == ln.ErrPromptAborted || err == io.EOF {
 				// Exit by ^C or ^D
-				c.QuitClient(0)
 				if err == io.EOF {
-					fmt.Println()
+					fmt.Println("^D")
 				}
+				c.QuitClient(0)
 			}
 			c.style.ErrorMsg("Error reading input: " + err.Error())
 			// Exiting because it will cause an infinite loop of error if used 'continue' here
 			c.QuitClient(1)
 		}
 
-		rl.AppendHistory(line)
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue

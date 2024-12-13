@@ -547,10 +547,11 @@ Examples:
 		do: func(c *Client, args ...string) {
 			if len(args) == 0 {
 				fmt.Println("config directory:", c.configPath)
+				fmt.Println("data directory:", c.dataDir)
 				if c.clientCert.Certificate != nil {
 					fmt.Println("client certificate valid and loaded")
 				}
-				fmt.Println("no client certificate is found or loaded")
+				fmt.Println("no client certificate is found")
 				return
 			}
 			switch {
@@ -579,11 +580,11 @@ Examples:
 				cmd := exec.Command(editor, path)
 				cmd.Stdout = os.Stdout
 				cmd.Stderr = os.Stderr
+				cmd.Stdin = os.Stdin
 				if err := cmd.Start(); err != nil {
 					c.style.ErrorMsg(err.Error())
 					return
 				}
-				cmd.Stdin = os.Stdin
 				cmd.Wait()
 				fmt.Println("you can use `config reload` to reload the updated configuration.")
 				return
