@@ -66,6 +66,22 @@ type Client struct {
 	clientCert tls.Certificate
 }
 
+func loadClientCert(configPath string) (cert tls.Certificate, err error) {
+	certFile, err := ioutil.ReadFile(filepath.Join(configPath, "cert.pem"))
+	if err == nil {
+		var keyFile []byte
+		keyFile, err = ioutil.ReadFile(filepath.Join(configPath, "key.pem"))
+		if err == nil {
+			if len(certFile) == 0 && len(keyFile) == 0 {
+				cert = tls.Certificate{}
+			} else {
+				cert, err = tls.X509KeyPair(certFile, keyFile)
+			}
+		}
+	}
+	return
+}
+
 // NewClient loads the config file and returns a new client object
 func NewClient(configPath string) (*Client, error) {
 	var c Client
@@ -82,22 +98,11 @@ func NewClient(configPath string) (*Client, error) {
 		return &c, err
 	}
 	// load client certificate
-	certFile, err := ioutil.ReadFile(filepath.Join(c.configPath, "cert.pem"))
-	if err == nil {
-		var keyFile []byte
-		keyFile, err = ioutil.ReadFile(filepath.Join(c.configPath, "key.pem"))
-		if err == nil {
-			// Build certificate
-			if len(certFile) == 0 && len(keyFile) == 0 {
-				c.clientCert = tls.Certificate{}
-			} else {
-				c.clientCert, err = tls.X509KeyPair(certFile, keyFile)
-				if err != nil {
-					return &c, err
-				}
-			}
-		}
+	cert, err := loadClientCert(c.configPath)
+	if err != nil {
+		return &c, err
 	}
+	c.clientCert = cert
 	// c.history = make([]*url.URL, 100)
 	c.links = make([]string, 100)
 

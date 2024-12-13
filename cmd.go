@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -541,21 +542,72 @@ Examples:
   - tour g 3
   - tour clear`,
 	},
-	// TODO: didn't have time to finish this lol
-	// "config": {
-	// 	aliases: []string{"c", "conf"},
-	// 	do: func(c *Client, args ...string) {
-	// 		field := reflect.ValueOf(c.conf).Elem().FieldByName(args[0])
-	// 		// if field == 0 {
-	// 		// 	fmt.Println("key", args[0], "not found")
-	// 		// 	return
-	// 		// }
-	// 		field.Set(reflect.Value{args[1]})
-	// 		return
-	// 	},
-	// 	help: "<key> <value>: set a configuration value for the current gelim session",
-	// 	quotedArgs: true,
-	// },
+	"config": {
+		aliases: []string{"conf"},
+		do: func(c *Client, args ...string) {
+			if len(args) == 0 {
+				fmt.Println("config directory:", c.configPath)
+				if c.clientCert.Certificate != nil {
+					fmt.Println("client certificate valid and loaded")
+				}
+				fmt.Println("no client certificate is found or loaded")
+				return
+			}
+			switch {
+			case strings.HasPrefix("edit", args[0]):
+				editor := os.ExpandEnv("$EDITOR")
+				path := filepath.Join(c.configPath, "config.toml")
+				if editor == "" {
+					fmt.Println("opening" + path + "...")
+					c.style.ErrorMsg("no $EDITOR is set!")
+					return
+				}
+				cmd := exec.Command(editor, path)
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Start(); err != nil {
+					fmt.Println("opening" + path + "...")
+					c.style.ErrorMsg(err.Error())
+					return
+				}
+				cmd.Stdin = os.Stdin
+				cmd.Wait()
+				fmt.Println("you can use `config reload` to reload the updated configuration.")
+				return
+			case strings.HasPrefix("reload", args[0]):
+				fmt.Println("reloading config directory " + c.configPath + "...")
+				conf, err := LoadConfig(filepath.Join(c.configPath, "config.toml"))
+				if err != nil {
+					c.style.ErrorMsg(err.Error())
+					fmt.Println("config is not updated")
+					return
+				}
+				c.conf = conf
+				fmt.Println("config file reloaded!")
+				fmt.Println("reloading client certificate...")
+				cert, err := loadClientCert(c.configPath)
+				if err != nil {
+					c.style.ErrorMsg(err.Error())
+					fmt.Println("client certificate is not reloaded")
+					return
+				}
+				c.clientCert = cert
+				if cert.Certificate == nil {
+					fmt.Println("no client certificate was found")
+				} else {
+					fmt.Println("client certificate is now active")
+				}
+				fmt.Println("client certificate reloaded!")
+			}
+			c.style.ErrorMsg("unknown subcommand for config: " + args[0])
+		},
+		help: `[ edit | reload ]: edit or reload your gelim config
+with no arguments, the currently active config location will be printed.
+
+Subcommands:
+- e[dit]   : opens the currently active config file in $EDITOR
+- r[eload] : re-read and reload an updated config file and client certificate`,
+	},
 	"page": {
 		aliases: []string{"p", "print", "view", "display"},
 		do: func(c *Client, args ...string) {
