@@ -211,18 +211,15 @@ func (c *Client) DisplayPage(page *Page) {
 // based on terminal width.
 func (c *Client) Centered(lines []string, width int, dedents []int) string {
 	hasDedents := len(dedents) == len(lines)
-	maxWidth := width // assume if width given, then no dedents
+	maxDedent := 0
 	if width == 0 {
 		for i, line := range lines {
 			length := len(line)
 			if length > width {
 				width = length
 			}
-			if hasDedents {
-				length += dedents[i]
-				if length > maxWidth {
-					maxWidth = length
-				}
+			if hasDedents && dedents[i] > maxDedent {
+				maxDedent = dedents[i]
 			}
 		}
 	}
@@ -237,8 +234,8 @@ func (c *Client) Centered(lines []string, width int, dedents []int) string {
 	if width > termWidth {
 		sides = 0
 	}
-	if (maxWidth - width) > sides {
-		sides = maxWidth - width + 1
+	if sides < maxDedent {
+		sides = maxDedent
 	}
 
 	for i, line := range lines {

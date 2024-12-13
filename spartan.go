@@ -40,19 +40,19 @@ func SpartanParsedURL(u *url.URL) (res *SpartanResponse, err error) {
 	if err != nil {
 		return
 	}
-	conn.Write([]byte(fmt.Sprintf("%s %s %d\r\n", u.Hostname(), path, len(input))))
+	fmt.Fprintf(conn, "%s %s %d\r\n", u.Hostname(), path, len(input))
 	conn.Write([]byte(input))
 	// Receive and parse response header
 	reader := bufio.NewReader(conn)
 	header, err := reader.ReadString(byte('\n'))
 	if err != nil {
-		return nil, errors.New("Error reading response header")
+		return nil, errors.New("error reading response header")
 	}
 	// Parse header
 	statusParts := strings.SplitN(header, " ", 2)
 	status, err := strconv.Atoi(statusParts[0])
 	if err != nil {
-		err = errors.New("Invalid response header")
+		err = errors.New("invalid response header")
 		return
 	}
 	meta := strings.Trim(statusParts[1], "\r\n")
