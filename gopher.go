@@ -16,23 +16,23 @@ type GopherResponse struct {
 }
 
 var gophertypes = map[string]string{
-	"0": "file",
-	"1": "map",
+	"0": "TXT",
+	"1": "DIR",
 	"3": "ERR",
 	"4": "BIN",
 	"5": "DOS",
 	"6": "UUE",
-	"7": "FTS",
+	"7": "SEARCH",
 	"8": "TEL",
 	"9": "BIN",
-	"g": "gif",
-	"G": "gmi",
-	"h": "html",
-	"I": "img",
-	"p": "png",
-	"s": "snd",
-	"S": "ssh",
-	"T": "tel",
+	"g": "GIF",
+	"G": "GMI",
+	"h": "HTML",
+	"I": "IMG",
+	"p": "PNG",
+	"s": "SND",
+	"S": "SSH",
+	"T": "TEL",
 }
 
 // GopherParsedURL fetches u and returns a GopherResponse
@@ -118,12 +118,7 @@ func (c *Client) ParseGophermap(page *Page) string {
 			}
 			c.links = append(c.links, link)
 			gophertype := "(" + getGophertype(string(columns[0][0])) + ")"
-			linkLine := fmt.Sprintf(
-				"%s  [%d] %s",
-				gophertype,
-				len(c.links),
-				linkStyle(title),
-			)
+			linkLine := fmt.Sprintf("%s  [%d] %s", gophertype, len(c.links), linkStyle(title))
 			dedents = append(dedents, len(gophertype)+2)
 			rendered = append(rendered, linkLine)
 		}
