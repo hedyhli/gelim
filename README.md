@@ -269,7 +269,7 @@ maxRedirects = 5
 index0shortcut = -1
 # default: unset (0). an alias for link index 0
 
-maxWidth = 90
+maxWidth = 70
 # width of each page is max(<terminalWidth>, maxWidth)
 # set to 0 to always use the terminal width.
 

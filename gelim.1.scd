@@ -150,7 +150,7 @@ Keys are case-insensitive.
 	For plain text documents, Nex directories, and gophermaps, the page will be
 	centered based on the maximum width of the text in the document.
 
-	Default is _90_.
+	Default is _70_.
 
 *useCertificate* = _LIST_
 	The list of full URL prefixes (including scheme) that should use the client

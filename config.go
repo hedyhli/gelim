@@ -38,7 +38,7 @@ func LoadConfig(path string) (*Config, error) {
 	// newlines :/
 	conf.LessOpts = "-FSXr~ -P pager (q to quit)"
 	conf.SearchURL = "gemini://kennedy.gemi.dev/search"
-	conf.MaxWidth = 90
+	conf.MaxWidth = 70
 	conf.ClipboardCopyCmd = ""
 
 	_, err = os.Stat(path)
