@@ -69,6 +69,24 @@ func (c *Client) parsePrompt() string {
 }
 
 func BuildPrompt(u *url.URL, promptConf string) (prompt string) {
+	fullURL := u.String()
+	if u.Scheme == "gopher" && strings.Contains(fullURL, "%09") {
+		parts := strings.Split(fullURL, "%09")
+		fullURL = strings.Join(parts[:len(parts)-1], "%09")
+	}
+	path := u.Path
+	if u.Scheme == "gopher" {
+		if strings.Contains(path, "\t") {
+			parts := strings.Split(path, "\t")
+			path = strings.Join(parts[:len(parts)-1], "%09")
+		}
+		parts := strings.SplitN(strings.TrimPrefix(path, "/"), "/", 2)
+		if len(parts) == 2 {
+			path = "/" + parts[1]
+		} else {
+			path = "/" + parts[0]
+		}
+	}
 	percent := false
 	for _, char := range promptConf {
 		if char == '%' {
@@ -89,15 +107,14 @@ func BuildPrompt(u *url.URL, promptConf string) (prompt string) {
 			case 'U':
 				prompt += strings.TrimSuffix(u.String(), "?"+u.RawQuery)
 			case 'u':
-				prompt += strings.TrimSuffix(strings.TrimPrefix(u.String(), u.Scheme+"://"), "?"+u.RawQuery)
+				prompt += strings.TrimSuffix(strings.TrimPrefix(fullURL, u.Scheme+"://"), "?"+u.RawQuery)
 			case 'P':
-				if !strings.HasPrefix(u.Path, "/") {
-					prompt += "/" + u.Path
-					break
+				if !strings.HasPrefix(path, "/") {
+					prompt += "/"
 				}
-				prompt += u.Path
+				prompt += path
 			case 'p':
-				prompt += filepath.Base(u.Path)
+				prompt += filepath.Base(path)
 			case 'H':
 				prompt += u.Host
 			case 'h':

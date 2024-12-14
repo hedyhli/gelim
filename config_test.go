@@ -54,6 +54,16 @@ func TestBuildPrompt(t *testing.T) {
 			"%H %h",
 			"x.example.org:9000 x.example.org",
 		},
+		{
+			mustParse("gopher://example.org:9000/1/"),
+			"%P %p",
+			"/ /",
+		},
+		{
+			mustParse("gopher://example.org:9000/0/dir/file.txt%09query"),
+			"%P %p %u",
+			"/dir/file.txt file.txt example.org:9000/0/dir/file.txt",
+		},
 	}
 
 	for _, test := range tests {
