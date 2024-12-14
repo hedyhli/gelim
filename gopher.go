@@ -53,7 +53,7 @@ func GopherParsedURL(u *url.URL) (res *GopherResponse, err error) {
 	pathParts := strings.SplitN(fullpath, "/", 2)
 	gophertype := pathParts[0]
 
-	fmt.Fprintf(conn, "%s\n", pathParts[1])
+	fmt.Fprintf(conn, "%s\n", "/"+pathParts[1])
 	reader := bufio.NewReader(conn)
 	res = &GopherResponse{
 		bodyReader: reader,
