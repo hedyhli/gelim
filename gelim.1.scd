@@ -157,7 +157,60 @@ Keys are case-insensitive.
 	certificate. The certificate and key files should be in the same directory
 	as the default config file location. Symlinks are supported.
 
+	See *CLIENT CERTIFICATES* for more information.
+
 	By default, this is an empty list.
+
+*prompt* = _STRING_
+	Newlines are supported. The default prompt is "%U\n>". Here are the
+	available components:
+
+[[ *Name*
+:[ *Replacement*
+:< *Example*
+|  %U
+:  Full URL including scheme and query
+:  gemini://example.org/file/path.gmi?query
+|  %u
+:  Full URL without scheme and query
+:  example.org/file/path.gmi
+|  %P
+:  Full path
+:  /file/path.gmi
+|  %p
+:  Basename in path
+:  path.gmi
+|  %H
+:  Full hostname with port
+:  x.example.org:1965
+|  %h
+:  Hostname without port
+:  x.example.org
+
+	
+	Note that gopher type selectors are stripped for both _%P_ and _%p_.
+
+# CLIENT CERTIFICATES
+
+To use a client certificate on certain gemini sites for authentication, you
+should prepare PEM-encoded files for the certificate and the key. Place them in
+the gelim config directory (see *FILES*), named _cert.pem_ and _key.pem_
+respectively. Symlinks are supported.
+
+On startup, gelim will look for these two files in the config directory and
+attempt to load these as a client certificate.
+
+To use the client certificate, list the URLs that you want to use it on in the
+*useCertificate* config option:
+
+```
+useCertificates = [
+    "gemini://example.org",
+]
+```
+
+In this example, or URLs that begins with "gemini://example.org" will use your
+client certificate.
 
 # FILES
 

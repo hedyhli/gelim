@@ -242,9 +242,105 @@ The list of full URL prefixes (including scheme) that should use the client
 certificate. The certificate and key files should be in the same directory
 as the default config file location. Symlinks are supported.
 .P
+See \fBCLIENT CERTIFICATES\fR for more information.
+.P
 By default, this is an empty list.
 .P
 .RE
+\fBprompt\fR = \fISTRING\fR
+.RS 4
+Newlines are supported. The default prompt is "%Un>". Here are the
+available components:
+.P
+.RE
+.TS
+allbox;l l lx
+l l lx
+l l lx
+l l lx
+l l lx
+l l lx
+l l lx.
+T{
+\fBName\fR
+T}	T{
+\fBReplacement\fR
+T}	T{
+\fBExample\fR
+T}
+T{
+%U
+T}	T{
+Full URL including scheme and query
+T}	T{
+gemini://example.org/file/path.gmi?query
+T}
+T{
+%u
+T}	T{
+Full URL without scheme and query
+T}	T{
+example.org/file/path.gmi
+T}
+T{
+%P
+T}	T{
+Full path
+T}	T{
+/file/path.gmi
+T}
+T{
+%p
+T}	T{
+Basename in path
+T}	T{
+path.gmi
+T}
+T{
+%H
+T}	T{
+Full hostname with port
+T}	T{
+x.example.org:1965
+T}
+T{
+%h
+T}	T{
+Hostname without port
+T}	T{
+x.example.org
+T}
+.TE
+.sp 1
+.RS 4
+.P
+Note that gopher type selectors are stripped for both \fI%P\fR and \fI%p\fR.
+.P
+.RE
+.SH CLIENT CERTIFICATES
+.P
+To use a client certificate on certain gemini sites for authentication, you
+should prepare PEM-encoded files for the certificate and the key. Place them in
+the gelim config directory (see \fBFILES\fR), named \fIcert.pem\fR and \fIkey.pem\fR
+respectively. Symlinks are supported.
+.P
+On startup, gelim will look for these two files in the config directory and
+attempt to load these as a client certificate.
+.P
+To use the client certificate, list the URLs that you want to use it on in the
+\fBuseCertificate\fR config option:
+.P
+.nf
+.RS 4
+useCertificates = [
+    "gemini://example\&.org",
+]
+.fi
+.RE
+.P
+In this example, or URLs that begins with "gemini://example.org" will use your
+client certificate.
+.P
 .SH FILES
 .P
 The config directory \fI$XDG_CONFIG_HOME/gelim/\fR is used by default. This is
