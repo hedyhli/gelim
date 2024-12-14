@@ -271,6 +271,7 @@ index0shortcut = -1
 
 maxWidth = 90
 # width of each page is max(<terminalWidth>, maxWidth)
+# set to 0 to always use the terminal width.
 
 useCertificates = [
     # default: [] (see details below)

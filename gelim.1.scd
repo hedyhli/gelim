@@ -143,7 +143,12 @@ Keys are case-insensitive.
 
 *maxWidth* = _NUMBER_
 	Each page will be rendered to maximum of max(_maxWidth_, terminal width)
-	columns wide for gemtext documents.
+	columns wide for gemtext documents, and centered.
+
+	Set to _0_ to always use the terminal width.
+
+	For plain text documents, Nex directories, and gophermaps, the page will be
+	centered based on the maximum width of the text in the document.
 
 	Default is _90_.
 
