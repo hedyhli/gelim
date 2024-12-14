@@ -268,11 +268,12 @@ func (c *Client) ParseGeminiPage(page *Page) string {
 	}
 	width := termWidth
 	sides := 0
-	if c.conf.MaxWidth != 0 && width > c.conf.MaxWidth {
+	if c.conf.MaxWidth > 0 && width > c.conf.MaxWidth {
 		width = c.conf.MaxWidth
-		// sides := int((termWidth - width) / 2)
-		// XXX: Huh?
-		sides = termWidth - width
+		sides = int((termWidth - width) / 2)
+	}
+	if c.conf.MaxWidth < 0 && width > (-c.conf.MaxWidth) {
+		width = -c.conf.MaxWidth
 	}
 
 	preformatted := false

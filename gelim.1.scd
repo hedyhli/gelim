@@ -147,6 +147,8 @@ Keys are case-insensitive.
 
 	Set to _0_ to always use the terminal width.
 
+	Set to negative X to use a maxWidth of X but disable centering.
+
 	For plain text documents, Nex directories, and gophermaps, the page will be
 	centered based on the maximum width of the text in the document.
 
